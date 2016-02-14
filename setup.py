@@ -14,11 +14,19 @@ setup(name='todone',
       license='MIT',
       packages=['todone'],
       include_package_data=True,
+      entry_points={
+          'console_scripts': [
+              'todone = todone.__main__:main',
+          ]
+      },
       classifiers = [
           "Programming Language :: Python",
           "Programming Language :: Python :: 3",
           "Development Status :: 1 - Planning",
           "License :: OSI Approved :: MIT License",
           "Operating System :: OS Independent",
+      ],
+      install_requires = [
+          'Django',
       ],
       zip_safe=False)

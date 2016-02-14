@@ -1,0 +1,18 @@
+INBOX = 'INBOX'
+NEXT = 'NEXT'
+TODAY = 'TODAY'
+REMIND = 'REMIND'
+SOMEDAY = 'SOMEDAY'
+DONE = 'DONE'
+CANCEL = 'CANCEL'
+FOLDERS = (INBOX, NEXT, TODAY, REMIND, SOMEDAY, DONE, CANCEL)
+PREFIXES = {
+    INBOX: '_',
+    NEXT: '__',
+    TODAY: '___',
+    REMIND: 'r',
+    SOMEDAY: 's_',
+    DONE: 'x',
+    CANCEL: 'xx',
+}
+FOLDER_CHOICES = ((t, t) for t in FOLDERS)
