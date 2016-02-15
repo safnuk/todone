@@ -4,12 +4,12 @@ db_conf = {
     'default': {
         # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '../todone.db',
+        'NAME': '../db.sqlite3',
     }
 }
 
 DATABASES = db_conf
-INSTALLED_APPS = ( "todos.db", )
+INSTALLED_APPS = ( 'todos.db', 'functional_tests', )
 ROOT_URLCONF = __name__
 SECRET_KEY = 'sdlfjh3r98ydsuh(^^*&q3kfeuvsdb)%%%dsfw8v' 
 

@@ -22,3 +22,7 @@ class Todo(models.Model):
     repeat_interval = models.CharField(
         max_length=10, blank=True,
     )
+
+    def __str__(self):
+        item = folders.PREFIXES[self.folder] + ' ' + self.action
+        return item
