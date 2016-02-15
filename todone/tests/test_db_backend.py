@@ -2,10 +2,10 @@ from contextlib import redirect_stdout
 import io
 from unittest import TestCase
 
-from ..actions import SCRIPT_DESCRIPTION
-from ..__main__ import main
-from ..todos import folders
-from ..todos.db import Todo
+from todone.actions import SCRIPT_DESCRIPTION
+from todone.application import main
+from todone.todos import folders
+from todone.todos.db import Todo
 
 class DB_Backend(TestCase):
 

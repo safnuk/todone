@@ -16,7 +16,7 @@ setup(name='todone',
       include_package_data=True,
       entry_points={
           'console_scripts': [
-              'todone = todone.__main__:main',
+              'todone = todone.application:main',
           ]
       },
       classifiers = [

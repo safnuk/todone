@@ -1,6 +1,6 @@
 import peewee
 
-from . import folders
+from todone.todos import folders
 
 db = peewee.SqliteDatabase('db.sqlite3')
 

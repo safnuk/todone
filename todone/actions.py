@@ -1,5 +1,5 @@
-from .todos import folders
-from .todos.db import Todo
+from todone.todos import folders
+from todone.todos.db import Todo
 
 SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 HELP_TEXT = ('usage: todone [--version] [--help] <command> [<args>]')
