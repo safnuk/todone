@@ -1,12 +1,11 @@
 from contextlib import redirect_stdout
 import io
-
-from django.test import TestCase
+from unittest import TestCase
 
 from ..actions import SCRIPT_DESCRIPTION
 from ..__main__ import main
 from ..todos import folders
-from todos.db.models import Todo
+from ..todos.db import Todo
 
 class DB_Backend(TestCase):
 
@@ -18,12 +17,12 @@ class DB_Backend(TestCase):
         self.assertIn(SCRIPT_DESCRIPTION, s)
 
     def test_default_list_is_today_items(self):
-        t1 = Todo(action='Item 1', folder=folders.INBOX)
-        t1.save()
-        t2 = Todo(action='Item 2', folder=folders.NEXT)
-        t2.save()
-        t3 = Todo(action='Item 3', folder=folders.TODAY)
-        t3.save()
+        # t1 = Todo(action='Item 1', folder=folders.INBOX)
+        # t1.save()
+        # t2 = Todo(action='Item 2', folder=folders.NEXT)
+        # t2.save()
+        # t3 = Todo(action='Item 3', folder=folders.TODAY)
+        # t3.save()
         f = io.StringIO()
         with redirect_stdout(f):
             main(args=['list'])

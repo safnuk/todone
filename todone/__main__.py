@@ -2,8 +2,6 @@ import argparse
 import os
 import sys
 
-from django.conf import settings
-
 from .actions import CHOICES as ACTION_CHOICES
 from .actions import SCRIPT_DESCRIPTION, dispatch_action
 
@@ -20,9 +18,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
-    # This is so models get loaded.
-    # from django.core.wsgi import get_wsgi_application
-    # application = get_wsgi_application()
-
     main()

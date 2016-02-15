@@ -1,1 +1,1 @@
-from .todos.flat.models import Todo
+from .todos.flat import Todo

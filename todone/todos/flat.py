@@ -1,4 +1,4 @@
-from .. import folders
+from . import folders
 
 class Todo:
 

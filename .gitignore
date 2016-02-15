@@ -2,6 +2,7 @@
 /dist/
 /*.egg-info
 /venv/
+/venv-arch/
 /.cache/
 /.eggs/
 db.sqlite3

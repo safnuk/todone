@@ -27,6 +27,6 @@ setup(name='todone',
           "Operating System :: OS Independent",
       ],
       install_requires = [
-          'Django',
+          'peewee',
       ],
       zip_safe=False)
