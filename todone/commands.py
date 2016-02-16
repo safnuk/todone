@@ -3,10 +3,22 @@ from todone.backends.db import Todo
 from todone.printers import print_todo
 
 SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
-HELP_TEXT = ('usage: todone [--version] [--help] <command> [<args>]')
 
 def help_text(args):
-    print(SCRIPT_DESCRIPTION)
+    """Command-line agenda and todo-list manager.
+
+usage: todone [--version] [--help] <command> [<args>]
+
+Allowed commands include:
+    help    Display this help message
+    list    Print a list of todos matching given search terms
+
+See todone help <command> to read more about a specific command.
+    """
+    if not args:
+        print(help_text.__doc__)
+    if len(args) == 1 and args[0].lower() in CHOICES:
+        print(CHOICES[args[0].lower()].__doc__)
 
 
 def list_items(args):
@@ -23,18 +35,20 @@ def list_items(args):
     is interprested as a python regular expression. However, searches
     are always case insensitive.
 
-    today, t: restricts to todos with today prefix
-    next, n: restricts to todos with next prefix
-    inbox, i: restricts to todos with inbox prefix
-    remind, r: restricts to todos with reminder prefix
-    r[emind]+#{d,w,m,y}: restricts to reminders with dates within the
-        specified interval.
-    due, d: restricts to todos with a due date
-    d[ue]+#{d,w,m,y}: restricts to todos due within specified interval
-    all, a: every active todo matches the search criteria (done and
-        someday todos are excluded).
-    done: restricts to todos with done prefix.
-    someday: restricts to todos with someday prefix.
+    today, t:   restricts to today todos
+    next, n:    restricts to next todos
+    inbox, i:   restricts to inbox todos
+    remind, r:  restricts to reminder todos
+    r[emind]+N{d|w|m|y}:
+                restricts to reminders with dates within the
+                specified interval (N an integer)
+    due, d:     restricts to todos with a due date
+    d[ue]+N{d|w|m|y}: 
+                restricts to todos due within specified interval
+    all, a:     every active todo matches the search criteria (done and
+                someday todos are excluded).
+    done:       restricts to done todos
+    someday:    restricts to someday todos
 
     If .file is specified, then search results are saved to .file.
     Otherwise, the default file is .todos.
@@ -46,8 +60,11 @@ def list_items(args):
     E.g.,
         > todone list .my_search today @Work
             (Lists all today items containing tag @Work)
-        > todone list next [My Project]
-            (Lists all next items from project [My Project])
+        > todone list next due+1w [My Project]
+            (Lists all next items from project [My Project] due in
+             the next week)
+        > todone list
+            (Repeats most recent search)
         > todone list .my_search
             (Repeats list from first search)
         > todone list
