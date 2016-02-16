@@ -9,8 +9,15 @@ def help_text(args):
 
 
 def list_items(args):
-    for todo in Todo.select().where(Todo.folder == folders.TODAY):
-        print(todo)
+    if not args:
+        for todo in Todo.select().where(Todo.folder == folders.TODAY):
+            print(todo)
+        return
+    if len(args) > 0 and args[0].upper() in folders.FOLDERS:
+        for todo in Todo.select().where(Todo.folder == args[0].upper()):
+            print(todo)
+    else:
+        assert 0
 
 
 def dispatch(action, args):

@@ -5,7 +5,7 @@ from unittest import TestCase
 import peewee
 from playhouse.test_utils import test_database
 
-from todone.actions import SCRIPT_DESCRIPTION
+from todone.commands import SCRIPT_DESCRIPTION
 from todone.application import main
 from todone.todos import folders
 from todone.todos.db import Todo
@@ -25,19 +25,29 @@ class DB_Backend(TestCase):
         s = f.getvalue()
         self.assertIn(SCRIPT_DESCRIPTION, s)
 
-    def test_default_list_is_today_items(self):
-        t1 = Todo(action='Item 1', folder=folders.INBOX)
-        t1.save()
-        t2 = Todo(action='Item 2', folder=folders.NEXT)
-        t2.save()
-        t3 = Todo(action='Item 3', folder=folders.TODAY)
-        t3.save()
+    def test_list_folder_restricts_to_correct_todos(self):
+        todos = {}
+        for n, folder in enumerate(folders.FOLDERS):
+            todos[folder] = Todo.create(
+                action='Item {}'.format(n), folder=folder
+            )
         f = io.StringIO()
         with redirect_stdout(f):
-            main(args=['list'])
+            main(['list'])
         s = f.getvalue()
-        self.assertNotIn('Item 1', s)
-        self.assertNotIn('Item 2', s)
-        self.assertIn('___ Item 3', s)
+        for folder in [x for x in folders.FOLDERS if x is not folders.TODAY]:
+            self.assertNotIn(str(todos[folder]), s)
+        self.assertIn(str(todos[folders.TODAY]), s)
+
+        for list_folder in folders.FOLDERS:
+            f = io.StringIO()
+            with redirect_stdout(f):
+                main(['list', list_folder])
+            s = f.getvalue()
+            for folder in [
+                    x for x in folders.FOLDERS if x is not list_folder
+            ]:
+                self.assertNotIn(str(todos[folder]), s)
+            self.assertIn(str(todos[list_folder]), s)
 
 
