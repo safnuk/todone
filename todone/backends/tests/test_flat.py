@@ -1,8 +1,8 @@
 import datetime
 from unittest import TestCase
 
-from todone.todos import folders
-from todone.todos.flat import Todo
+from todone.backends import folders
+from todone.backends.flat import Todo
 
 class TestFlatTodoModel(TestCase):
 

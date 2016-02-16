@@ -1,7 +1,7 @@
 import peewee
 
 from todone import config
-from todone.todos import folders
+from todone.backends import folders
 
 db = peewee.SqliteDatabase(config.db['name'])
 

@@ -7,8 +7,8 @@ from playhouse.test_utils import test_database
 
 from todone.commands import SCRIPT_DESCRIPTION
 from todone.application import main
-from todone.todos import folders
-from todone.todos.db import Todo
+from todone.backends import folders
+from todone.backends.db import Todo
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
 

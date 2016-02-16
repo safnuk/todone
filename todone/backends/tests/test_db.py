@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 import peewee
 from playhouse.test_utils import test_database
 
-from todone.todos import folders
-from todone.todos.db import create_tables, Todo
+from todone.backends import folders
+from todone.backends.db import create_tables, Todo
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
 

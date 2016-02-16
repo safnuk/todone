@@ -1,4 +1,4 @@
-from todone.todos import folders
+from todone.backends import folders
 
 class Todo:
 
