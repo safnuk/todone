@@ -5,8 +5,7 @@ from unittest import TestCase
 import peewee
 from playhouse.test_utils import test_database
 
-from todone.commands import SCRIPT_DESCRIPTION
-from todone.application import main
+from todone.application import main, SCRIPT_DESCRIPTION
 from todone.backends import folders
 from todone.backends.db import Todo
 

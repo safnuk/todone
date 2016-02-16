@@ -2,8 +2,10 @@ import argparse
 import os
 import sys
 
-from todone.commands import CHOICES as COMMAND_CHOICES
-from todone.commands import SCRIPT_DESCRIPTION, dispatch
+from todone.commands.dispatch import CHOICES as COMMAND_CHOICES
+from todone.commands import dispatch
+
+SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 
 def main(cli_args=None):
     if cli_args is None:
