@@ -9,9 +9,11 @@ def help_text(args):
 
 
 def list_items(args):
-    pass
+    for todo in Todo.select().where(Todo.folder == folders.TODAY):
+        print(todo)
 
-def dispatch_action(action, args):
+
+def dispatch(action, args):
     CHOICES[action](args)
 
 

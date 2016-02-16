@@ -3,7 +3,7 @@ import os
 import sys
 
 from todone.actions import CHOICES as ACTION_CHOICES
-from todone.actions import SCRIPT_DESCRIPTION, dispatch_action
+from todone.actions import SCRIPT_DESCRIPTION, dispatch
 
 def main(args=None):
     if args is None:
@@ -14,4 +14,4 @@ def main(args=None):
 
     args = parser.parse_args(args)
 
-    dispatch_action(args.action, args)
+    dispatch(args.action, args)

@@ -4,7 +4,7 @@ from unittest import TestCase
 from todone.todos import folders
 from todone.todos.flat import Todo
 
-class test_flat_todo_model(TestCase):
+class TestFlatTodoModel(TestCase):
 
     def test_class_is_importable(self):
         t = Todo('Blank')
