@@ -1,4 +1,5 @@
 import datetime
+from datetime import date, timedelta
 from unittest import skip, TestCase
 from unittest.mock import Mock, patch
 
@@ -40,6 +41,23 @@ class TestDatabaseTodoModel(TestCase):
         t = Todo(action='Test')
         t.save()
         self.assertEqual(t.folder, folders.INBOX)
+
+    def test_active_todos_restricts_select(self):
+        todos = {}
+        for n, folder in enumerate(folders.FOLDERS):
+            todos[folder] = Todo.create(
+                action='Item {}'.format(n), folder=folder
+            )
+        active = Todo.active_todos()
+        active_todos = [t for t in active]
+
+        test_active = [folders.INBOX, folders.NEXT, folders.TODAY]
+        test_inactive = [x for x in folders.FOLDERS if x not in test_active]
+        for folder in test_inactive:
+            self.assertNotIn(todos[folder], active_todos)
+        for folder in test_active:
+            self.assertIn(todos[folder], active_todos)
+
 
     @skip
     def test_todo_raises_with_invalid_folder(self):

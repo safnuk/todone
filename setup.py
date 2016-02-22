@@ -28,5 +28,6 @@ setup(name='todone',
       ],
       install_requires = [
           'peewee',
+          'python-dateutil',
       ],
       zip_safe=False)

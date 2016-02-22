@@ -1,0 +1,6 @@
+- Make max date(9999, 12, 31) into global constant
+- Add project folder for project titles
+- Add cal folder for calendar items
+- Change remind folder to just an option for all todos
+- Decide when and how to clear DONE and CANCEL items from saved lists
+- Decide when and how to clear CANCEL items from database

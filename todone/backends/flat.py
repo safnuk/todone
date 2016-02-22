@@ -13,8 +13,3 @@ class Todo:
             self.folder = folder
         else:
             raise ValueError("Invalid todo type specified")
-        if folder == folders.REMIND:
-            if remind_date:
-                self.remind_date = remind_date
-            else:
-                raise ValueError("Reminders need to specify a date")

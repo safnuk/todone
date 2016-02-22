@@ -1,3 +1,5 @@
+from datetime import date
+
 import peewee
 
 from todone import config
@@ -18,15 +20,34 @@ class Todo(BaseModel):
     folder = peewee.CharField(
         default = folders.INBOX,
     )
-    # remind_date = peewee.DateField()
+    remind_date = peewee.DateField(
+        null = True
+    )
     # date_completed = peewee.DateField()
-    # due_date = peewee.DateField()
+    due_date = peewee.DateField(null=True)
     # notes = peewee.CharField()
     # repeat_interval = peewee.CharField()
 
     def __str__(self):
         item = folders.PREFIXES[self.folder] + ' ' + self.action
         return item
+
+    def __repr__(self):
+        output = '{} {}'.format(self.folder, self.action)
+        return output
+
+    @classmethod
+    def active_todos(cls):
+        """
+        Construct a select query of all active todos. Active
+        todos are: inbox, next, and today.
+        """
+        active = cls.select().where(
+            (Todo.folder == folders.INBOX) |
+            (Todo.folder == folders.NEXT) |
+            (Todo.folder == folders.TODAY)
+        )
+        return active
 
 
 def create_tables():

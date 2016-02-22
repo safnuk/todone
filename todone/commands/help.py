@@ -1,7 +1,10 @@
 import textwrap
 
+import todone
+
 def help_text(args):
-    """Command-line agenda and todo-list manager.
+    """
+    Command-line agenda and todo-list manager.
 
     usage: todone [--version] [--help] <command> [<args>]
 
@@ -13,6 +16,5 @@ def help_text(args):
     """
     if not args:
         print(textwrap.dedent(help_text.__doc__))
-    if len(args) == 1 and args[0].lower() in CHOICES:
-        print(textwrap.dedent(CHOICES[args[0].lower()].__doc__))
-
+    if len(args) == 1 and args[0].lower() in todone.commands.COMMAND_MAPPING:
+        print(textwrap.dedent(todone.commands.COMMAND_MAPPING[args[0].lower()].__doc__))
