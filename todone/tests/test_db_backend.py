@@ -12,18 +12,25 @@ from todone.backends.db import Todo
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
 
+
 class DB_Backend(TestCase):
 
     def run(self, result=None):
         with test_database(in_memory_db, [Todo,]):
             super().run(result)
         
+
+class TestHelpAction(DB_Backend):
+
     def test_help_arg_returns_help_string(self):
         f = io.StringIO()
         with redirect_stdout(f):
             main(['help'])
         s = f.getvalue()
         self.assertIn(SCRIPT_DESCRIPTION, s)
+
+
+class TestListAction(DB_Backend):
 
     def test_list_folder_restricts_to_correct_todos(self):
         todos = {}
@@ -207,6 +214,7 @@ class DB_Backend(TestCase):
         self.assertIn(str(t2), s)
         self.assertNotIn(str(t3), s)
 
+
     def test_list_restricts_by_duedate(self):
         t1 = Todo.create(
             action = 'Test 1',
@@ -388,3 +396,7 @@ class DB_Backend(TestCase):
     def test_list_restricts_by_project(self):
         self.fail("Write this test!")
 
+
+    @skip
+    def test_list_saves_last_search(self):
+        self.fail("Write this test!")

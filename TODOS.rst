@@ -4,3 +4,4 @@
 - Change remind folder to just an option for all todos
 - Decide when and how to clear DONE and CANCEL items from saved lists
 - Decide when and how to clear CANCEL items from database
+- Refactor tests using fixtures
