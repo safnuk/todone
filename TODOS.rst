@@ -5,3 +5,7 @@
 - Decide when and how to clear DONE and CANCEL items from saved lists
 - Decide when and how to clear CANCEL items from database
 - Refactor tests using fixtures
+- Add error handling for parsing invalid arguments
+- Refactor list_items to simplify
+- Refactor arg parsing into separate module
+

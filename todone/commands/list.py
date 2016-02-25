@@ -31,13 +31,13 @@ def list_items(args):
     today's date are also included.
 
     Allowed tags are:
-    
+
     due[+N{d|w|m|y}],
     remind[+N{d|w|m|y}],
     [Folder name] or [N] where N is the number associated to the
     project. This can be obtained by typing
         todone list project
- 
+
     The remainder of the search string provides keywords that must
     appear in the todo title. However, searches are always case
     insensitive.
@@ -136,7 +136,7 @@ def parse_folder(arg):
 
 
 def parse_keyword(arg):
-    max_date = datetime.date(9999,12,31)
+    max_date = datetime.date(9999, 12, 31)
     if arg.lower() in ['d', 'du', 'due']:
         return 'due', max_date
     match = re.fullmatch(r'(due|du|d)\+(\d+)(d|w|m|y)', arg.lower())
@@ -156,7 +156,8 @@ def parse_keyword(arg):
 
     if arg.lower() in ['r', 're', 'rem', 'remi', 'remind']:
         return 'remind', max_date
-    match = re.fullmatch(r'(remind|remin|remi|rem|re|r)\+(\d+)(d|w|m|y)', arg.lower())
+    match = re.fullmatch(r'(remind|remin|remi|rem|re|r)\+(\d+)(d|w|m|y)',
+                         arg.lower())
     if match:
         shifted_date = datetime.date.today()
         n = int(match.group(2))
@@ -172,4 +173,3 @@ def parse_keyword(arg):
         return 'remind', shifted_date
 
     return None, None
-    
