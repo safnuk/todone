@@ -3,6 +3,32 @@ import re
 from todone.commands import COMMAND_MAPPING
 
 
+class BasicMatch(object):
+    def match(target, args):
+        raise NotImplementedError("Subclass must implement virtual method")
+
+
+class EqualityMatch(BasicMatch):
+    def match(targets, args):
+        for keyword in targets:
+            if keyword == args[0]:
+                return args[0], args[1:]
+        return None, args
+
+
+class SubstringMatch(BasicMatch):
+    def match(targets, args):
+        for keyword in targets:
+            if keyword.lower().startswith(args[0].lower()):
+                return keyword, args[1:]
+        return None, args
+
+
+class RegexMatch(BasicMatch):
+    def match(targets, args):
+        pass
+
+
 class ArgParser:
     def __init__(self, arg_types=[]):
         self.arguments = []
@@ -63,16 +89,17 @@ class Argument:
 
     def parse_arg(self, args):
         if self.nargs == 1:
-            return self.matcher(self, args)
+            value, args = self.matcher(self, args)
+            key = self.name if value else None
+            return key, value, args
         parsed = []
         index = 0
         something_parsed = False
         while args[index:]:
-            key, value, new_args = self.matcher(self, args[index:])
+            value, new_args = self.matcher(self, args[index:])
             if value:
-                parsed.append(value)
-            if key:
                 something_parsed = True
+                parsed.append(value)
             if args[index:] == new_args:
                 index += 1
             else:
@@ -83,14 +110,14 @@ class Argument:
     def match_start(self, args):
         for match in self.options:
             if match.lower().startswith(args[0].lower()):
-                return self.name, match, args[1:]
-        return None, None, args
+                return match, args[1:]
+        return None, args
 
     def match_regex(self, args):
         for regex in self.options:
             if re.fullmatch(regex, args[0], re.IGNORECASE):
-                return self.name, args[0], args[1:]
-        return None, None, args
+                return args[0], args[1:]
+        return None, args
 
     def passthrough(self, arg):
         return arg

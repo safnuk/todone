@@ -7,5 +7,5 @@
 - Refactor tests using fixtures
 - Add error handling for parsing invalid arguments
 - Refactor list_items to simplify
-- Refactor arg parsing into separate module
-
+- Incorporate ArgParser into application code
+- Refactor ArgParser to use inheritance mixins for matching, transforming

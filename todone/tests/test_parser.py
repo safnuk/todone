@@ -1,5 +1,4 @@
 from unittest import TestCase
-from unittest.mock import Mock
 
 from todone.argparser import Argument, ArgParser, PARSE_INIT
 from todone.commands import COMMAND_MAPPING
@@ -42,7 +41,7 @@ class TestArgument(TestCase):
 
     @staticmethod
     def mock_always_match(parser, args):
-        return parser.name, args[0], args[1:]
+        return args[0], args[1:]
 
     def test_default_values(self):
         parser = Argument(name='test')
@@ -54,12 +53,11 @@ class TestArgument(TestCase):
         self.assertEqual(parser.transformer, Argument.passthrough)
 
     def test_parse_arg_calls_matcher_once_when_nargs_1(self):
-        mock_matcher = Mock()
         parser = Argument(name='name', options=['test', 'WORD'],
-                          matcher=mock_matcher)
+                          matcher=self.mock_always_match)
         args = ['arg1', 'arg2']
-        parser.parse_arg(args)
-        mock_matcher.assert_called_once_with(parser, args)
+        parsed = parser.parse_arg(args)
+        self.assertEqual(parsed, ('name', 'arg1', ['arg2', ]))
 
     def test_parse_arg_calls_matcher_on_each_arg_when_nargs_multiple(self):
         parser = Argument(name='name', options=['test', 'WORD'],
@@ -75,22 +73,18 @@ class TestArgument(TestCase):
         key1 = 'test'
         key2 = 'word'
         for n in range(1, 4):
-            key, value, args = parser.match_start([key1[:n], 'arg1', 'arg2'])
-            self.assertEqual(key, 'name')
+            value, args = parser.match_start([key1[:n], 'arg1', 'arg2'])
             self.assertEqual(value, 'test')
             self.assertEqual(args, ['arg1', 'arg2'])
-            key, value, args = parser.match_start(
+            value, args = parser.match_start(
                 [key1.upper()[:n], 'arg1', 'arg2'])
-            self.assertEqual(key, 'name')
             self.assertEqual(value, 'test')
             self.assertEqual(args, ['arg1', 'arg2'])
-            key, value, args = parser.match_start([key2[:n], 'arg1', 'arg2'])
-            self.assertEqual(key, 'name')
+            value, args = parser.match_start([key2[:n], 'arg1', 'arg2'])
             self.assertEqual(value, 'WORD')
             self.assertEqual(args, ['arg1', 'arg2'])
-            key, value, args = parser.match_start(
+            value, args = parser.match_start(
                 [key2.upper()[:n], 'arg1', 'arg2'])
-            self.assertEqual(key, 'name')
             self.assertEqual(value, 'WORD')
             self.assertEqual(args, ['arg1', 'arg2'])
 
@@ -109,7 +103,6 @@ class TestArgument(TestCase):
             ['Due+5w'],
         ]
         for testarg in testargs:
-            key, value, args = parser.match_regex(testarg)
-            self.assertEqual(key, 'name')
+            value, args = parser.match_regex(testarg)
             self.assertEqual(value, testarg[0])
             self.assertEqual(args, testarg[1:])
