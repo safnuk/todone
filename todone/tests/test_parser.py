@@ -1,3 +1,5 @@
+from datetime import date
+from dateutil.relativedelta import relativedelta
 from unittest import TestCase
 
 from todone.argparser import (
@@ -6,6 +8,8 @@ from todone.argparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     Argument,
+    ArgumentError,
+    DateFormat,
     EqualityMatch,
     FolderMatch,
     Nargs,
@@ -35,7 +39,7 @@ class MockFixedNumberMatch(AbstractMatch):
     def match(self, targets, args):
         self.call_list.append((targets, args))
         if self.number_of_matches < self.match_limit:
-            self.match_limit += 1
+            self.number_of_matches += 1
             return args[0], args[1:]
         return None, args
 
@@ -89,6 +93,16 @@ class TestArgumentFactory(TestCase):
         self.assertEqual(parser.format_function, f)
 
 
+class MockPassthroughFormat(PassthroughFormat):
+    def __init__(self, *args, **kwargs):
+        self.format_call_list = []
+        super().__init__(*args, **kwargs)
+
+    def format(self, values):
+        self.format_call_list.append(values)
+        super().format(values)
+
+
 class TestArgument(TestCase):
 
     def test_default_values(self):
@@ -101,12 +115,59 @@ class TestArgument(TestCase):
         self.assertTrue(issubclass(type(parser), AbstractMatch))
         self.assertTrue(issubclass(type(parser), AbstractFormat))
 
+    def test_format_called_on_matched_args(self):
+        parser = Argument.create(
+            name='name', nargs=2, match_limit=2,
+            match=MockFixedNumberMatch,
+            format=MockPassthroughFormat
+        )
+        args = ['foo', 'bar', 'buzz', 'baz']
+        parser.parse(args)
+        self.assertEqual(parser.format_call_list, [
+            ['foo', 'bar']
+        ])
+
+    def test_raises_when_not_enough_matches_with_integer_nargs(self):
+        for n in range(2):
+            parser = Argument.create(
+                name='name', nargs=n+1, match_limit=n,
+                match=MockFixedNumberMatch
+            )
+            args = ['foo', 'bar', 'buzz', 'baz']
+            with self.assertRaises(ArgumentError):
+                parser.parse(args)
+
+    def test_raises_with_zero_matches_and_nargs_plus(self):
+        parser = Argument.create(
+            name='name', nargs='+', match_limit=0,
+            match=MockFixedNumberMatch
+        )
+        args = ['foo', 'bar', 'buzz', 'baz']
+        with self.assertRaises(ArgumentError):
+            parser.parse(args)
+
+    def test_does_not_raise_with_zero_matches_and_nargs_star(self):
+        parser = Argument.create(
+            name='name', nargs='*', match_limit=0,
+            match=MockFixedNumberMatch
+        )
+        args = ['foo', 'bar', 'buzz', 'baz']
+        parser.parse(args)  # does not raise
+
+    def test_does_not_raise_with_zero_matches_and_nargs_question_mark(self):
+        parser = Argument.create(
+            name='name', nargs='?', match_limit=0,
+            match=MockFixedNumberMatch
+        )
+        args = ['foo', 'bar', 'buzz', 'baz']
+        parser.parse(args)  # does not raise
+
 
 class TestPositionalArgument(TestCase):
 
     def test_parse_arg_stops_on_first_nonmatch(self):
         parser = Argument.create(
-            name='name', positional=True, nargs=3, match_limit=2,
+            name='name', positional=True, nargs='*', match_limit=2,
             match=MockFixedNumberMatch
         )
         args = ['foo', 'bar', 'buzz', 'baz']
@@ -118,21 +179,21 @@ class TestPositionalArgument(TestCase):
         ])
 
     def test_parse_arg_stops_when_target_number_of_matches_found(self):
-        for n in range(1, 7):
+        for n in range(1, 4):
             parser = Argument.create(
                 name='name', positional=True,
                 nargs=n,
                 match=MockAlwaysMatch)
             args = ['foo', 'bar', 'buzz', 'baz']
             key, value, unmatched_args = parser.parse(args)
-            calls = n if n < 5 else 4
+            calls = n
             self.assertEqual(len(parser.call_list), calls)
             self.assertEqual(value, args[:n])
             self.assertEqual(unmatched_args, args[n:])
 
     def test_parse_arg_returns_null_key_when_no_match(self):
         parser = Argument.create(
-            name='name', positional=True, match_limit=0,
+            name='name', positional=True, nargs='?', match_limit=0,
             match=MockFixedNumberMatch
         )
         args = ['foo', 'bar', 'buzz', 'baz']
@@ -160,7 +221,7 @@ class TestNonPositionalArgument(TestCase):
 
     def test_parse_arg_does_not_stop_on_nonmatch(self):
         parser = Argument.create(
-            name='name', positional=False, nargs=3, match_limit=2,
+            name='name', positional=False, nargs='*', match_limit=2,
             match=MockAlternatingMatch
         )
         args = ['foo', 'bar', 'buzz', 'baz']
@@ -175,7 +236,7 @@ class TestNonPositionalArgument(TestCase):
 
     def test_parse_arg_returns_matched_args(self):
         parser = Argument.create(
-            name='name', positional=False, nargs=3, match_limit=2,
+            name='name', positional=False, nargs=2, match_limit=2,
             match=MockAlternatingMatch
         )
         args = ['foo', 'bar', 'buzz', 'baz']
@@ -184,7 +245,7 @@ class TestNonPositionalArgument(TestCase):
 
     def test_parse_arg_returns_unmatched_args(self):
         parser = Argument.create(
-            name='name', positional=False, nargs=3, match_limit=2,
+            name='name', positional=False, nargs=2, match_limit=2,
             match=MockAlternatingMatch
         )
         args = ['foo', 'bar', 'buzz', 'baz']
@@ -210,7 +271,7 @@ class TestNonPositionalArgument(TestCase):
 
     def test_parse_arg_returns_null_key_when_no_match(self):
         parser = Argument.create(
-            name='name', positional=False, match_limit=0,
+            name='name', positional=False, nargs='?', match_limit=0,
             match=MockFixedNumberMatch
         )
         args = ['foo', 'bar', 'buzz', 'baz']
@@ -489,3 +550,79 @@ class TestApplyFunctionFormat(TestCase):
         value = ['arg1', 'arg2']
         formatter.format(value)
         self.assertEqual(mock_ff.call_list, [value, ])
+
+
+class MockDateMatch():
+    def __init__(self, offset=None, interval=None):
+        self.offset = offset
+        self.interval = interval
+
+    def groups(self):
+        if self.offset and self.interval:
+            return (
+                'due', '+',
+                '{}'.format(self.offset),
+                '{}'.format(self.interval)
+            )
+        else:
+            return ('due', )
+
+    def group(self, index):
+        if index == 0:
+            if self.offset and self.interval:
+                return 'due+{}{}'.format(self.offset, self.interval)
+            else:
+                return 'due'
+        if index == 1 or index == 'name':
+            return 'due'
+        if not (self.offset and self.interval):
+            raise IndexError
+        if index == 2 or index == 'sign':
+            return '+'
+        if index == 3 or index == 'offset':
+            return '{}'.format(self.offset)
+        if index == 4 or index == 'interval':
+            return '{}'.format(self.interval)
+        raise IndexError
+
+
+class TestDateFormat(TestCase):
+
+    def test_no_date_offset_returns_max_date(self):
+        max_date = date(9999, 12, 31)
+        formatter = DateFormat()
+        match = MockDateMatch()
+        output = formatter.format([match, ])
+        self.assertEqual(output, max_date)
+
+    def test_day_offset_shifts_date_by_correct_amount(self):
+        offset = date.today()
+        offset += relativedelta(days=5)
+        formatter = DateFormat()
+        match = MockDateMatch(5, 'd')
+        output = formatter.format([match, ])
+        self.assertEqual(output, offset)
+
+    def test_week_offset_shifts_date_by_correct_amount(self):
+        offset = date.today()
+        offset += relativedelta(weeks=5)
+        formatter = DateFormat()
+        match = MockDateMatch(5, 'w')
+        output = formatter.format([match, ])
+        self.assertEqual(output, offset)
+
+    def test_month_offset_shifts_date_by_correct_amount(self):
+        offset = date.today()
+        offset += relativedelta(months=5)
+        formatter = DateFormat()
+        match = MockDateMatch(5, 'm')
+        output = formatter.format([match, ])
+        self.assertEqual(output, offset)
+
+    def test_year_offset_shifts_date_by_correct_amount(self):
+        offset = date.today()
+        offset += relativedelta(years=5)
+        formatter = DateFormat()
+        match = MockDateMatch(5, 'y')
+        output = formatter.format([match, ])
+        self.assertEqual(output, offset)

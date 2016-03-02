@@ -1,3 +1,5 @@
+from datetime import date
+from dateutil.relativedelta import relativedelta
 import re
 
 from todone.commands import COMMAND_MAPPING
@@ -117,6 +119,28 @@ class PassthroughFormat(ApplyFunctionFormat):
         super().__init__(*args, **kwargs)
 
 
+class DateFormat(AbstractFormat):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def format(self, values):
+        value = values[0]
+        offset_date = date.today()
+        if len(value.groups()) == 1:
+            return date(9999, 12, 31)
+        offset = int(value.group('offset'))
+        interval = value.group('interval').lower()
+        if 'days'.startswith(interval):
+            offset_date += relativedelta(days=offset)
+        elif 'weeks'.startswith(interval):
+            offset_date += relativedelta(weeks=offset)
+        elif 'months'.startswith(interval):
+            offset_date += relativedelta(months=offset)
+        elif 'years'.startswith(interval):
+            offset_date += relativedelta(years=offset)
+        return offset_date
+
+
 class ArgParser:
     def __init__(self, arg_types=[]):
         self.arguments = []
@@ -198,7 +222,9 @@ class Argument(AbstractMatch, AbstractFormat):
                 args = args[1:]
         key = self.name if parsed else None
         unmatched_args += args
-        return key, parsed, unmatched_args
+        if len(parsed) < self.nargs.min:
+            raise ArgumentError()
+        return key, self.format(parsed), unmatched_args
 
 
 class Nargs:
@@ -217,9 +243,13 @@ class Nargs:
         try:
             self.min = int(nargs)
             self.max = int(nargs)
-        except ValueError or TypeError:
+        except (ValueError, TypeError):
             self.min = Nargs.MINS[nargs]
             self.max = Nargs.MAXS[nargs]
+
+
+class ArgumentError(Exception):
+    pass
 
 
 PARSE_INIT = [
