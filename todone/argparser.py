@@ -56,12 +56,65 @@ class RegexMatch(AbstractMatch):
         return None, args
 
 
-class AbstractTransform(object):
+class FolderMatch(AbstractMatch):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def transform(self, value):
+    def match(self, targets, args):
+        regex = r'(?P<start>[^[]*)\[(?P<folder>[^\]]+)\](?P<end>.*)'
+        regex_match = re.fullmatch(regex, args[0], re.IGNORECASE)
+        if regex_match:
+            arg_start = regex_match.group('start').strip()
+            arg_end = regex_match.group('end').strip()
+            # strip combined arg to leave empty string if both empty
+            arg = (arg_start + ' ' + arg_end).strip()
+            remaining_args = [arg] + args[1:] if arg else args[1:]
+            return regex_match.group('folder').strip(), remaining_args
+        regex_start = r'(?P<start>[^[]*)\[(?P<folder_start>[^\]]+)'
+        regex_end = r'(?P<folder_end>[^\]]*)\](?P<end>.*)'
+        regex_match_start = re.fullmatch(regex_start, args[0])
+        if regex_match_start:
+            folder = []
+            arg_start = regex_match_start.group('start').strip()
+            folder.append(regex_match_start.group('folder_start').strip())
+            for n, arg in enumerate(args[1:]):
+                regex_match_end = re.fullmatch(regex_end, arg)
+                if regex_match_end:
+                    folder.append(regex_match_end.group('folder_end').strip())
+                    arg_end = regex_match_end.group('end').strip()
+                    # strip combined arg to leave empty string if both empty
+                    firstarg = (arg_start + ' ' + arg_end).strip()
+                    remaining_args = (
+                        [firstarg] + args[n+2:] if firstarg else args[n+2:]
+                    )
+                    return ' '.join(folder), remaining_args
+                else:
+                    folder.append(arg)
+        return None, args
+
+
+class AbstractFormat(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def format(self, value):
         raise NotImplementedError("Subclass must implement virtual method")
+
+
+class ApplyFunctionFormat(AbstractFormat):
+    def __init__(self, format_function=None, *args, **kwargs):
+        self.format_function = format_function
+        super().__init__(*args, **kwargs)
+
+    def format(self, value):
+        if self.format_function:
+            return self.format_function(value)
+        return value
+
+
+class PassthroughFormat(ApplyFunctionFormat):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class ArgParser:
@@ -82,7 +135,7 @@ class ArgParser:
         return parsed
 
 
-class Argument(AbstractMatch, AbstractTransform):
+class Argument(AbstractMatch, AbstractFormat):
     """
     Class which attempts to match a specified type of argument
     from a list of arguments. Use factory function create, with arguments:
@@ -123,10 +176,10 @@ class Argument(AbstractMatch, AbstractTransform):
     def create(
         name,
         match=EqualityMatch,
-        transform=AbstractTransform,
+        format=PassthroughFormat,
         *args, **kwargs
     ):
-        class CustomArgument(Argument, match, transform):
+        class CustomArgument(Argument, match, format):
             pass
 
         return CustomArgument(name, *args, **kwargs)

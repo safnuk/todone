@@ -2,11 +2,14 @@ from unittest import TestCase
 
 from todone.argparser import (
     AbstractMatch,
-    AbstractTransform,
+    AbstractFormat,
     AlwaysMatch,
+    ApplyFunctionFormat,
     Argument,
     EqualityMatch,
+    FolderMatch,
     Nargs,
+    PassthroughFormat,
     RegexMatch,
     SubstringMatch,
 )
@@ -53,21 +56,37 @@ class MockAlternatingMatch(MockFixedNumberMatch):
 class TestArgumentFactory(TestCase):
 
     def test_default_matcher_is_EqualityMatch(self):
-        argmatcher = Argument.create(name='name', options=[])
-        self.assertTrue(issubclass(type(argmatcher), EqualityMatch))
+        parser = Argument.create(name='name', options=[])
+        self.assertTrue(issubclass(type(parser), EqualityMatch))
+
+    def test_default_formater_is_PassthroughFormat(self):
+        parser = Argument.create(name='name', options=[])
+        self.assertTrue(issubclass(type(parser), PassthroughFormat))
 
     def test_created_argument_saves_name(self):
-        argmatcher = Argument.create(name='test')
-        self.assertTrue(argmatcher.name, 'test')
+        parser = Argument.create(name='test')
+        self.assertTrue(parser.name, 'test')
 
     def test_created_argument_saves_options(self):
         options = ['foo', 'bar']
-        argmatcher = Argument.create(name='test', options=options)
-        self.assertTrue(argmatcher.options, options)
+        parser = Argument.create(name='test', options=options)
+        self.assertTrue(parser.options, options)
 
     def test_create_used_passed_match_class(self):
-        argmatcher = Argument.create(name='test', match=RegexMatch)
-        self.assertTrue(issubclass(type(argmatcher), RegexMatch))
+        parser = Argument.create(name='test', match=RegexMatch)
+        self.assertTrue(issubclass(type(parser), RegexMatch))
+
+    def test_create_uses_passed_format_class(self):
+        def f(x):
+            return [y.lower() for y in x]
+
+        parser = Argument.create(
+            name='test',
+            format_function=f,
+            format=ApplyFunctionFormat
+        )
+        self.assertTrue(issubclass(type(parser), ApplyFunctionFormat))
+        self.assertEqual(parser.format_function, f)
 
 
 class TestArgument(TestCase):
@@ -80,7 +99,7 @@ class TestArgument(TestCase):
         self.assertTrue(issubclass(type(parser.nargs), Nargs))
         self.assertTrue(parser.nargs.min == parser.nargs.max == 1)
         self.assertTrue(issubclass(type(parser), AbstractMatch))
-        self.assertTrue(issubclass(type(parser), AbstractTransform))
+        self.assertTrue(issubclass(type(parser), AbstractFormat))
 
 
 class TestPositionalArgument(TestCase):
@@ -306,6 +325,58 @@ class TestRegexMatch(TestCase):
         self.assertEqual(args, ['arg1', 'arg2'])
 
 
+class TestFolderMatch(TestCase):
+
+    def test_entire_arg_is_folder_matches(self):
+        testargs = ['[folder]', 'arg1', 'arg2']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, 'folder')
+        self.assertEqual(args, ['arg1', 'arg2'])
+
+    def test_folder_name_strips_surrounding_whitespace(self):
+        testargs = ['[ folder ]', 'arg1', 'arg2']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, 'folder')
+        self.assertEqual(args, ['arg1', 'arg2'])
+
+    def test_folder_starts_mid_arg_matches(self):
+        testargs = ['start [folder]', 'arg1', 'arg2']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, 'folder')
+        self.assertEqual(args, ['start', 'arg1', 'arg2'])
+
+    def test_folder_ends_mid_arg_matches(self):
+        testargs = ['start [folder] end', 'arg1', 'arg2']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, 'folder')
+        self.assertEqual(args, ['start end', 'arg1', 'arg2'])
+
+    def test_folder_spans_multiple_args_matches(self):
+        testargs = ['start [folder', 'name', 'is', 'test] end', 'arg1', 'arg2']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, 'folder name is test')
+        self.assertEqual(args, ['start end', 'arg1', 'arg2'])
+
+    def test_folder_spans_multiple_args_without_extra_args(self):
+        testargs = ['[folder', 'name', 'is', 'test ]']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, 'folder name is test')
+        self.assertEqual(args, [])
+
+    def test_no_folder_close_bracket_does_not_match(self):
+        testargs = ['[folder', 'name', 'is', 'test']
+        matcher = FolderMatch()
+        value, args = matcher.match(None, testargs)
+        self.assertEqual(value, None)
+        self.assertEqual(args, testargs)
+
+
 class TestEqualityMatch(TestCase):
 
     def test_equality_matches(self):
@@ -389,3 +460,32 @@ class TestNargs(TestCase):
         nargs = Nargs('?')
         self.assertEqual(nargs.min, 0)
         self.assertEqual(nargs.max, 1)
+
+
+class TestPassthroughFormat(TestCase):
+    def test_values_are_left_untouched(self):
+        formatter = PassthroughFormat()
+        value = ['a', 'b', 'C']
+        output = formatter.format(value)
+        self.assertEqual(value, output)
+
+    def test_empty_list_returns_empty_list(self):
+        formatter = PassthroughFormat()
+        output = formatter.format([])
+        self.assertEqual(output, [])
+
+
+class TestApplyFunctionFormat(TestCase):
+    def test_format_function_is_applied_to_value(self):
+        class MockFormatFunction():
+            def __init__(self):
+                self.call_list = []
+
+            def mock_format(self, value):
+                self.call_list.append(value)
+                return value
+        mock_ff = MockFormatFunction()
+        formatter = ApplyFunctionFormat(format_function=mock_ff.mock_format)
+        value = ['arg1', 'arg2']
+        formatter.format(value)
+        self.assertEqual(mock_ff.call_list, [value, ])
