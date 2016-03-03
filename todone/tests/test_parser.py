@@ -147,8 +147,8 @@ class TestTextParser(TestCase):
             'key2', args[1:], []
         )
         parser.parse(args)
-        parser.arguments[0].parse.assert_called_once_with(None, args)
-        parser.arguments[1].parse.assert_called_once_with(None, args[1:])
+        parser.arguments[0].parse.assert_called_once_with(args)
+        parser.arguments[1].parse.assert_called_once_with(args[1:])
 
     def test_parse_saves_parsed_arguments(self):
         args = ['foo', 'bar', 'baz']
@@ -167,26 +167,6 @@ class TestTextParser(TestCase):
         self.assertEqual(parser.parsed_data['key1'], args[:1])
         self.assertEqual(parser.parsed_data['key2'], args[1:])
         self.assertEqual(len(parser.parsed_data), 2)
-
-    def test_parse_does_not_save_unmatched_arguments(self):
-        args = ['foo', 'bar', 'baz']
-        parser = TextParser()
-        parser.arguments = [Mock(), Mock()]
-        for mock in parser.arguments:
-            mock.parse = Mock()
-            mock.options = None
-        parser.arguments[0].parse.return_value = (
-            None, args[0:1], args[1:]
-        )
-        parser.arguments[1].parse.return_value = (
-            'key2', args, []
-        )
-        parser.parse(args)
-        with self.assertRaises(KeyError):
-            type(parser.parsed_data['key1'])
-
-        self.assertEqual(parser.parsed_data['key2'], args)
-        self.assertEqual(len(parser.parsed_data), 1)
 
     def test_parse_raises_if_args_remaining(self):
         args = ['foo', 'bar', 'baz']
@@ -293,7 +273,7 @@ class TestPositionalArgument(TestCase):
             self.assertEqual(value, args[:n])
             self.assertEqual(unmatched_args, args[n:])
 
-    def test_parse_arg_returns_null_key_when_no_match(self):
+    def test_parse_arg_returns_key_and_empty_string_when_no_match(self):
         parser = Argument.create(
             name='name', positional=True, nargs='?', match_limit=0,
             match=MockFixedNumberMatch
@@ -303,7 +283,7 @@ class TestPositionalArgument(TestCase):
         self.assertEqual(parser.call_list, [
             (None, args[0:]),
         ])
-        self.assertEqual(key, None)
+        self.assertEqual(key, 'name')
         self.assertEqual(value, [])
         self.assertEqual(remaining_args, args)
 
@@ -371,7 +351,7 @@ class TestNonPositionalArgument(TestCase):
             self.assertEqual(value, evens[:n])
             self.assertEqual(unmatched_args, odds[:n] + args[2*n:])
 
-    def test_parse_arg_returns_null_key_when_no_match(self):
+    def test_parse_arg_returns_key_and_empty_string_when_no_match(self):
         parser = Argument.create(
             name='name', positional=False, nargs='?', match_limit=0,
             match=MockFixedNumberMatch
@@ -384,7 +364,7 @@ class TestNonPositionalArgument(TestCase):
             (None, args[2:]),
             (None, args[3:]),
         ])
-        self.assertEqual(key, None)
+        self.assertEqual(key, 'name')
         self.assertEqual(value, [])
         self.assertEqual(remaining_args, args)
 

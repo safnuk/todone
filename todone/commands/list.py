@@ -1,10 +1,17 @@
 import datetime
-from dateutil.relativedelta import relativedelta
-import re
 
 from todone.backends import folders
 from todone.backends.db import Todo
+from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone.printers import print_todo
+from todone.textparser import (
+    AlwaysMatch,
+    ApplyFunctionFormat,
+    DateFormat,
+    RegexMatch,
+    SubstringMatch,
+    TextParser,
+)
 
 
 def list_items(args):
@@ -69,10 +76,6 @@ def list_items(args):
             foo or baz. Quotes are needed to avoiding shell escaping
             special characters.
     """
-    if not args:
-        for todo in Todo.select().where(Todo.folder == folders.TODAY):
-            print_todo(todo)
-        return
     parsed_args = parse_args(args)
     query = Todo.select()
     if parsed_args['folder']:
@@ -97,79 +100,38 @@ def list_items(args):
 
 
 def parse_args(args=[]):
-    parsed = {
-        'file': None,
-        'folder': None,
-        'due': None,
-        'remind': None,
-        'keywords': [],
-    }
-    try:
-        if args[0][0] == '.':
-            parsed['file'] = args[0]
-            args = args[1:]
-        parsed['folder'] = parse_folder(args[0])
-        if parsed['folder']:
-            args = args[1:]
-    except IndexError:
-        pass
-    for arg in args:
-        key, value = parse_keyword(arg)
-        if key:
-            parsed[key] = value
-        else:
-            parsed['keywords'].append(arg)
-    return parsed
+    parser = TextParser()
+    parser.add_argument(
+        'file', options=[r'\.(?P<file>.+)', ],
+        match=RegexMatch, nargs='?',
+        format_function=_get_file_name,
+        format=ApplyFunctionFormat
+    )
+    parser.add_argument(
+        'due', options=DUE_REGEX, match=RegexMatch,
+        format=DateFormat, nargs='?',
+        positional=False
+    )
+    parser.add_argument(
+        'folder', options=folders.FOLDERS + ('all', ),
+        match=SubstringMatch, nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=' '.join
+    )
+    parser.add_argument(
+        'remind', options=REMIND_REGEX, match=RegexMatch,
+        format=DateFormat, nargs='?',
+        positional=False
+    )
+    parser.add_argument(
+        'keywords', match=AlwaysMatch,
+        nargs='*'
+    )
+    parser.parse(args)
+    return parser.parsed_data
 
 
-def parse_folder(arg):
-    if not arg:
-        return None
-    regex = re.compile('^' + arg, re.IGNORECASE)
-    for folder in [x for x in folders.FOLDERS if x is not folders.DONE]:
-        if regex.match(folder):
-            return folder
-    # Want arg='d' to match keyword DUE instead of DONE
-    if regex.match(folders.DONE) and len(arg) > 1:
-        return folders.DONE
+def _get_file_name(x):
+    if x:
+        return x[0].group('file')
     return None
-
-
-def parse_keyword(arg):
-    max_date = datetime.date(9999, 12, 31)
-    if arg.lower() in ['d', 'du', 'due']:
-        return 'due', max_date
-    match = re.fullmatch(r'(due|du|d)\+(\d+)(d|w|m|y)', arg.lower())
-    if match:
-        shifted_date = datetime.date.today()
-        n = int(match.group(2))
-        dateunit = match.group(3)
-        if dateunit == 'd':
-            shifted_date = shifted_date + relativedelta(days=n)
-        elif dateunit == 'w':
-            shifted_date += relativedelta(weeks=n)
-        elif dateunit == 'm':
-            shifted_date += relativedelta(months=n)
-        elif dateunit == 'y':
-            shifted_date += relativedelta(years=n)
-        return 'due', shifted_date
-
-    if arg.lower() in ['r', 're', 'rem', 'remi', 'remind']:
-        return 'remind', max_date
-    match = re.fullmatch(r'(remind|remin|remi|rem|re|r)\+(\d+)(d|w|m|y)',
-                         arg.lower())
-    if match:
-        shifted_date = datetime.date.today()
-        n = int(match.group(2))
-        dateunit = match.group(3)
-        if dateunit == 'd':
-            shifted_date = shifted_date + relativedelta(days=n)
-        elif dateunit == 'w':
-            shifted_date += relativedelta(weeks=n)
-        elif dateunit == 'm':
-            shifted_date += relativedelta(months=n)
-        elif dateunit == 'y':
-            shifted_date += relativedelta(years=n)
-        return 'remind', shifted_date
-
-    return None, None

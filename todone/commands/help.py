@@ -1,6 +1,8 @@
 import textwrap
 
 import todone
+from todone.textparser import ApplyFunctionFormat, TextParser
+
 
 def help_text(args):
     """
@@ -14,7 +16,16 @@ def help_text(args):
 
     See todone help <command> to read more about a specific command.
     """
-    if not args:
-        print(textwrap.dedent(help_text.__doc__))
-    if len(args) == 1 and args[0].lower() in todone.commands.COMMAND_MAPPING:
-        print(textwrap.dedent(todone.commands.COMMAND_MAPPING[args[0].lower()].__doc__))
+    parser = TextParser()
+    parser.add_argument(
+        'command', options=todone.commands.COMMAND_MAPPING,
+        nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=' '.join
+    )
+    parser.parse(args)
+    command = (
+        parser.parsed_data['command']
+        if parser.parsed_data['command'] else 'help'
+    )
+    print(textwrap.dedent(todone.commands.COMMAND_MAPPING[command].__doc__))

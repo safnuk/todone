@@ -1,9 +1,15 @@
-from datetime import date
-from dateutil.relativedelta import relativedelta
-import re
 
 from todone.backends import folders
 from todone.backends.db import Todo
+from todone.commands.constants import DUE_REGEX, REMIND_REGEX
+from todone.textparser import (
+    AlwaysMatch,
+    ApplyFunctionFormat,
+    DateFormat,
+    RegexMatch,
+    SubstringMatch,
+    TextParser,
+)
 
 
 def new_todo(args):
@@ -46,59 +52,44 @@ def new_todo(args):
     project.
     """
     parsed_args = parse_args(args)
-    Todo.create(
-        action=parsed_args['todo'],
-        folder=parsed_args['folder'],
-        due_date=parsed_args['due'],
-    )
+    Todo.create(**parsed_args)
     print('Added: {} to {}'.format(
-        parsed_args['todo'], parsed_args['folder']))
+        parsed_args['action'], parsed_args['folder']))
 
 
 def parse_args(args=[]):
-    parsed = {
-        'folder': folders.INBOX,
-        'todo': [],
-        'due': None,
-    }
-    folder = parse_folder(args[0])
-    if folder:
-        parsed['folder'] = folder
-        args = args[1:]
-    for arg in args:
-        key, value = parse_keyword(arg)
-        if key:
-            parsed[key] = value
-        else:
-            parsed['todo'].append(arg)
-    parsed['todo'] = ' '.join(parsed['todo'])
-    return parsed
+    parser = TextParser()
+    parser.add_argument(
+        'due_date', options=DUE_REGEX, match=RegexMatch,
+        format=DateFormat, nargs='?',
+        positional=False
+    )
+    parser.add_argument(
+        'folder',
+        options=[
+            folders.INBOX, folders.NEXT, folders.TODAY,
+            folders.PROJECT, folders.CAL, folders.SOMEDAY
+        ],
+        match=SubstringMatch, nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=_default_inbox
+    )
+    parser.add_argument(
+        'remind_date', options=REMIND_REGEX, match=RegexMatch,
+        format=DateFormat, nargs='?',
+        positional=False
+    )
+    parser.add_argument(
+        'action', match=AlwaysMatch,
+        nargs='*',
+        format=ApplyFunctionFormat,
+        format_function=' '.join
+    )
+    parser.parse(args)
+    return parser.parsed_data
 
 
-def parse_folder(arg):
-    if not arg:
-        return None
-    regex = re.compile('^' + arg, re.IGNORECASE)
-    for folder in [folders.INBOX, folders.NEXT, folders.TODAY,
-                   folders.PROJECT, folders.CAL, folders.SOMEDAY]:
-        if regex.match(folder):
-            return folder
-    return None
-
-
-def parse_keyword(arg):
-    match = re.fullmatch(r'(due|du|d)\+(\d+)(d|w|m|y)', arg.lower())
-    if match:
-        shifted_date = date.today()
-        n = int(match.group(2))
-        dateunit = match.group(3)
-        if dateunit == 'd':
-            shifted_date = shifted_date + relativedelta(days=n)
-        elif dateunit == 'w':
-            shifted_date += relativedelta(weeks=n)
-        elif dateunit == 'm':
-            shifted_date += relativedelta(months=n)
-        elif dateunit == 'y':
-            shifted_date += relativedelta(years=n)
-        return 'due', shifted_date
-    return None, None
+def _default_inbox(x):
+    if x:
+        return x[0]
+    return folders.INBOX

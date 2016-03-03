@@ -6,6 +6,4 @@
 - Decide when and how to clear CANCEL items from database
 - Refactor tests using fixtures
 - Add error handling for parsing invalid arguments
-- Refactor list_items to simplify
-- Incorporate ArgParser into application code
-- Refactor ArgParser to use inheritance mixins for matching, transforming
+- Add option to list 'all' active todos

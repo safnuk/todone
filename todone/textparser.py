@@ -2,8 +2,6 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 import re
 
-from todone.commands import COMMAND_MAPPING
-
 
 class AbstractMatch(object):
     def __init__(self, *args, **kwargs):
@@ -124,6 +122,8 @@ class DateFormat(AbstractFormat):
         super().__init__(*args, **kwargs)
 
     def format(self, values):
+        if not values:
+            return None
         value = values[0]
         offset_date = date.today()
         if len(value.groups()) == 1:
@@ -151,9 +151,8 @@ class TextParser:
 
     def parse(self, args):
         for arg in self.arguments:
-            key, value, args = arg.parse(arg.options, args)
-            if key:
-                self.parsed_data[key] = value
+            key, value, args = arg.parse(args)
+            self.parsed_data[key] = value
         if args:
             raise ArgumentError()
 
@@ -219,11 +218,10 @@ class Argument(AbstractMatch, AbstractFormat):
             else:
                 unmatched_args.append(args[0])
                 args = args[1:]
-        key = self.name if parsed else None
         unmatched_args += args
         if len(parsed) < self.nargs.min:
             raise ArgumentError()
-        return key, self.format(parsed), unmatched_args
+        return self.name, self.format(parsed), unmatched_args
 
 
 class Nargs:
@@ -249,13 +247,3 @@ class Nargs:
 
 class ArgumentError(Exception):
     pass
-
-
-PARSE_INIT = [
-    {'name': 'command', 'options': COMMAND_MAPPING},
-    {
-        'name': 'args', 'options': [r'.+', ],
-        'nargs': '+',
-        'positional': False,
-    },
-]

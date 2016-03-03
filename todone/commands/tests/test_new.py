@@ -3,7 +3,7 @@ from dateutil.relativedelta import relativedelta
 from unittest import TestCase
 
 from todone.backends import folders
-from todone.commands.new import parse_args, parse_folder
+from todone.commands.new import parse_args
 
 
 class TestNewArgParse(TestCase):
@@ -29,30 +29,9 @@ class TestNewArgParse(TestCase):
 
     def test_parse_args_parsed_todo_title(self):
         args = parse_args(['New', 'todo'])
-        self.assertEqual(args['todo'], 'New todo')
-
-    def test_parse_folder(self):
-        self.assertEqual(parse_folder(''), None)
-        allowed = [
-            folders.INBOX, folders.TODAY, folders.NEXT,
-            folders.SOMEDAY, folders.CAL
-        ]
-        for folder in allowed:
-            for n in range(1, len(folder)):
-                response = parse_folder(folder[:n])
-                self.assertEqual(response, folder)
-                response = parse_folder(folder[:n].lower())
-                self.assertEqual(response, folder)
-                if len(folder[n:]) > 1:
-                    response = parse_folder(folder[n:])
-                    self.assertEqual(response, None)
-        for folder in [x for x in folders.FOLDERS if x not in allowed]:
-            response = parse_folder(folder)
-            self.assertEqual(response, None)
-            response = parse_folder(folder.lower())
-            self.assertEqual(response, None)
+        self.assertEqual(args['action'], 'New todo')
 
     def test_parse_args_parses_due_keyword(self):
         today = date.today()
         args = parse_args(['due+1m', 'Test todo'])
-        self.assertEqual(args['due'], today + relativedelta(months=1))
+        self.assertEqual(args['due_date'], today + relativedelta(months=1))
