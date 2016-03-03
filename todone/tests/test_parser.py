@@ -1,8 +1,9 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
-from todone.argparser import (
+from todone.textparser import (
     AbstractMatch,
     AbstractFormat,
     AlwaysMatch,
@@ -16,6 +17,7 @@ from todone.argparser import (
     PassthroughFormat,
     RegexMatch,
     SubstringMatch,
+    TextParser,
 )
 
 
@@ -101,6 +103,106 @@ class MockPassthroughFormat(PassthroughFormat):
     def format(self, values):
         self.format_call_list.append(values)
         super().format(values)
+
+
+class TestTextParser(TestCase):
+
+    def test_default_values(self):
+        parser = TextParser()
+        self.assertEqual(parser.arguments, [])
+        self.assertEqual(parser.parsed_data, {})
+
+    def test_add_argument_creates_an_argument(self):
+        parser = TextParser()
+        parser.add_argument('name')
+        parser.add_argument('test')
+        self.assertEqual(len(parser.arguments), 2)
+        self.assertEqual(parser.arguments[0].name, 'name')
+        self.assertTrue(issubclass(type(parser.arguments[0]), Argument))
+        self.assertEqual(parser.arguments[1].name, 'test')
+
+    @patch('todone.textparser.Argument')
+    def test_add_argument_passes_args_to_create(self, MockArgument):
+        parser = TextParser()
+        parser.add_argument('name', options=['foo', 'bar'],
+                            nargs=2, match=AlwaysMatch,
+                            format=DateFormat)
+        MockArgument.create.assert_called_once_with(
+            'name', options=['foo', 'bar'],
+            nargs=2, match=AlwaysMatch,
+            format=DateFormat
+        )
+
+    def test_parse_calls_parse_for_each_argument(self):
+        args = ['foo', 'bar', 'baz']
+        parser = TextParser()
+        parser.arguments = [Mock(), Mock()]
+        for mock in parser.arguments:
+            mock.parse = Mock()
+            mock.options = None
+        parser.arguments[0].parse.return_value = (
+            'key1', args[0:1], args[1:]
+        )
+        parser.arguments[1].parse.return_value = (
+            'key2', args[1:], []
+        )
+        parser.parse(args)
+        parser.arguments[0].parse.assert_called_once_with(None, args)
+        parser.arguments[1].parse.assert_called_once_with(None, args[1:])
+
+    def test_parse_saves_parsed_arguments(self):
+        args = ['foo', 'bar', 'baz']
+        parser = TextParser()
+        parser.arguments = [Mock(), Mock()]
+        for mock in parser.arguments:
+            mock.parse = Mock()
+            mock.options = None
+        parser.arguments[0].parse.return_value = (
+            'key1', args[0:1], args[1:]
+        )
+        parser.arguments[1].parse.return_value = (
+            'key2', args[1:], []
+        )
+        parser.parse(args)
+        self.assertEqual(parser.parsed_data['key1'], args[:1])
+        self.assertEqual(parser.parsed_data['key2'], args[1:])
+        self.assertEqual(len(parser.parsed_data), 2)
+
+    def test_parse_does_not_save_unmatched_arguments(self):
+        args = ['foo', 'bar', 'baz']
+        parser = TextParser()
+        parser.arguments = [Mock(), Mock()]
+        for mock in parser.arguments:
+            mock.parse = Mock()
+            mock.options = None
+        parser.arguments[0].parse.return_value = (
+            None, args[0:1], args[1:]
+        )
+        parser.arguments[1].parse.return_value = (
+            'key2', args, []
+        )
+        parser.parse(args)
+        with self.assertRaises(KeyError):
+            type(parser.parsed_data['key1'])
+
+        self.assertEqual(parser.parsed_data['key2'], args)
+        self.assertEqual(len(parser.parsed_data), 1)
+
+    def test_parse_raises_if_args_remaining(self):
+        args = ['foo', 'bar', 'baz']
+        parser = TextParser()
+        parser.arguments = [Mock(), Mock()]
+        for mock in parser.arguments:
+            mock.parse = Mock()
+            mock.options = None
+        parser.arguments[0].parse.return_value = (
+            None, None, args
+        )
+        parser.arguments[1].parse.return_value = (
+            'key2', args[:2], args[2:]
+        )
+        with self.assertRaises(ArgumentError):
+            parser.parse(args)
 
 
 class TestArgument(TestCase):

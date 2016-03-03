@@ -141,22 +141,21 @@ class DateFormat(AbstractFormat):
         return offset_date
 
 
-class ArgParser:
-    def __init__(self, arg_types=[]):
+class TextParser:
+    def __init__(self):
         self.arguments = []
-        for arg in arg_types:
-            self.arguments.append(Argument(**arg))
+        self.parsed_data = {}
 
-    def add_argument(self, name, options=None):
-        self.arguments.append(Argument(name, options))
+    def add_argument(self, *args, **kwargs):
+        self.arguments.append(Argument.create(*args, **kwargs))
 
-    def parse_args(self, args):
-        parsed = {}
+    def parse(self, args):
         for arg in self.arguments:
-            key, value, args = arg.parse_arg(args)
+            key, value, args = arg.parse(arg.options, args)
             if key:
-                parsed[key] = value
-        return parsed
+                self.parsed_data[key] = value
+        if args:
+            raise ArgumentError()
 
 
 class Argument(AbstractMatch, AbstractFormat):
