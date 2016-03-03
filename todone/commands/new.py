@@ -60,7 +60,7 @@ def new_todo(args):
 def parse_args(args=[]):
     parser = TextParser()
     parser.add_argument(
-        'due_date', options=DUE_REGEX, match=RegexMatch,
+        'due', options=DUE_REGEX, match=RegexMatch,
         format=DateFormat, nargs='?',
         positional=False
     )
@@ -75,7 +75,7 @@ def parse_args(args=[]):
         format_function=_default_inbox
     )
     parser.add_argument(
-        'remind_date', options=REMIND_REGEX, match=RegexMatch,
+        'remind', options=REMIND_REGEX, match=RegexMatch,
         format=DateFormat, nargs='?',
         positional=False
     )

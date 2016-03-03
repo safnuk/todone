@@ -65,7 +65,7 @@ class TestNewAction(DB_Backend):
         one_week = date.today() + timedelta(weeks=1)
         main(['new', 'Todo 1', 'due+1w'])
         t1 = Todo.get(Todo.action == 'Todo 1')
-        self.assertEqual(t1.due_date, one_week)
+        self.assertEqual(t1.due, one_week)
 
 
 class TestListAction(DB_Backend):
@@ -116,33 +116,33 @@ class TestListAction(DB_Backend):
         t1 = Todo.create(
             action='Test 1',
             folder=folders.INBOX,
-            remind_date=date.today()
+            remind=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
             folder=folders.NEXT,
-            remind_date=date.today(),
-            due_date=date.today() + timedelta(days=10)
+            remind=date.today(),
+            due=date.today() + timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
             folder=folders.TODAY,
-            remind_date=date.today() - timedelta(days=2)
+            remind=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Grok 3',
             folder=folders.SOMEDAY,
-            remind_date=date.today() - timedelta(days=2)
+            remind=date.today() - timedelta(days=2)
         )
         t5 = Todo.create(
             action='Sublime 4',
             folder=folders.DONE,
-            remind_date=date.today() - timedelta(days=20)
+            remind=date.today() - timedelta(days=20)
         )
         t6 = Todo.create(
             action='Sublime 8',
             folder=folders.CANCEL,
-            remind_date=date.today() - timedelta(days=20)
+            remind=date.today() - timedelta(days=20)
         )
         t7 = Todo.create(
             action='Sublime 5',
@@ -165,33 +165,33 @@ class TestListAction(DB_Backend):
         t1 = Todo.create(
             action='Test 1',
             folder=folders.INBOX,
-            due_date=date.today()
+            due=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
             folder=folders.NEXT,
-            remind_date=date.today() + timedelta(days=2),
-            due_date=date.today() - timedelta(days=10)
+            remind=date.today() + timedelta(days=2),
+            due=date.today() - timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
             folder=folders.TODAY,
-            due_date=date.today() - timedelta(days=2)
+            due=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Grok 3',
             folder=folders.SOMEDAY,
-            due_date=date.today() - timedelta(days=2)
+            due=date.today() - timedelta(days=2)
         )
         t5 = Todo.create(
             action='Sublime 4',
             folder=folders.DONE,
-            due_date=date.today() - timedelta(days=20)
+            due=date.today() - timedelta(days=20)
         )
         t6 = Todo.create(
             action='Sublime 8',
             folder=folders.CANCEL,
-            due_date=date.today() - timedelta(days=20)
+            due=date.today() - timedelta(days=20)
         )
         t7 = Todo.create(
             action='Sublime 5',
@@ -252,23 +252,23 @@ class TestListAction(DB_Backend):
         t1 = Todo.create(
             action='Test 1',
             folder=folders.INBOX,
-            due_date=date.today()
+            due=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
             folder=folders.NEXT,
-            remind_date=date.today(),
-            due_date=date.today() + timedelta(days=10)
+            remind=date.today(),
+            due=date.today() + timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
             folder=folders.TODAY,
-            due_date=date.today() - timedelta(days=2)
+            due=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Sublime 4',
             folder=folders.NEXT,
-            due_date=date.today() + timedelta(days=20)
+            due=date.today() + timedelta(days=20)
         )
         t5 = Todo.create(
             action='Sublime 5',
@@ -277,12 +277,12 @@ class TestListAction(DB_Backend):
         t6 = Todo.create(
             action='Sublime 6',
             folder=folders.DONE,
-            due_date=date.today()
+            due=date.today()
         )
         t7 = Todo.create(
             action='Sublime 7',
             folder=folders.CANCEL,
-            due_date=date.today()
+            due=date.today()
         )
 
         f = io.StringIO()
@@ -337,23 +337,23 @@ class TestListAction(DB_Backend):
         t1 = Todo.create(
             action='Test 1',
             folder=folders.INBOX,
-            remind_date=date.today()
+            remind=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
             folder=folders.NEXT,
-            due_date=date.today(),
-            remind_date=date.today() + timedelta(days=10)
+            due=date.today(),
+            remind=date.today() + timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
             folder=folders.TODAY,
-            remind_date=date.today() - timedelta(days=2)
+            remind=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Sublime 4',
             folder=folders.NEXT,
-            remind_date=date.today() + timedelta(days=20)
+            remind=date.today() + timedelta(days=20)
         )
         t5 = Todo.create(
             action='Sublime 5',
@@ -362,12 +362,12 @@ class TestListAction(DB_Backend):
         t6 = Todo.create(
             action='Sublime 6',
             folder=folders.DONE,
-            remind_date=date.today()
+            remind=date.today()
         )
         t7 = Todo.create(
             action='Sublime 7',
             folder=folders.CANCEL,
-            remind_date=date.today()
+            remind=date.today()
         )
 
         f = io.StringIO()

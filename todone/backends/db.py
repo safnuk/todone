@@ -1,5 +1,3 @@
-from datetime import date
-
 import peewee
 
 from todone import config
@@ -18,13 +16,13 @@ class Todo(BaseModel):
         constraints=[peewee.Check("action != ''")],
     )
     folder = peewee.CharField(
-        default = folders.INBOX,
+        default=folders.INBOX,
     )
-    remind_date = peewee.DateField(
-        null = True
+    remind = peewee.DateField(
+        null=True
     )
     # date_completed = peewee.DateField()
-    due_date = peewee.DateField(null=True)
+    due = peewee.DateField(null=True)
     # notes = peewee.CharField()
     # repeat_interval = peewee.CharField()
 
@@ -51,4 +49,4 @@ class Todo(BaseModel):
 
 
 def create_tables():
-    db.create_tables([Todo,])
+    db.create_tables([Todo, ])

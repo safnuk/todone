@@ -82,17 +82,17 @@ def list_items(args):
         if parsed_args['folder'] == folders.TODAY:
             query = query.where(
                 (Todo.folder == folders.TODAY) |
-                (Todo.due_date <= datetime.date.today()) |
-                (Todo.remind_date <= datetime.date.today())
+                (Todo.due <= datetime.date.today()) |
+                (Todo.remind <= datetime.date.today())
             ).where(~(Todo.folder << [folders.DONE, folders.CANCEL]))
         else:
             query = query.where(Todo.folder == parsed_args['folder'])
     else:
         query = Todo.active_todos()
     if parsed_args['due']:
-        query = query.where(Todo.due_date <= parsed_args['due'])
+        query = query.where(Todo.due <= parsed_args['due'])
     if parsed_args['remind']:
-        query = query.where(Todo.remind_date <= parsed_args['remind'])
+        query = query.where(Todo.remind <= parsed_args['remind'])
     for keyword in parsed_args['keywords']:
         query = query.where(Todo.action.contains(keyword))
     for todo in query:

@@ -34,4 +34,4 @@ class TestNewArgParse(TestCase):
     def test_parse_args_parses_due_keyword(self):
         today = date.today()
         args = parse_args(['due+1m', 'Test todo'])
-        self.assertEqual(args['due_date'], today + relativedelta(months=1))
+        self.assertEqual(args['due'], today + relativedelta(months=1))
