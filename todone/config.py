@@ -1,2 +1,2 @@
-
-db = {'name': '../test.sqlite3'}
+VERSION = '0.01'
+db = {'name': 'tests/test.sqlite3'}

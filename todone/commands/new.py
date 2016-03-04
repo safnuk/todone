@@ -1,4 +1,3 @@
-
 from todone.backends import folders
 from todone.backends.db import Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX

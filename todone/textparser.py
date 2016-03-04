@@ -1,5 +1,5 @@
-from datetime import date
-from dateutil.relativedelta import relativedelta
+import datetime
+import dateutil
 import re
 
 
@@ -125,19 +125,19 @@ class DateFormat(AbstractFormat):
         if not values:
             return None
         value = values[0]
-        offset_date = date.today()
+        offset_date = datetime.date.today()
         if len(value.groups()) == 1:
-            return date(9999, 12, 31)
+            return datetime.date(9999, 12, 31)
         offset = int(value.group('offset'))
         interval = value.group('interval').lower()
         if 'days'.startswith(interval):
-            offset_date += relativedelta(days=offset)
+            offset_date += dateutil.relativedelta.relativedelta(days=offset)
         elif 'weeks'.startswith(interval):
-            offset_date += relativedelta(weeks=offset)
+            offset_date += dateutil.relativedelta.relativedelta(weeks=offset)
         elif 'months'.startswith(interval):
-            offset_date += relativedelta(months=offset)
+            offset_date += dateutil.relativedelta.relativedelta(months=offset)
         elif 'years'.startswith(interval):
-            offset_date += relativedelta(years=offset)
+            offset_date += dateutil.relativedelta.relativedelta(years=offset)
         return offset_date
 
 

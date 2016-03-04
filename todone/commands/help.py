@@ -13,6 +13,8 @@ def help_text(args):
     Allowed commands include:
         help    Display this help message
         list    Print a list of todos matching given search terms
+        new     Add a new todo item
+        setup   Configure database
 
     See todone help <command> to read more about a specific command.
     """
