@@ -1,7 +1,6 @@
 import os
 import peewee
 
-from todone.backends import folders
 from todone.config import settings
 
 database = peewee.SqliteDatabase(None)
@@ -17,7 +16,7 @@ class Todo(BaseModel):
         constraints=[peewee.Check("action != ''")],
     )
     folder = peewee.CharField(
-        default=folders.INBOX,
+        default=settings['folders']['default_inbox']
     )
     remind = peewee.DateField(
         null=True
@@ -28,11 +27,11 @@ class Todo(BaseModel):
     # repeat_interval = peewee.CharField()
 
     def __str__(self):
-        item = folders.PREFIXES[self.folder] + ' ' + self.action
+        item = '- ' + self.folder + '/' + self.action
         return item
 
     def __repr__(self):
-        output = '{} {}'.format(self.folder, self.action)
+        output = '{}/{}'.format(self.folder, self.action)
         return output
 
     @classmethod
@@ -42,9 +41,7 @@ class Todo(BaseModel):
         todos are: inbox, next, and today.
         """
         active = cls.select().where(
-            (Todo.folder == folders.INBOX) |
-            (Todo.folder == folders.NEXT) |
-            (Todo.folder == folders.TODAY)
+            Todo.folder << settings['folders']['active']
         )
         return active
 

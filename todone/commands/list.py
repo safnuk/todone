@@ -1,8 +1,8 @@
 import datetime
 
-from todone.backends import folders
 from todone.backends.db import Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
+from todone.config import settings
 from todone.printers import print_todo
 from todone.textparser import (
     AlwaysMatch,
@@ -79,12 +79,12 @@ def list_items(args):
     parsed_args = parse_args(args)
     query = Todo.select()
     if parsed_args['folder']:
-        if parsed_args['folder'] == folders.TODAY:
+        if parsed_args['folder'] in settings['folders']['today']:
             query = query.where(
-                (Todo.folder == folders.TODAY) |
+                (Todo.folder == parsed_args['folder']) |
                 (Todo.due <= datetime.date.today()) |
                 (Todo.remind <= datetime.date.today())
-            ).where(~(Todo.folder << [folders.DONE, folders.CANCEL]))
+            ).where(~(Todo.folder << settings['folders']['inactive']))
         else:
             query = query.where(Todo.folder == parsed_args['folder'])
     else:
@@ -108,7 +108,7 @@ def parse_args(args=[]):
         format=ApplyFunctionFormat
     )
     parser.add_argument(
-        'folder', options=folders.FOLDERS + ('all', ),
+        'folder', options=settings['folders']['default_folders'],
         match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=' '.join

@@ -39,7 +39,7 @@ class FunctionalTestDB(TestCase):
 
         # He successfully adds a new todo.
         s = self.run_todone(['new', 'New todo'])
-        self.assertIn('New todo to INBOX', s)
+        self.assertIn('New todo to inbox', s)
 
         # He lists the inbox, and sees his new todo printed.
         s = self.run_todone(['list', 'inbox/'])
@@ -47,7 +47,7 @@ class FunctionalTestDB(TestCase):
 
         # He adds another todo, this time a next action
         s = self.run_todone(['new', 'next/', 'Another thing to do'])
-        self.assertIn('Another thing to do to NEXT', s)
+        self.assertIn('Another thing to do to next', s)
 
         # The todos appear only in their respective folders when listed.
         s = self.run_todone(['list', 'inbox/'])

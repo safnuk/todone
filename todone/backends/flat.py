@@ -1,4 +1,5 @@
-from todone.backends import folders
+from todone.config import settings
+
 
 class Todo:
 
@@ -8,8 +9,8 @@ class Todo:
         else:
             raise ValueError("Cannot create an empty action item")
         if folder is None:
-            self.folder = folders.INBOX
-        elif folder in folders.FOLDERS:
+            self.folder = settings['folders']['default_inbox']
+        elif folder in settings['folders']['default_folders']:
             self.folder = folder
         else:
             raise ValueError("Invalid todo type specified")

@@ -30,3 +30,8 @@ class IntegratedTestConfig(TestCase):
         self.assertEqual(settings['test'], test_settings)
         self.assertEqual(settings['database']['type'], 'testing')
         self.assertEqual(settings['database']['name'], name)
+
+    def test_configure_converts_comma_delineated_strings_to_lists(self):
+        configure('tests/test.ini')
+        self.assertEqual(settings['folders']['active'], ['foo', 'bar', 'baz'])
+        self.assertEqual(settings['folders']['cal'], ['my_cal'])

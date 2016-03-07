@@ -4,8 +4,8 @@ import peewee
 from playhouse.test_utils import test_database
 
 import todone
-from todone.backends import folders
 from todone.backends.db import Todo
+from todone.config import settings
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
 
@@ -33,7 +33,7 @@ class TestDatabaseTodoModel(TestCase):
             t.save()
 
     def test_todo_stores_valid_folder(self):
-        for folder in [x for x in folders.FOLDERS if x != folders.REMIND]:
+        for folder in [x for x in settings['folders']['default_folders']]:
             t = Todo(action='Test todo', folder=folder)
             t.save()
             self.assertEqual(t.folder, folder)
@@ -41,19 +41,22 @@ class TestDatabaseTodoModel(TestCase):
     def test_todo_default_folder_is_inbox(self):
         t = Todo(action='Test')
         t.save()
-        self.assertEqual(t.folder, folders.INBOX)
+        self.assertEqual(t.folder, settings['folders']['default_inbox'])
 
     def test_active_todos_restricts_select(self):
         todos = {}
-        for n, folder in enumerate(folders.FOLDERS):
+        for n, folder in enumerate(settings['folders']['default_folders']):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
         active = Todo.active_todos()
         active_todos = [t for t in active]
 
-        test_active = [folders.INBOX, folders.NEXT, folders.TODAY]
-        test_inactive = [x for x in folders.FOLDERS if x not in test_active]
+        test_active = settings['folders']['active']
+        test_inactive = [
+            x for x in settings['folders']['default_folders']
+            if x not in test_active
+        ]
         for folder in test_inactive:
             self.assertNotIn(todos[folder], active_todos)
         for folder in test_active:

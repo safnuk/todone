@@ -3,17 +3,19 @@ from datetime import date, timedelta
 import io
 from unittest import skip, TestCase
 
-from todone.backends import folders
 from todone.backends.db import Todo
 from todone.commands.list import list_items, parse_args
+from todone.config import settings
 from todone.tests.base import DB_Backend
+
+folders = settings['folders']
 
 
 class TestListAction(DB_Backend):
 
     def test_list_folder_restricts_to_correct_todos(self):
         todos = {}
-        for n, folder in enumerate(folders.FOLDERS):
+        for n, folder in enumerate(folders['default_folders']):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
@@ -21,24 +23,27 @@ class TestListAction(DB_Backend):
         with redirect_stdout(f):
             list_items(['t/'])
         s = f.getvalue()
-        for folder in [x for x in folders.FOLDERS if x is not folders.TODAY]:
+        for folder in [
+            x for x in folders['default_folders'] if x is not 'today'
+        ]:
             self.assertNotIn(str(todos[folder]), s)
-        self.assertIn(str(todos[folders.TODAY]), s)
+        self.assertIn(str(todos['today']), s)
 
-        for list_folder in folders.FOLDERS:
+        for list_folder in folders['default_folders']:
             f = io.StringIO()
             with redirect_stdout(f):
                 list_items([list_folder + '/'])
             s = f.getvalue()
             for folder in [
-                    x for x in folders.FOLDERS if x is not list_folder
+                x for x in folders['default_folders']
+                if x is not list_folder
             ]:
                 self.assertNotIn(str(todos[folder]), s)
             self.assertIn(str(todos[list_folder]), s)
 
     def test_list_without_folder_restricts_to_active_todos(self):
         todos = {}
-        for n, folder in enumerate(folders.FOLDERS):
+        for n, folder in enumerate(folders['default_folders']):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
@@ -46,8 +51,8 @@ class TestListAction(DB_Backend):
         with redirect_stdout(f):
             list_items(['Item'])
         s = f.getvalue()
-        active = [folders.INBOX, folders.NEXT, folders.TODAY]
-        inactive = [x for x in folders.FOLDERS if x not in active]
+        active = folders['active']
+        inactive = [x for x in folders['default_folders'] if x not in active]
         for folder in inactive:
             self.assertNotIn(str(todos[folder]), s)
         for folder in active:
@@ -56,38 +61,38 @@ class TestListAction(DB_Backend):
     def test_list_today_includes_current_reminders(self):
         t1 = Todo.create(
             action='Test 1',
-            folder=folders.INBOX,
+            folder='inbox',
             remind=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
-            folder=folders.NEXT,
+            folder='next',
             remind=date.today(),
             due=date.today() + timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
-            folder=folders.TODAY,
+            folder='today',
             remind=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Grok 3',
-            folder=folders.SOMEDAY,
+            folder='someday',
             remind=date.today() - timedelta(days=2)
         )
         t5 = Todo.create(
             action='Sublime 4',
-            folder=folders.DONE,
+            folder='done',
             remind=date.today() - timedelta(days=20)
         )
         t6 = Todo.create(
             action='Sublime 8',
-            folder=folders.CANCEL,
+            folder='cancel',
             remind=date.today() - timedelta(days=20)
         )
         t7 = Todo.create(
             action='Sublime 5',
-            folder=folders.NEXT,
+            folder='next',
         )
 
         f = io.StringIO()
@@ -105,38 +110,38 @@ class TestListAction(DB_Backend):
     def test_list_today_includes_due_items(self):
         t1 = Todo.create(
             action='Test 1',
-            folder=folders.INBOX,
+            folder='inbox',
             due=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
-            folder=folders.NEXT,
+            folder='next',
             remind=date.today() + timedelta(days=2),
             due=date.today() - timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
-            folder=folders.TODAY,
+            folder='today',
             due=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Grok 3',
-            folder=folders.SOMEDAY,
+            folder='someday',
             due=date.today() - timedelta(days=2)
         )
         t5 = Todo.create(
             action='Sublime 4',
-            folder=folders.DONE,
+            folder='done',
             due=date.today() - timedelta(days=20)
         )
         t6 = Todo.create(
             action='Sublime 8',
-            folder=folders.CANCEL,
+            folder='cancel',
             due=date.today() - timedelta(days=20)
         )
         t7 = Todo.create(
             action='Sublime 5',
-            folder=folders.NEXT,
+            folder='next',
         )
 
         f = io.StringIO()
@@ -154,15 +159,15 @@ class TestListAction(DB_Backend):
     def test_list_restricts_by_search_keywords(self):
         t1 = Todo.create(
             action='Test todo with search',
-            folder=folders.INBOX
+            folder='inbox'
         )
         t2 = Todo.create(
             action='Test todo with grok',
-            folder=folders.INBOX
+            folder='inbox'
         )
         t3 = Todo.create(
             action='Search todo for foo',
-            folder=folders.TODAY
+            folder='today'
         )
 
         f = io.StringIO()
@@ -192,37 +197,37 @@ class TestListAction(DB_Backend):
     def test_list_restricts_by_duedate(self):
         t1 = Todo.create(
             action='Test 1',
-            folder=folders.INBOX,
+            folder='inbox',
             due=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
-            folder=folders.NEXT,
+            folder='next',
             remind=date.today(),
             due=date.today() + timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
-            folder=folders.TODAY,
+            folder='today',
             due=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Sublime 4',
-            folder=folders.NEXT,
+            folder='next',
             due=date.today() + timedelta(days=20)
         )
         t5 = Todo.create(
             action='Sublime 5',
-            folder=folders.NEXT,
+            folder='next',
         )
         t6 = Todo.create(
             action='Sublime 6',
-            folder=folders.DONE,
+            folder='done',
             due=date.today()
         )
         t7 = Todo.create(
             action='Sublime 7',
-            folder=folders.CANCEL,
+            folder='cancel',
             due=date.today()
         )
 
@@ -277,37 +282,37 @@ class TestListAction(DB_Backend):
     def test_list_restricts_by_remind_date(self):
         t1 = Todo.create(
             action='Test 1',
-            folder=folders.INBOX,
+            folder='inbox',
             remind=date.today()
         )
         t2 = Todo.create(
             action='Foo 2',
-            folder=folders.NEXT,
+            folder='next',
             due=date.today(),
             remind=date.today() + timedelta(days=10)
         )
         t3 = Todo.create(
             action='Grok 3',
-            folder=folders.TODAY,
+            folder='today',
             remind=date.today() - timedelta(days=2)
         )
         t4 = Todo.create(
             action='Sublime 4',
-            folder=folders.NEXT,
+            folder='next',
             remind=date.today() + timedelta(days=20)
         )
         t5 = Todo.create(
             action='Sublime 5',
-            folder=folders.NEXT,
+            folder='next',
         )
         t6 = Todo.create(
             action='Sublime 6',
-            folder=folders.DONE,
+            folder='done',
             remind=date.today()
         )
         t7 = Todo.create(
             action='Sublime 7',
-            folder=folders.CANCEL,
+            folder='cancel',
             remind=date.today()
         )
 
@@ -386,11 +391,11 @@ class TestListArgParse(TestCase):
 
     def test_parse_args_records_folder(self):
         args = parse_args(['today/'])
-        self.assertEqual(args['folder'], folders.TODAY)
+        self.assertEqual(args['folder'], 'today')
         args = parse_args(['.file', 'today/'])
-        self.assertEqual(args['folder'], folders.TODAY)
+        self.assertEqual(args['folder'], 'today')
         args = parse_args(['tod/', 'done'])
-        self.assertEqual(args['folder'], folders.TODAY)
+        self.assertEqual(args['folder'], 'today')
         args = parse_args(['.file', 'string', 'today/'])
         self.assertFalse(args['folder'])
         args = parse_args(['string', 'today/'])
