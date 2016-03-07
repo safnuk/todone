@@ -44,6 +44,28 @@ class SubstringMatch(AbstractMatch):
         return None, args
 
 
+class FolderMatch(AbstractMatch):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def match(self, targets, args):
+        regex = r'(?P<start>[\S]+)/(?P<end>.*)'
+        match = re.match(regex, args[0])
+        if match:
+            matches = []
+            for keyword in targets:
+                if keyword.lower().startswith(match.group('start').lower()):
+                    matches.append((keyword, match.group('end').strip()))
+            if len(matches) == 1:
+                unmatched_args = (
+                    [matches[0][1]] + args[1:] if matches[0][1]
+                    else args[1:]
+                )
+                return matches[0][0], unmatched_args
+        return None, args
+
+
 class FlagKeywordMatch(SubstringMatch):
 
     def match(self, target, args):
@@ -68,7 +90,7 @@ class RegexMatch(AbstractMatch):
         return None, args
 
 
-class FolderMatch(AbstractMatch):
+class ProjectMatch(AbstractMatch):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

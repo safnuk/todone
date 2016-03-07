@@ -17,6 +17,7 @@ mock_parsed_data = {
 
 @patch('todone.application.configure')
 @patch('todone.application.TextParser')
+@patch('todone.backends.db.database')
 class UnitTestMain(TestCase):
 
     def setUp(self):
@@ -24,7 +25,7 @@ class UnitTestMain(TestCase):
 
     @patch('todone.application.dispatch')
     def test_main_with_no_args_uses_system_args(
-        self, mock_dispatch, MockParser, mock_configure
+        self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
         sys.argv = ['todone', 'new', 'Todo']
         mock_instance = MockParser.return_value
@@ -34,7 +35,7 @@ class UnitTestMain(TestCase):
 
     @patch('todone.application.dispatch')
     def test_main_with_no_args_or_sys_args_gives_help(
-        self, mock_dispatch, MockParser, mock_configure
+        self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
         mock_instance = MockParser.return_value
         mock_instance.parsed_data = mock_parsed_data
@@ -42,7 +43,7 @@ class UnitTestMain(TestCase):
         mock_instance.parse.assert_called_once_with(['help'])
 
     def test_main_with_invalid_args_displays_short_help_message(
-        self, MockParser, mock_configure
+        self, mock_db, MockParser, mock_configure
     ):
         mock_instance = MockParser.return_value
         mock_instance.parse = Mock(side_effect=ArgumentError)
@@ -56,7 +57,7 @@ class UnitTestMain(TestCase):
 
     @patch('todone.application.dispatch')
     def test_main_with_config_flag_calls_config_with_passed_file(
-        self, mock_dispatch, MockParser, mock_configure
+        self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
         mock_instance = MockParser.return_value
         mock_instance.parsed_data = mock_parsed_data
@@ -65,7 +66,7 @@ class UnitTestMain(TestCase):
 
     @patch('todone.application.dispatch')
     def test_main_passes_command_and_remaining_args_to_dispatch(
-        self, mock_dispatch, MockParser, mock_configure
+        self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
         mock_instance = MockParser.return_value
         mock_instance.parsed_data = mock_parsed_data
@@ -75,10 +76,12 @@ class UnitTestMain(TestCase):
 
 class IntegratedTestMain(TestCase):
 
-    def test_config_flag_passed_to_configure(self):
+    @patch('todone.backends.db.database')
+    def test_config_flag_passed_to_configure(self, mock_db):
         main(['-c', 'tests/test.ini', 'help'])
         self.assertEqual(settings['test']['foo'], 'bar')
 
-    def test_passed_config_overrides_default(self):
+    @patch('todone.backends.db.database')
+    def test_passed_config_overrides_default(self, mock_db):
         main(['-c', 'tests/config_db.ini', 'help'])
         self.assertEqual(settings['database']['name'], 'tests/test.sqlite3')

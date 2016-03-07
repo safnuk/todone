@@ -48,16 +48,16 @@ def main(cli_args=None):
         return 1
 
     configure(parser.parsed_data['config'])
-    initialize_database()
-    connect_database()
     try:
+        initialize_database()
+        connect_database()
         dispatch(
             parser.parsed_data['command'],
             parser.parsed_data['args']
         )
+        close_database()
     except peewee.OperationalError:
         print(DB_HELP_MSG)
-    close_database()
 
 DB_HELP_MSG = """Cannot find valid database.
 

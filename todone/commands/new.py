@@ -5,8 +5,8 @@ from todone.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     DateFormat,
+    FolderMatch,
     RegexMatch,
-    SubstringMatch,
     TextParser,
 )
 
@@ -59,19 +59,19 @@ def new_todo(args):
 def parse_args(args=[]):
     parser = TextParser()
     parser.add_argument(
-        'due', options=DUE_REGEX, match=RegexMatch,
-        format=DateFormat, nargs='?',
-        positional=False
-    )
-    parser.add_argument(
         'folder',
         options=[
             folders.INBOX, folders.NEXT, folders.TODAY,
             folders.PROJECT, folders.CAL, folders.SOMEDAY
         ],
-        match=SubstringMatch, nargs='?',
+        match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=_default_inbox
+    )
+    parser.add_argument(
+        'due', options=DUE_REGEX, match=RegexMatch,
+        format=DateFormat, nargs='?',
+        positional=False
     )
     parser.add_argument(
         'remind', options=REMIND_REGEX, match=RegexMatch,

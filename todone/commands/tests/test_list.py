@@ -3,10 +3,9 @@ from datetime import date, timedelta
 import io
 from unittest import skip, TestCase
 
-from todone.application import main
 from todone.backends import folders
 from todone.backends.db import Todo
-from todone.commands.list import parse_args
+from todone.commands.list import list_items, parse_args
 from todone.tests.base import DB_Backend
 
 
@@ -20,7 +19,7 @@ class TestListAction(DB_Backend):
             )
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 't'])
+            list_items(['t/'])
         s = f.getvalue()
         for folder in [x for x in folders.FOLDERS if x is not folders.TODAY]:
             self.assertNotIn(str(todos[folder]), s)
@@ -29,7 +28,7 @@ class TestListAction(DB_Backend):
         for list_folder in folders.FOLDERS:
             f = io.StringIO()
             with redirect_stdout(f):
-                main(['list', list_folder])
+                list_items([list_folder + '/'])
             s = f.getvalue()
             for folder in [
                     x for x in folders.FOLDERS if x is not list_folder
@@ -45,7 +44,7 @@ class TestListAction(DB_Backend):
             )
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'Item'])
+            list_items(['Item'])
         s = f.getvalue()
         active = [folders.INBOX, folders.NEXT, folders.TODAY]
         inactive = [x for x in folders.FOLDERS if x not in active]
@@ -93,7 +92,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'today'])
+            list_items(['today/'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -142,7 +141,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'today'])
+            list_items(['today/'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -168,7 +167,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'grok'])
+            list_items(['grok'])
         s = f.getvalue()
         self.assertNotIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -176,7 +175,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'in', 'test todo', 'with'])
+            list_items(['in/', 'test todo', 'with'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -184,7 +183,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'test'])
+            list_items(['test'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -229,7 +228,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'due'])
+            list_items(['due'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -241,7 +240,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'due+15d'])
+            list_items(['due+15d'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -253,7 +252,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'due+0d'])
+            list_items(['due+0d'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertNotIn(str(t2), s)
@@ -265,7 +264,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'due+3m'])
+            list_items(['due+3m'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -314,7 +313,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'remind'])
+            list_items(['remind'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -326,7 +325,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'remind+15d'])
+            list_items(['remind+15d'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -338,7 +337,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'remind+0d'])
+            list_items(['remind+0d'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertNotIn(str(t2), s)
@@ -350,7 +349,7 @@ class TestListAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['list', 'remind+3m'])
+            list_items(['remind+3m'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -386,15 +385,15 @@ class TestListArgParse(TestCase):
         self.assertEqual(args['file'], None)
 
     def test_parse_args_records_folder(self):
-        args = parse_args(['today'])
+        args = parse_args(['today/'])
         self.assertEqual(args['folder'], folders.TODAY)
-        args = parse_args(['.file', 'today'])
+        args = parse_args(['.file', 'today/'])
         self.assertEqual(args['folder'], folders.TODAY)
-        args = parse_args(['tod', 'done'])
+        args = parse_args(['tod/', 'done'])
         self.assertEqual(args['folder'], folders.TODAY)
-        args = parse_args(['.file', 'string', 'today'])
+        args = parse_args(['.file', 'string', 'today/'])
         self.assertFalse(args['folder'])
-        args = parse_args(['string', 'today'])
+        args = parse_args(['string', 'today/'])
         self.assertFalse(args['folder'])
 
     def test_parse_args_parses_due_keyword(self):
@@ -425,11 +424,11 @@ class TestListArgParse(TestCase):
         self.assertEqual(args['keywords'], keywords)
         args = parse_args(['.file'] + keywords)
         self.assertEqual(args['keywords'], keywords)
-        args = parse_args(['.file', 'today'] + keywords)
+        args = parse_args(['.file', 'today/'] + keywords)
         self.assertEqual(args['keywords'], keywords)
-        args = parse_args(['.file', 'today'] + keywords + ['due+3w'])
+        args = parse_args(['.file', 'today/'] + keywords + ['due+3w'])
         self.assertEqual(args['keywords'], keywords)
-        args = parse_args(keywords + ['due+3w'] + ['.file', 'today'])
-        self.assertEqual(args['keywords'], keywords + ['.file', 'today'])
+        args = parse_args(keywords + ['due+3w'] + ['.file', 'today/'])
+        self.assertEqual(args['keywords'], keywords + ['.file', 'today/'])
         self.assertFalse(args['file'])
         self.assertFalse(args['folder'])

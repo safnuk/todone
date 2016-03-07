@@ -8,8 +8,8 @@ from todone.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     DateFormat,
+    FolderMatch,
     RegexMatch,
-    SubstringMatch,
     TextParser,
 )
 
@@ -108,15 +108,15 @@ def parse_args(args=[]):
         format=ApplyFunctionFormat
     )
     parser.add_argument(
+        'folder', options=folders.FOLDERS + ('all', ),
+        match=FolderMatch, nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=' '.join
+    )
+    parser.add_argument(
         'due', options=DUE_REGEX, match=RegexMatch,
         format=DateFormat, nargs='?',
         positional=False
-    )
-    parser.add_argument(
-        'folder', options=folders.FOLDERS + ('all', ),
-        match=SubstringMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
     )
     parser.add_argument(
         'remind', options=REMIND_REGEX, match=RegexMatch,
