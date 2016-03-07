@@ -3,8 +3,21 @@ import io
 import textwrap
 from unittest import TestCase
 
+from todone.application import main, SCRIPT_DESCRIPTION
 from todone.commands.help import help_text
 from todone.commands.list import list_items
+from todone.tests.base import DB_Backend
+
+
+class TestHelpAction(DB_Backend):
+
+    def test_help_arg_returns_help_string(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            main(['help'])
+        s = f.getvalue()
+        self.assertIn(SCRIPT_DESCRIPTION, s)
+
 
 class TestHelpText(TestCase):
 

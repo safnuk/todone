@@ -1,14 +1,15 @@
+import os
 import peewee
 
-from todone import config
 from todone.backends import folders
+from todone.config import settings
 
-db = peewee.SqliteDatabase(config.db['name'])
+database = peewee.SqliteDatabase(None)
 
 
 class BaseModel(peewee.Model):
     class Meta:
-        database = db
+        database = database
 
 
 class Todo(BaseModel):
@@ -48,5 +49,17 @@ class Todo(BaseModel):
         return active
 
 
-def create_tables():
-    db.create_tables([Todo, ])
+def create_database():
+    database.create_tables([Todo, ])
+
+
+def initialize_database():
+    database.init(os.path.expanduser(settings['database']['name']))
+
+
+def connect_database():
+    database.connect()
+
+
+def close_database():
+    database.close()

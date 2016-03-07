@@ -1,22 +1,23 @@
-import datetime
-from datetime import date, timedelta
 from unittest import skip, TestCase
-from unittest.mock import Mock, patch
 
 import peewee
 from playhouse.test_utils import test_database
 
+import todone
 from todone.backends import folders
-from todone.backends.db import create_tables, Todo
+from todone.backends.db import Todo
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
 
+
 class TestDatabaseTodoModel(TestCase):
-    
+    def setUp(self):
+        todone.config.db = None
+
     def run(self, result=None):
-        with test_database(in_memory_db, [Todo,]):
+        with test_database(in_memory_db, [Todo, ]):
             super().run(result)
-        
+
     def test_class_is_importable(self):
         t = Todo(action='Blank')
         self.assertEqual(type(t), Todo)
@@ -27,7 +28,7 @@ class TestDatabaseTodoModel(TestCase):
         t.save()
 
     def test_todo_raises_with_empty_action(self):
-        with self.assertRaises(peewee.IntegrityError) as context:
+        with self.assertRaises(peewee.IntegrityError):
             t = Todo(action='')
             t.save()
 
@@ -58,9 +59,8 @@ class TestDatabaseTodoModel(TestCase):
         for folder in test_active:
             self.assertIn(todos[folder], active_todos)
 
-
     @skip
     def test_todo_raises_with_invalid_folder(self):
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             t = Todo(action='Test', folder='invalid')
             t.save()

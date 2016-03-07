@@ -12,6 +12,7 @@ from todone.textparser import (
     ArgumentError,
     DateFormat,
     EqualityMatch,
+    FlagKeywordMatch,
     FolderMatch,
     Nargs,
     PassthroughFormat,
@@ -192,6 +193,7 @@ class TestArgument(TestCase):
         self.assertEqual(parser.name, 'test')
         self.assertEqual(parser.options, None)
         self.assertEqual(parser.positional, True)
+        self.assertEqual(parser.default, [])
         self.assertTrue(issubclass(type(parser.nargs), Nargs))
         self.assertTrue(parser.nargs.min == parser.nargs.max == 1)
         self.assertTrue(issubclass(type(parser), AbstractMatch))
@@ -208,6 +210,15 @@ class TestArgument(TestCase):
         self.assertEqual(parser.format_call_list, [
             ['foo', 'bar']
         ])
+
+    def test_default_value_returned_when_no_match_found(self):
+        parser = Argument.create(
+            name='name', nargs='?', match_limit=0,
+            match=MockFixedNumberMatch, default='default'
+        )
+        args = ['foo', 'bar', 'buzz', 'baz']
+        key, value, unmatched_args = parser.parse(args)
+        self.assertEqual(value, 'default')
 
     def test_raises_when_not_enough_matches_with_integer_nargs(self):
         for n in range(2):
@@ -420,6 +431,36 @@ class TestSubstringMatch(TestCase):
         matcher = SubstringMatch()
         value, args = matcher.match(['test'], ['arg1', 'arg2'])
         self.assertEqual(args, ['arg1', 'arg2'])
+
+
+class TestFlagKeywordMatch(TestCase):
+
+    def test_on_flag_match_returns_next_arg(self):
+        matcher = FlagKeywordMatch()
+        value, args = matcher.match(['-c'], ['-c', 'config.ini'])
+        self.assertEqual(value, 'config.ini')
+
+    def test_does_not_match_single_minus(self):
+        matcher = FlagKeywordMatch()
+        value, args = matcher.match(['-c', '--config'], ['-', 'config.ini'])
+        self.assertEqual(value, None)
+        value, args = matcher.match(['-c'], ['-', 'config.ini'])
+        self.assertEqual(value, None)
+
+    def test_does_not_match_double_minus(self):
+        matcher = FlagKeywordMatch()
+        value, args = matcher.match(['-c', '--config'], ['--', 'config.ini'])
+        self.assertEqual(value, None)
+
+    def test_no_match_does_not_strip_first_argument(self):
+        matcher = FlagKeywordMatch()
+        value, args = matcher.match(['--test'], ['--arg1', 'arg2'])
+        self.assertEqual(args, ['--arg1', 'arg2'])
+
+    def test_match_strips_first_two_arguments(self):
+        matcher = FlagKeywordMatch()
+        value, args = matcher.match(['--test'], ['--test', 'arg1', 'arg2'])
+        self.assertEqual(args, ['arg2'])
 
 
 class TestRegexMatch(TestCase):

@@ -1,9 +1,19 @@
 import sys
 
+import peewee
+
+from todone.backends.db import (
+    close_database,
+    connect_database,
+    initialize_database,
+)
 from todone.commands import COMMAND_MAPPING, dispatch
+from todone.config import configure
 from todone.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
+    ArgumentError,
+    FlagKeywordMatch,
     SubstringMatch,
     TextParser,
 )
@@ -12,14 +22,16 @@ SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 
 
 def main(cli_args=None):
-    parsed = {
-        'command': None,
-        'args': [],
-    }
     if cli_args is None:
         cli_args = sys.argv[1:] if len(sys.argv) > 1 else ['help']
 
     parser = TextParser()
+    parser.add_argument(
+        'config', options=['-c', '--config'],
+        match=FlagKeywordMatch, nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=' '.join
+    )
     parser.add_argument(
         'command', options=COMMAND_MAPPING,
         match=SubstringMatch,
@@ -27,7 +39,31 @@ def main(cli_args=None):
         format_function=' '.join
     )
     parser.add_argument('args', nargs='*', match=AlwaysMatch)
-    parser.parse(cli_args)
-    parsed.update(parser.parsed_data)
 
-    dispatch(parsed['command'], parsed['args'])
+    try:
+        parser.parse(cli_args)
+    except ArgumentError:
+        print('Invalid argument(s)')
+        dispatch('help', [])
+        return 1
+
+    configure(parser.parsed_data['config'])
+    initialize_database()
+    connect_database()
+    try:
+        dispatch(
+            parser.parsed_data['command'],
+            parser.parsed_data['args']
+        )
+    except peewee.OperationalError:
+        print(DB_HELP_MSG)
+    close_database()
+
+DB_HELP_MSG = """Cannot find valid database.
+
+Make sure you have a valid configuration file:
+    > todone help configure
+then enter
+    > todone setup
+to initialize the database before using.
+"""

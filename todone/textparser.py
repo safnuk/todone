@@ -44,6 +44,18 @@ class SubstringMatch(AbstractMatch):
         return None, args
 
 
+class FlagKeywordMatch(SubstringMatch):
+
+    def match(self, target, args):
+        if args and (args[0] in ['-', '--']):
+            return None, args
+        value, args = super().match(target, args)
+        if value:
+            return args[0], args[1:]
+        else:
+            return None, args
+
+
 class RegexMatch(AbstractMatch):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -186,12 +198,13 @@ class Argument(AbstractMatch, AbstractFormat):
 
     def __init__(
         self, name, options=None, positional=True,
-        nargs=1, *args, **kwargs
+        nargs=1, default=[], *args, **kwargs
     ):
         self.name = name
         self.options = [x for x in options] if options else None
         self.positional = positional
         self.nargs = Nargs(nargs)
+        self.default = default
         super().__init__(*args, **kwargs)
 
     @staticmethod
@@ -221,6 +234,8 @@ class Argument(AbstractMatch, AbstractFormat):
         unmatched_args += args
         if len(parsed) < self.nargs.min:
             raise ArgumentError()
+        if self.default:
+            parsed = parsed if parsed else self.default
         return self.name, self.format(parsed), unmatched_args
 
 

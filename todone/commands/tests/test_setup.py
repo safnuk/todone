@@ -3,6 +3,8 @@ import io
 from unittest import TestCase
 from unittest.mock import patch
 
+import peewee
+
 from todone.commands.setup import setup_db, version
 from todone.config import VERSION
 from todone.textparser import ArgumentError
@@ -23,14 +25,23 @@ class TestVersion(TestCase):
             version(['arg'])
 
 
-@patch('todone.commands.setup.create_tables')
+@patch('todone.commands.setup.create_database')
 class TestSetup(TestCase):
 
-    def test_setup_with_arguments_raises(self, mock_create_tables):
+    def test_setup_with_arguments_raises(self, mock_create_database):
         with self.assertRaises(ArgumentError):
             setup_db(['arg'])
-        mock_create_tables.assert_not_called()
+        mock_create_database.assert_not_called()
 
-    def test_setup_calls_create_tables_once(self, mock_create_tables):
+    def test_setup_calls_create_database_once(self, mock_create_database):
         setup_db([])
-        mock_create_tables.assert_called_once_with()
+        mock_create_database.assert_called_once_with()
+
+    def test_peewee_Exception_prints_db_exists_msg(self, mock_create_database):
+        mock_create_database.side_effect = peewee.OperationalError
+        f = io.StringIO()
+        with redirect_stdout(f):
+            setup_db([])
+        s = f.getvalue()
+        self.assertNotIn('New todone database initialized', s)
+        self.assertIn('Database has already been setup - get working!', s)

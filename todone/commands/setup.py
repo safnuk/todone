@@ -1,4 +1,6 @@
-from todone.backends.db import create_tables
+import peewee
+
+from todone.backends.db import create_database
 from todone.config import VERSION
 from todone.textparser import ArgumentError
 
@@ -12,6 +14,10 @@ def version(args=[]):
 
 def setup_db(args=[]):
     if not args:
-        create_tables()
+        try:
+            create_database()
+            print('New todone database initialized')
+        except peewee.OperationalError:
+            print('Database has already been setup - get working!')
     else:
         raise ArgumentError()
