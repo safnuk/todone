@@ -7,3 +7,5 @@
 - Refactor tests using fixtures
 - Add error handling for parsing invalid arguments
 - Add option to list 'all' active todos
+- Code smell - refactor list_items
+- Write unit tests for list_items

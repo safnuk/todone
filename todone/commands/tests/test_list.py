@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import io
 from unittest import skip, TestCase
 
-from todone.backends.db import Todo
+from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
 from todone.commands.list import list_items, parse_args
 from todone.config import settings
 from todone.tests.base import DB_Backend
@@ -372,9 +372,48 @@ class TestListAction(DB_Backend):
     def test_list_restricts_by_project(self):
         self.fail("Write this test!")
 
-    @skip
     def test_list_saves_last_search(self):
-        self.fail("Write this test!")
+        Todo.create(
+            action='Test todo with search',
+            folder='inbox'
+        )
+        t2 = Todo.create(
+            action='Test todo with grok',
+            folder='inbox'
+        )
+        Todo.create(
+            action='Search todo for foo',
+            folder='today'
+        )
+        list_items(['grok'])
+        saved = SavedList.get(name=MOST_RECENT_SEARCH)
+        items = ListItem.select().where(ListItem.savedlist == saved)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].todo, t2)
+
+    def test_list_without_args_uses_last_search(self):
+        t1 = Todo.create(
+            action='Test todo with search',
+            folder='inbox'
+        )
+        t2 = Todo.create(
+            action='Test todo with grok',
+            folder='inbox'
+        )
+        t3 = Todo.create(
+            action='Search todo for foo',
+            folder='today'
+        )
+        recent, _ = SavedList.get_or_create(name=MOST_RECENT_SEARCH)
+        ListItem.create(savedlist=recent, todo=t1)
+        ListItem.create(savedlist=recent, todo=t2)
+        f = io.StringIO()
+        with redirect_stdout(f):
+            list_items([])
+        s = f.getvalue()
+        self.assertIn(str(t1), s)
+        self.assertIn(str(t2), s)
+        self.assertNotIn(str(t3), s)
 
 
 class TestListArgParse(TestCase):

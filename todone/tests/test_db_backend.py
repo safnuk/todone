@@ -56,3 +56,27 @@ class FunctionalTestDB(TestCase):
         s = self.run_todone(['list', 'next/'])
         self.assertNotIn('New todo', s)
         self.assertIn('Another thing to do', s)
+
+        # He uses the last-list save feature
+        s = self.run_todone(['list'])
+        self.assertNotIn('New todo', s)
+        self.assertIn('Another thing to do', s)
+
+        # Next he creates a saved search
+        s = self.run_todone(['list', '.next', 'next/'])
+        self.assertNotIn('New todo', s)
+        self.assertIn('Another thing to do', s)
+
+        s = self.run_todone(['list', 'today/'])
+        self.assertNotIn('New todo', s)
+        self.assertNotIn('Another thing to do', s)
+
+        # He lists the saved search
+        s = self.run_todone(['list', '.next'])
+        self.assertNotIn('New todo', s)
+        self.assertIn('Another thing to do', s)
+
+        # The default search should be a repeat
+        s = self.run_todone(['list'])
+        self.assertNotIn('New todo', s)
+        self.assertIn('Another thing to do', s)

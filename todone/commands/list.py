@@ -1,6 +1,6 @@
 import datetime
 
-from todone.backends.db import Todo
+from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone.config import settings
 from todone.printers import print_todo
@@ -77,26 +77,43 @@ def list_items(args):
             special characters.
     """
     parsed_args = parse_args(args)
-    query = Todo.select()
-    if parsed_args['folder']:
-        if parsed_args['folder'] in settings['folders']['today']:
-            query = query.where(
-                (Todo.folder == parsed_args['folder']) |
-                (Todo.due <= datetime.date.today()) |
-                (Todo.remind <= datetime.date.today())
-            ).where(~(Todo.folder << settings['folders']['inactive']))
-        else:
-            query = query.where(Todo.folder == parsed_args['folder'])
+    empty_args = True
+    for key, value in parsed_args.items():
+        if value:
+            empty_args = False
+            break
+    if empty_args:
+        query = [item.todo for item in SavedList.get_most_recent().items]
     else:
-        query = Todo.active_todos()
-    if parsed_args['due']:
-        query = query.where(Todo.due <= parsed_args['due'])
-    if parsed_args['remind']:
-        query = query.where(Todo.remind <= parsed_args['remind'])
-    for keyword in parsed_args['keywords']:
-        query = query.where(Todo.action.contains(keyword))
+        query = Todo.select()
+        if parsed_args['folder']:
+            if parsed_args['folder'] in settings['folders']['today']:
+                query = query.where(
+                    (Todo.folder == parsed_args['folder']) |
+                    (Todo.due <= datetime.date.today()) |
+                    (Todo.remind <= datetime.date.today())
+                ).where(~(Todo.folder << settings['folders']['inactive']))
+            else:
+                query = query.where(Todo.folder == parsed_args['folder'])
+        else:
+            query = Todo.active_todos()
+        if parsed_args['due']:
+            query = query.where(Todo.due <= parsed_args['due'])
+        if parsed_args['remind']:
+            query = query.where(Todo.remind <= parsed_args['remind'])
+        for keyword in parsed_args['keywords']:
+            query = query.where(Todo.action.contains(keyword))
+        save_most_recent_search(query)
     for todo in query:
         print_todo(todo)
+
+
+def save_most_recent_search(query):
+    recent, _ = SavedList.get_or_create(name=MOST_RECENT_SEARCH)
+    old_list = ListItem.delete().where(ListItem.savedlist == recent)
+    old_list.execute()
+    for todo in query:
+        ListItem.create(savedlist=recent, todo=todo)
 
 
 def parse_args(args=[]):

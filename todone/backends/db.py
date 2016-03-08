@@ -3,6 +3,7 @@ import peewee
 
 from todone.config import settings
 
+MOST_RECENT_SEARCH = 'last_search'
 database = peewee.SqliteDatabase(None)
 
 
@@ -46,8 +47,25 @@ class Todo(BaseModel):
         return active
 
 
+class SavedList(BaseModel):
+    name = peewee.CharField(
+        constraints=[peewee.Check("name != ''")],
+        unique=True,
+    )
+
+    @classmethod
+    def get_most_recent(cls):
+        recent, _ = cls.get_or_create(name=MOST_RECENT_SEARCH)
+        return recent
+
+
+class ListItem(BaseModel):
+    savedlist = peewee.ForeignKeyField(SavedList, related_name='items')
+    todo = peewee.ForeignKeyField(Todo)
+
+
 def create_database():
-    database.create_tables([Todo, ])
+    database.create_tables([Todo,  SavedList, ListItem])
 
 
 def initialize_database():

@@ -1,22 +1,13 @@
-from unittest import skip, TestCase
+from unittest import skip
 
 import peewee
-from playhouse.test_utils import test_database
 
-import todone
-from todone.backends.db import Todo
+from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
 from todone.config import settings
+from todone.tests.base import DB_Backend
 
-in_memory_db = peewee.SqliteDatabase(':memory:')
 
-
-class TestDatabaseTodoModel(TestCase):
-    def setUp(self):
-        todone.config.db = None
-
-    def run(self, result=None):
-        with test_database(in_memory_db, [Todo, ]):
-            super().run(result)
+class TestTodoModel(DB_Backend):
 
     def test_class_is_importable(self):
         t = Todo(action='Blank')
@@ -67,3 +58,52 @@ class TestDatabaseTodoModel(TestCase):
         with self.assertRaises(ValueError):
             t = Todo(action='Test', folder='invalid')
             t.save()
+
+
+class TestSavedList(DB_Backend):
+
+    def test_class_is_importable(self):
+        t = SavedList(name='test')
+        self.assertEqual(type(t), SavedList)
+
+    def test_savedlist_raises_with_empty_name(self):
+        with self.assertRaises(peewee.IntegrityError):
+            SavedList.create(name='')
+
+    def test_raises_with_duplicate_name(self):
+        SavedList.create(name='test')
+        with self.assertRaises(peewee.IntegrityError):
+            SavedList.create(name='test')
+
+    def test_get_most_recent_does_as_advertised(self):
+        s1 = SavedList.get_most_recent()
+        self.assertEqual(s1.name, MOST_RECENT_SEARCH)
+        s2 = SavedList.get_most_recent()
+        self.assertEqual(s2.name, MOST_RECENT_SEARCH)
+
+
+class TestListItem(DB_Backend):
+
+    def test_raises_without_list(self):
+        t = Todo.create(action='Test todo')
+        with self.assertRaises(peewee.IntegrityError):
+            ListItem.create(todo=t)
+
+    def test_raises_without_todo(self):
+        l = SavedList.create(name='List')
+        with self.assertRaises(peewee.IntegrityError):
+            ListItem.create(savedlist=l)
+
+    def test_listitems_ordered_by_insertion_order(self):
+        l = SavedList.create(name='List')
+        todos = []
+        todos.append(Todo.create(action='Todo 1'))
+        todos.append(Todo.create(action='Another todo'))
+        todos.append(Todo.create(action='Random todo', folder='today'))
+        ListItem.create(savedlist=l, todo=todos[0])
+        ListItem.create(savedlist=l, todo=todos[1])
+        ListItem.create(savedlist=l, todo=todos[2])
+        items = ListItem.select().where(ListItem.savedlist == l)
+        pairs = zip(items, todos)
+        for item, todo in pairs:
+            self.assertEqual(item.todo, todo)
