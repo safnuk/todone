@@ -404,7 +404,7 @@ class TestListAction(DB_Backend):
             action='Search todo for foo',
             folder='today'
         )
-        recent, _ = SavedList.get_or_create(name=MOST_RECENT_SEARCH)
+        recent = SavedList.get_most_recent()
         ListItem.create(savedlist=recent, todo=t1)
         ListItem.create(savedlist=recent, todo=t2)
         f = io.StringIO()

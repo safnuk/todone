@@ -58,6 +58,10 @@ class SavedList(BaseModel):
         recent, _ = cls.get_or_create(name=MOST_RECENT_SEARCH)
         return recent
 
+    def delete_items(self):
+        items_to_delete = ListItem.delete().where(ListItem.savedlist == self)
+        items_to_delete.execute()
+
 
 class ListItem(BaseModel):
     savedlist = peewee.ForeignKeyField(SavedList, related_name='items')

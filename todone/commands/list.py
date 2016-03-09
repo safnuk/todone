@@ -18,7 +18,7 @@ def list_items(args):
     """
     Print a list of todos matching given search terms.
 
-    Usage: todone list [.file] [folder] [tags and keywords]
+    Usage: todone list [.file] [folder/] [tags and keywords]
 
     Search criteria can be any string expression.
 
@@ -53,16 +53,15 @@ def list_items(args):
     that do not contain the given item
 
     If .file is specified, then search results are saved to .file.
-    Otherwise, the default file is .todos.
 
     If no search criteria is provided, then the todos in the given file
     are listed. If no search criteria and no file is specified, then
     the most recently used search is used.
 
     E.g.,
-        > todone list .my_search today @Work
+        > todone list .my_search today/ @Work
             Lists all today items containing tag @Work
-        > todone list n due+1w [My Project]
+        > todone list n/due+1w [My Project]
             Lists all next items from project [My Project] due in
             the next week
         > todone list
@@ -77,41 +76,56 @@ def list_items(args):
             special characters.
     """
     parsed_args = parse_args(args)
-    empty_args = True
-    for key, value in parsed_args.items():
-        if value:
-            empty_args = False
-            break
-    if empty_args:
-        query = [item.todo for item in SavedList.get_most_recent().items]
+    if is_loading_saved_search(parsed_args):
+        query = load_saved_search(parsed_args['file'])
     else:
-        query = Todo.select()
-        if parsed_args['folder']:
-            if parsed_args['folder'] in settings['folders']['today']:
-                query = query.where(
-                    (Todo.folder == parsed_args['folder']) |
-                    (Todo.due <= datetime.date.today()) |
-                    (Todo.remind <= datetime.date.today())
-                ).where(~(Todo.folder << settings['folders']['inactive']))
-            else:
-                query = query.where(Todo.folder == parsed_args['folder'])
-        else:
-            query = Todo.active_todos()
-        if parsed_args['due']:
-            query = query.where(Todo.due <= parsed_args['due'])
-        if parsed_args['remind']:
-            query = query.where(Todo.remind <= parsed_args['remind'])
-        for keyword in parsed_args['keywords']:
-            query = query.where(Todo.action.contains(keyword))
+        query = construct_query_from_argdict(parsed_args)
         save_most_recent_search(query)
     for todo in query:
         print_todo(todo)
 
 
+def construct_query_from_argdict(args):
+    query = Todo.select()
+    if args['folder']:
+        if args['folder'] in settings['folders']['today']:
+            query = query.where(
+                (Todo.folder == args['folder']) |
+                (Todo.due <= datetime.date.today()) |
+                (Todo.remind <= datetime.date.today())
+            ).where(~(Todo.folder << settings['folders']['inactive']))
+        else:
+            query = query.where(Todo.folder == args['folder'])
+    else:
+        query = Todo.active_todos()
+    if args['due']:
+        query = query.where(Todo.due <= args['due'])
+    if args['remind']:
+        query = query.where(Todo.remind <= args['remind'])
+    for keyword in args['keywords']:
+        query = query.where(Todo.action.contains(keyword))
+    return query
+
+
+def is_loading_saved_search(args):
+    for key, value in args.items():
+        if value:
+            return False
+    return True
+
+
+def load_saved_search(name):
+    name = name if name else MOST_RECENT_SEARCH
+    try:
+        s = SavedList.get(SavedList.name == name)
+        return [item.todo for item in s.items]
+    except SavedList.DoesNotExist:
+        return []
+
+
 def save_most_recent_search(query):
-    recent, _ = SavedList.get_or_create(name=MOST_RECENT_SEARCH)
-    old_list = ListItem.delete().where(ListItem.savedlist == recent)
-    old_list.execute()
+    recent = SavedList.get_most_recent()
+    recent.delete_items()
     for todo in query:
         ListItem.create(savedlist=recent, todo=todo)
 
