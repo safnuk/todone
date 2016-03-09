@@ -14,7 +14,7 @@ from todone.textparser import (
 def new_todo(args):
     """Create one or more todo items or projects.
 
-    Usage: todone new [folder] [tags and todo string]
+    usage: todone new [folder/] [tags and todo string]
 
     Create new todo the given title.
 
@@ -54,6 +54,10 @@ def new_todo(args):
     Todo.create(**parsed_args)
     print('Added: {} to {}'.format(
         parsed_args['action'], parsed_args['folder']))
+
+new_todo.short_help = """
+usage: todone new [folder/] [tags and todo string]
+"""
 
 
 def parse_args(args=[]):

@@ -7,7 +7,7 @@ from todone.backends.db import (
     connect_database,
     initialize_database,
 )
-from todone.commands import COMMAND_MAPPING, dispatch
+from todone.commands.dispatch import COMMAND_MAPPING, dispatch_command
 from todone.config import configure
 from todone.textparser import (
     AlwaysMatch,
@@ -44,14 +44,14 @@ def main(cli_args=None):
         parser.parse(cli_args)
     except ArgumentError:
         print('Invalid argument(s)')
-        dispatch('help', [])
+        dispatch_command('help', ['--short'])
         return 1
 
     configure(parser.parsed_data['config'])
     try:
         initialize_database()
         connect_database()
-        dispatch(
+        dispatch_command(
             parser.parsed_data['command'],
             parser.parsed_data['args']
         )

@@ -23,7 +23,7 @@ class UnitTestMain(TestCase):
     def setUp(self):
         sys.argv = ['todone']
 
-    @patch('todone.application.dispatch')
+    @patch('todone.application.dispatch_command')
     def test_main_with_no_args_uses_system_args(
         self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
@@ -33,7 +33,7 @@ class UnitTestMain(TestCase):
         main()
         mock_instance.parse.assert_called_once_with(['new', 'Todo'])
 
-    @patch('todone.application.dispatch')
+    @patch('todone.application.dispatch_command')
     def test_main_with_no_args_or_sys_args_gives_help(
         self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
@@ -55,7 +55,7 @@ class UnitTestMain(TestCase):
         self.assertIn('Invalid argument(s)', s)
         self.assertIn('usage:', s)
 
-    @patch('todone.application.dispatch')
+    @patch('todone.application.dispatch_command')
     def test_main_with_config_flag_calls_config_with_passed_file(
         self, mock_dispatch, mock_db, MockParser, mock_configure
     ):
@@ -64,7 +64,7 @@ class UnitTestMain(TestCase):
         main(['-c config.ini', 'command', 'args'])
         mock_configure.assert_called_once_with('config.ini')
 
-    @patch('todone.application.dispatch')
+    @patch('todone.application.dispatch_command')
     def test_main_passes_command_and_remaining_args_to_dispatch(
         self, mock_dispatch, mock_db, MockParser, mock_configure
     ):

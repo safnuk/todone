@@ -18,14 +18,14 @@ def list_items(args):
     """
     Print a list of todos matching given search terms.
 
-    Usage: todone list [.file] [folder/] [tags and keywords]
+    usage: todone list [.file] [folder/] [tags and keywords]
 
     Search criteria can be any string expression.
 
     Allowed folder keywords are: today, next, inbox, project,
     cal[-N{d|w|m|y}][+N{d|w|m|y}], someday, done. Shortened
     versions accepted when unambiguous, so, for example "done", "don",
-    and "do" all indicate the done folder (d defaults to the "due" tag).
+    "do", and "d" all indicate the done folder.
     If folder is not specified, the default is to search all active
     folders (inbox, next, today).
     The date specification for cal items limits to items with
@@ -41,7 +41,7 @@ def list_items(args):
 
     due[+N{d|w|m|y}],
     remind[+N{d|w|m|y}],
-    [Folder name] or [N] where N is the number associated to the
+    [project name] or [N] where N is the number associated to the
     project. This can be obtained by typing
         todone list project
 
@@ -56,7 +56,7 @@ def list_items(args):
 
     If no search criteria is provided, then the todos in the given file
     are listed. If no search criteria and no file is specified, then
-    the most recently used search is used.
+    the most recently run search is repeated.
 
     E.g.,
         > todone list .my_search today/ @Work
@@ -84,6 +84,10 @@ def list_items(args):
     SavedList.save_most_recent_search(query)
     for todo in query:
         print_todo(todo)
+
+list_items.short_help = """
+usage: todone list [.file] [folder/] [tags and keywords]
+"""
 
 
 def construct_query_from_argdict(args):
