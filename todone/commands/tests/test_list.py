@@ -2,16 +2,21 @@ from contextlib import redirect_stdout
 from datetime import date, timedelta
 import io
 from unittest import skip, TestCase
+from unittest.mock import call, patch
 
 from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
-from todone.commands.list import list_items, parse_args
+from todone.commands.list import (
+    is_loading_saved_search,
+    list_items,
+    parse_args
+)
 from todone.config import settings
 from todone.tests.base import DB_Backend
 
 folders = settings['folders']
 
 
-class TestListAction(DB_Backend):
+class TestListItems(DB_Backend):
 
     def test_list_folder_restricts_to_correct_todos(self):
         todos = {}
@@ -476,3 +481,87 @@ class TestListArgParse(TestCase):
         self.assertEqual(args['keywords'], keywords + ['.file', 'today/'])
         self.assertFalse(args['file'])
         self.assertFalse(args['folder'])
+
+
+@patch('todone.commands.list.parse_args')
+@patch('todone.commands.list.is_loading_saved_search')
+class UnitTestListItems(TestCase):
+
+    def setUp(self):
+        self.parsed_args = {
+            'file': 'test'
+        }
+
+    @patch('todone.commands.list.SavedList')
+    def test_if_loading_saved_search_then_calls_loader(
+        self, MockSavedList, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = True
+        list_items([])
+        MockSavedList.get_todos_in_list.assert_called_once_with(
+            self.parsed_args['file'])
+
+    @patch('todone.commands.list.SavedList')
+    def test_if_loading_saved_search_then_does_not_saves_query(
+        self, MockSavedList, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = True
+        list_items([])
+        MockSavedList.save_most_recent_search.assert_not_called()
+
+    @patch('todone.commands.list.construct_query_from_argdict')
+    @patch('todone.commands.list.SavedList')
+    def test_if_not_loading_saved_search_then_constructs_query(
+        self, MockSavedList, mock_construct, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = False
+        list_items([])
+        mock_construct.assert_called_once_with(self.parsed_args)
+
+    @patch('todone.commands.list.construct_query_from_argdict')
+    @patch('todone.commands.list.SavedList')
+    def test_if_not_loading_saved_search_then_saves_query(
+        self, MockSavedList, mock_construct, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = False
+        mock_construct.return_value = 'test'
+        list_items([])
+        MockSavedList.save_most_recent_search.assert_called_once_with('test')
+
+    @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.print_todo')
+    def test_prints_all_todos(
+        self, mock_print, MockSavedList, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = True
+        MockSavedList.get_todos_in_list.return_value = [1, 2, 3]
+        expected = [call(x) for x in [1, 2, 3]]
+        list_items([])
+        self.assertEqual(mock_print.mock_calls, expected)
+
+
+class TestIsLoading(TestCase):
+
+    def test_empty_dict_arg_returns_True(self):
+        self.assertTrue(is_loading_saved_search({}))
+
+    def test_dict_with_all_false_values_return_True(self):
+        test = {
+            'key1': None,
+            'key2': [],
+            'key3': ''
+        }
+        self.assertTrue(is_loading_saved_search(test))
+
+    def test_dict_with_a_true_value_returns_False(self):
+        test = {
+            'key1': None,
+            'key2': True,
+            'key3': ''
+        }
+        self.assertFalse(is_loading_saved_search(test))

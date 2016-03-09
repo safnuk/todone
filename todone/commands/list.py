@@ -1,6 +1,6 @@
 import datetime
 
-from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
+from todone.backends.db import SavedList, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone.config import settings
 from todone.printers import print_todo
@@ -77,10 +77,10 @@ def list_items(args):
     """
     parsed_args = parse_args(args)
     if is_loading_saved_search(parsed_args):
-        query = load_saved_search(parsed_args['file'])
+        query = SavedList.get_todos_in_list(parsed_args['file'])
     else:
         query = construct_query_from_argdict(parsed_args)
-        save_most_recent_search(query)
+        SavedList.save_most_recent_search(query)
     for todo in query:
         print_todo(todo)
 
@@ -112,22 +112,6 @@ def is_loading_saved_search(args):
         if value:
             return False
     return True
-
-
-def load_saved_search(name):
-    name = name if name else MOST_RECENT_SEARCH
-    try:
-        s = SavedList.get(SavedList.name == name)
-        return [item.todo for item in s.items]
-    except SavedList.DoesNotExist:
-        return []
-
-
-def save_most_recent_search(query):
-    recent = SavedList.get_most_recent()
-    recent.delete_items()
-    for todo in query:
-        ListItem.create(savedlist=recent, todo=todo)
 
 
 def parse_args(args=[]):
