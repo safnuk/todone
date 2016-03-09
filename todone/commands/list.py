@@ -80,7 +80,8 @@ def list_items(args):
         query = SavedList.get_todos_in_list(parsed_args['file'])
     else:
         query = construct_query_from_argdict(parsed_args)
-        SavedList.save_most_recent_search(query)
+        SavedList.save_search(parsed_args['file'], query)
+    SavedList.save_most_recent_search(query)
     for todo in query:
         print_todo(todo)
 
@@ -109,7 +110,7 @@ def construct_query_from_argdict(args):
 
 def is_loading_saved_search(args):
     for key, value in args.items():
-        if value:
+        if (key != 'file') and value:
             return False
     return True
 

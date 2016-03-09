@@ -69,11 +69,17 @@ class SavedList(BaseModel):
             return []
 
     @classmethod
-    def save_most_recent_search(cls, todo_query):
-        recent = cls.get_most_recent()
-        recent.delete_items()
+    def save_search(cls, name, todo_query):
+        if not name:
+            return
+        savelist, _ = SavedList.get_or_create(name=name)
+        savelist.delete_items()
         for todo in todo_query:
-            ListItem.create(savedlist=recent, todo=todo)
+            ListItem.create(savedlist=savelist, todo=todo)
+
+    @classmethod
+    def save_most_recent_search(cls, todo_query):
+        cls.save_search(MOST_RECENT_SEARCH, todo_query)
 
     def delete_items(self):
         items_to_delete = ListItem.delete().where(ListItem.savedlist == self)

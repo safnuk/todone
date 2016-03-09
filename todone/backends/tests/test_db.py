@@ -113,13 +113,26 @@ class TestSavedList(DB_Backend):
         s.delete_items()
         self.assertEqual(SavedList.get_todos_in_list('test'), [])
 
-    def test_save_most_recent_search_clears_old_items(self):
-        s = SavedList.create(name=MOST_RECENT_SEARCH)
+    def test_save_search_with_empty_name_does_not_save(self):
+        t1 = Todo.create(action='Test todo')
+        t2 = Todo.create(action='Test another todo')
+        SavedList.save_search('', [t1, t2])
+        self.assertEqual(len(SavedList.select()), 0)
+
+    def test_save_search_clears_old_items(self):
+        s = SavedList.create(name='test')
         t1 = Todo.create(action='Test todo')
         t2 = Todo.create(action='Test another todo')
         ListItem.create(savedlist=s, todo=t1)
-        SavedList.save_most_recent_search([t2])
-        self.assertNotIn(t1, SavedList.get_todos_in_list(MOST_RECENT_SEARCH))
+        SavedList.save_search('test', [t2])
+        self.assertNotIn(t1, SavedList.get_todos_in_list('test'))
+
+    def test_save_search_saves_all_passed_todos(self):
+        t1 = Todo.create(action='Test todo')
+        t2 = Todo.create(action='Test another todo')
+        SavedList.save_search('test', [t1, t2])
+        self.assertEqual(
+            SavedList.get_todos_in_list('test'), [t1, t2])
 
     def test_save_most_recent_search_saves_all_passed_todos(self):
         t1 = Todo.create(action='Test todo')

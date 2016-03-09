@@ -509,7 +509,17 @@ class UnitTestListItems(TestCase):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = True
         list_items([])
-        MockSavedList.save_most_recent_search.assert_not_called()
+        MockSavedList.save_search.assert_not_called()
+
+    @patch('todone.commands.list.SavedList')
+    def test_if_loading_saved_search_then_saves_as_most_recent_query(
+        self, MockSavedList, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = True
+        MockSavedList.get_todos_in_list.return_value = 'test'
+        list_items([])
+        MockSavedList.save_most_recent_search.assert_called_once_with('test')
 
     @patch('todone.commands.list.construct_query_from_argdict')
     @patch('todone.commands.list.SavedList')
@@ -528,9 +538,22 @@ class UnitTestListItems(TestCase):
     ):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = False
-        mock_construct.return_value = 'test'
+        mock_construct.return_value = 'test todo'
         list_items([])
-        MockSavedList.save_most_recent_search.assert_called_once_with('test')
+        MockSavedList.save_search.assert_called_once_with(
+            self.parsed_args['file'], 'test todo')
+
+    @patch('todone.commands.list.construct_query_from_argdict')
+    @patch('todone.commands.list.SavedList')
+    def test_if_not_loading_saved_search_then_saves_as_most_recent_query(
+        self, MockSavedList, mock_construct, mock_is_loading, mock_parse
+    ):
+        mock_parse.return_value = self.parsed_args
+        mock_is_loading.return_value = False
+        mock_construct.return_value = 'test todo'
+        list_items([])
+        MockSavedList.save_most_recent_search.assert_called_once_with(
+            'test todo')
 
     @patch('todone.commands.list.SavedList')
     @patch('todone.commands.list.print_todo')
@@ -565,3 +588,12 @@ class TestIsLoading(TestCase):
             'key3': ''
         }
         self.assertFalse(is_loading_saved_search(test))
+
+    def test_dict_with_only_non_false_being_file_returns_True(self):
+        test = {
+            'file': 'test',
+            'key1': None,
+            'key2': [],
+            'key3': ''
+        }
+        self.assertTrue(is_loading_saved_search(test))
