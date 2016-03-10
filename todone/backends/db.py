@@ -69,6 +69,10 @@ class SavedList(BaseModel):
             return []
 
     @classmethod
+    def get_todos_from_most_recent_search(cls):
+        return cls.get_todos_in_list(MOST_RECENT_SEARCH)
+
+    @classmethod
     def save_search(cls, name, todo_query):
         if not name:
             return

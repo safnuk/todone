@@ -563,7 +563,7 @@ class UnitTestListItems(TestCase):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = True
         MockSavedList.get_todos_in_list.return_value = [1, 2, 3]
-        expected = [call(x) for x in [1, 2, 3]]
+        expected = [call(x, x) for x in [1, 2, 3]]
         list_items([])
         self.assertEqual(mock_print.mock_calls, expected)
 

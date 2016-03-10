@@ -82,8 +82,8 @@ def list_items(args):
         query = construct_query_from_argdict(parsed_args)
         SavedList.save_search(parsed_args['file'], query)
     SavedList.save_most_recent_search(query)
-    for todo in query:
-        print_todo(todo)
+    for n, todo in enumerate(query):
+        print_todo(n+1, todo)
 
 list_items.short_help = """
 usage: todone list [.file] [folder/] [tags and keywords]

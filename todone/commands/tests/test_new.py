@@ -1,8 +1,8 @@
 from contextlib import redirect_stdout
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
-from unittest import TestCase
 import io
+from unittest import TestCase
 
 from todone.backends.db import Todo
 from todone.commands.new import new_todo, parse_args

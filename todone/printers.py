@@ -1,2 +1,2 @@
-def print_todo(todo):
-    print(todo)
+def print_todo(n, todo):
+    print('{} {}'.format(n, todo))

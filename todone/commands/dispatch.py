@@ -1,5 +1,6 @@
 from todone.commands.help import help_text
 from todone.commands.list import list_items
+from todone.commands.move import move_todo
 from todone.commands.new import new_todo
 from todone.commands.setup import setup_db, version
 from todone.textparser import ArgumentError
@@ -20,6 +21,7 @@ COMMAND_MAPPING = {
     '--version': version,
     'version': version,
     'list': list_items,
+    'move': move_todo,
     'new': new_todo,
     'setup': setup_db,
 }

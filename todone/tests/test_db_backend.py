@@ -80,3 +80,7 @@ class FunctionalTestDB(TestCase):
         s = self.run_todone(['list'])
         self.assertNotIn('New todo', s)
         self.assertIn('Another thing to do', s)
+
+        # He moves the listed todo to the today folder
+        s = self.run_todone(['move', '1', 'today/'])
+        self.assertIn('Moved: "Another thing to do" to today', s)
