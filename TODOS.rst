@@ -1,11 +1,7 @@
 - Make max date(9999, 12, 31) into global constant
 - Add project folder for project titles
 - Add cal folder for calendar items
-- Change remind folder to just an option for all todos
 - Decide when and how to clear DONE and CANCEL items from saved lists
 - Decide when and how to clear CANCEL items from database
 - Refactor tests using fixtures
-- Add error handling for parsing invalid arguments
-- Add option to list 'all' active todos
-- Code smell - refactor list_items
-- Write unit tests for list_items
+- Test and code for multiple project hits with new_todo

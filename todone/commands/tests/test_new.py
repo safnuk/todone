@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 import io
 from unittest import TestCase
+from unittest.mock import patch
 
 from todone.backends.db import Todo
 from todone.commands.new import new_todo, parse_args
@@ -54,6 +55,12 @@ class TestNewAction(DB_Backend):
         t1 = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(t1.due, one_week)
 
+    def test_new_item_saves_project(self):
+        project = Todo.create(action='Project')
+        new_todo(['Test todo', '[Project]'])
+        t1 = Todo.get(Todo.action == 'Test todo')
+        self.assertEqual(t1.parent, project)
+
 
 class TestNewArgParse(TestCase):
 
@@ -83,3 +90,10 @@ class TestNewArgParse(TestCase):
         today = date.today()
         args = parse_args(['due+1m', 'Test todo'])
         self.assertEqual(args['due'], today + relativedelta(months=1))
+
+    @patch('todone.commands.new.Todo')
+    def test_parses_project_and_calls_get_project_todo(self, MockTodo):
+        args = parse_args(['Test todo', '[project]'])
+        self.assertEqual(
+            args['parent'], MockTodo.get_projects('project').__getitem__(0)
+        )

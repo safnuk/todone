@@ -59,6 +59,21 @@ class TestTodoModel(DB_Backend):
             t = Todo(action='Test', folder='invalid')
             t.save()
 
+    def test_get_projects_parses_folder_and_todo(self):
+        t1 = Todo.create(action='Todo 1', folder='next')
+        t2 = Todo.create(action='Todo 2', folder='today')
+        query = Todo.get_projects('next/Todo')
+        self.assertIn(t1, query)
+        self.assertNotIn(t2, query)
+
+        query = Todo.get_projects(' next/  todo')
+        self.assertIn(t1, query)
+        self.assertNotIn(t2, query)
+
+        query = Todo.get_projects('Todo')
+        self.assertIn(t1, query)
+        self.assertIn(t2, query)
+
 
 class TestSavedList(DB_Backend):
 

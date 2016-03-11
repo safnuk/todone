@@ -6,6 +6,7 @@ from todone.textparser import (
     ApplyFunctionFormat,
     DateFormat,
     FolderMatch,
+    ProjectMatch,
     RegexMatch,
     TextParser,
 )
@@ -70,6 +71,13 @@ def parse_args(args=[]):
         format_function=_default_inbox
     )
     parser.add_argument(
+        'parent', match=ProjectMatch,
+        nargs='?',
+        positional=False,
+        format_function=_get_project_todo,
+        format=ApplyFunctionFormat
+    )
+    parser.add_argument(
         'due', options=DUE_REGEX, match=RegexMatch,
         format=DateFormat, nargs='?',
         positional=False
@@ -93,3 +101,9 @@ def _default_inbox(x):
     if x:
         return x[0]
     return settings['folders']['default_inbox']
+
+
+def _get_project_todo(x):
+    if x:
+        return Todo.get_projects(x[0])[0]
+    return None

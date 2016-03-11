@@ -84,3 +84,16 @@ class FunctionalTestDB(TestCase):
         # He moves the listed todo to the today folder
         s = self.run_todone(['move', '1', 'today/'])
         self.assertIn('Moved: "Another thing to do" to today', s)
+
+        # He creates a new project todo, and some sub-items
+        self.run_todone(['new', 'next/', 'project'])
+        self.run_todone(['new', 'Sub-item 1', '[project]'])
+        s = self.run_todone(['new', 'Sub-item 2', '[next/project]'])
+        self.assertIn('Sub-item 2', s)
+
+        # Listing the project shows the sub-items
+        s1 = self.run_todone(['list', '[project]'])
+        s2 = self.run_todone(['list', '[next/project]'])
+        self.assertEqual(s1, s2)
+        self.assertIn('Sub-item 1', s1)
+        self.assertIn('Sub-item 2', s1)

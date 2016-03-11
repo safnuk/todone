@@ -1,4 +1,6 @@
 import os
+import re
+
 import peewee
 
 from todone.config import settings
@@ -18,6 +20,9 @@ class Todo(BaseModel):
     )
     folder = peewee.CharField(
         default=settings['folders']['default_inbox']
+    )
+    parent = peewee.ForeignKeyField(
+        'self', null=True, related_name='subitems'
     )
     remind = peewee.DateField(
         null=True
@@ -45,6 +50,20 @@ class Todo(BaseModel):
             Todo.folder << settings['folders']['active']
         )
         return active
+
+    @classmethod
+    def get_projects(cls, search_string):
+        query = Todo.select()
+        folder_regex = r'\s*(?P<folder>[^\s/]+)/\s*(?P<todo>.+)'
+        match = re.fullmatch(folder_regex, search_string)
+        if match:
+            query = query.where(
+                Todo.folder == match.group('folder'),
+                Todo.action.contains(match.group('todo'))
+            )
+        else:
+            query = query.where(Todo.action.contains(search_string))
+        return query
 
 
 class SavedList(BaseModel):
