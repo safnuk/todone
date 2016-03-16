@@ -9,6 +9,7 @@ from todone.textparser import (
     ApplyFunctionFormat,
     DateFormat,
     FolderMatch,
+    ProjectMatch,
     RegexMatch,
     TextParser,
 )
@@ -82,8 +83,8 @@ def list_items(args):
         query = construct_query_from_argdict(parsed_args)
         SavedList.save_search(parsed_args['file'], query)
     SavedList.save_most_recent_search(query)
-    for n, todo in enumerate(query):
-        print_todo(n+1, todo)
+    for n, todo in enumerate(query, 1):
+        print_todo(n, todo)
 
 list_items.short_help = """
 usage: todone list [.file] [folder/] [tags and keywords]
@@ -103,6 +104,8 @@ def construct_query_from_argdict(args):
             query = query.where(Todo.folder == args['folder'])
     else:
         query = Todo.active_todos()
+    if args['parent']:
+        query = query.where(Todo.parent << args['parent'])
     if args['due']:
         query = query.where(Todo.due <= args['due'])
     if args['remind']:
@@ -134,6 +137,13 @@ def parse_args(args=[]):
         format_function=' '.join
     )
     parser.add_argument(
+        'parent', match=ProjectMatch,
+        nargs='?',
+        positional=False,
+        format_function=_get_projects,
+        format=ApplyFunctionFormat
+    )
+    parser.add_argument(
         'due', options=DUE_REGEX, match=RegexMatch,
         format=DateFormat, nargs='?',
         positional=False
@@ -154,4 +164,10 @@ def parse_args(args=[]):
 def _get_file_name(x):
     if x:
         return x[0].group('file')
+    return None
+
+
+def _get_projects(x):
+    if x:
+        return Todo.get_projects(x[0])
     return None

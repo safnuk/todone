@@ -3,7 +3,6 @@ import io
 from unittest import TestCase
 
 from todone.application import main
-# from todone.backends import folders
 
 TEST_DB = 'tests/test.sqlite3'
 CONFIG_DB = ['-c', 'tests/config_db.ini']
@@ -84,16 +83,27 @@ class FunctionalTestDB(TestCase):
         # He moves the listed todo to the today folder
         s = self.run_todone(['move', '1', 'today/'])
         self.assertIn('Moved: "Another thing to do" to today', s)
+        s = self.run_todone(['list', 'today/'])
+        self.assertIn('Another thing to do', s)
+
+    def test_project_functionality(self):
+        # He sets up the database.
+        s = self.run_todone(['setup'])
+        self.maxDiff = None
+        self.assertIn('New todone database initialized', s)
 
         # He creates a new project todo, and some sub-items
-        self.run_todone(['new', 'next/', 'project'])
-        self.run_todone(['new', 'Sub-item 1', '[project]'])
-        s = self.run_todone(['new', 'Sub-item 2', '[next/project]'])
-        self.assertIn('Sub-item 2', s)
+        self.run_todone(['new', 'next/', 'test project'])
+        s1 = self.run_todone(['list', 'test project'])
+        self.assertIn('test project', s1)
+        s = self.run_todone(['new', '[test project]', 'Sub item the first'])
+        s = self.run_todone(['new', 'Sub item the second', '[next/project]'])
+        self.assertIn('Sub item the second', s)
+        self.assertNotIn('project', s)
 
         # Listing the project shows the sub-items
-        s1 = self.run_todone(['list', '[project]'])
+        s = self.run_todone(['list', '[test project]'])
+        self.assertIn('Sub item the first', s)
+        self.assertIn('Sub item the second', s)
         s2 = self.run_todone(['list', '[next/project]'])
-        self.assertEqual(s1, s2)
-        self.assertIn('Sub-item 1', s1)
-        self.assertIn('Sub-item 2', s1)
+        self.assertEqual(s, s2)

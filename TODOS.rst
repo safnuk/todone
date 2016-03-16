@@ -5,3 +5,4 @@
 - Decide when and how to clear CANCEL items from database
 - Refactor tests using fixtures
 - Test and code for multiple project hits with new_todo
+- Raise error when setting up db with missing config file

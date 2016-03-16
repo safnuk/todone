@@ -373,9 +373,41 @@ class TestListItems(DB_Backend):
     def test_list_restricts_by_cal_date(self):
         self.fail("Write this test!")
 
-    @skip
     def test_list_restricts_by_project(self):
-        self.fail("Write this test!")
+        project = Todo.create(
+            action='Project',
+            folder='next'
+        )
+        t1 = Todo.create(
+            action='Test todo with search',
+            folder='inbox',
+            parent=project
+        )
+        t2 = Todo.create(
+            action='Test todo with grok',
+            folder='inbox'
+        )
+        t3 = Todo.create(
+            action='Search todo for foo',
+            folder='today',
+            parent=project
+        )
+
+        f = io.StringIO()
+        with redirect_stdout(f):
+            list_items(['[project]'])
+        s = f.getvalue()
+        self.assertIn(str(t1), s)
+        self.assertNotIn(str(t2), s)
+        self.assertIn(str(t3), s)
+
+        f = io.StringIO()
+        with redirect_stdout(f):
+            list_items(['[next/project]'])
+        s = f.getvalue()
+        self.assertIn(str(t1), s)
+        self.assertNotIn(str(t2), s)
+        self.assertIn(str(t3), s)
 
     def test_list_saves_last_search(self):
         Todo.create(
@@ -419,6 +451,33 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
         self.assertNotIn(str(t3), s)
+
+    def test_list_project_displays_all_todos_for_project(self):
+        project = Todo.create(
+            action='project',
+            folder='next'
+        )
+        t1 = Todo.create(
+            action='Test todo with search',
+            folder='inbox',
+            parent=project
+        )
+        t2 = Todo.create(
+            action='Test todo with grok',
+            folder='inbox'
+        )
+        t3 = Todo.create(
+            action='Search todo for foo',
+            folder='today',
+            parent=project
+        )
+        f = io.StringIO()
+        with redirect_stdout(f):
+            list_items(['[project]'])
+        s = f.getvalue()
+        self.assertIn(str(t1), s)
+        self.assertNotIn(str(t2), s)
+        self.assertIn(str(t3), s)
 
 
 class TestListArgParse(TestCase):
@@ -481,6 +540,12 @@ class TestListArgParse(TestCase):
         self.assertEqual(args['keywords'], keywords + ['.file', 'today/'])
         self.assertFalse(args['file'])
         self.assertFalse(args['folder'])
+
+    @patch('todone.commands.list.Todo')
+    def test_parses_projects(self, MockTodo):
+        args = parse_args(['[test/project]'])
+        self.assertEqual(args['parent'], MockTodo.get_projects.return_value)
+        MockTodo.get_projects.assert_called_once_with('test/project')
 
 
 @patch('todone.commands.list.parse_args')
