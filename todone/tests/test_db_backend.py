@@ -3,14 +3,16 @@ import io
 from unittest import TestCase
 
 from todone.application import main
+from todone.tests.base import ResetSettings
 
 TEST_DB = 'tests/test.sqlite3'
 CONFIG_DB = ['-c', 'tests/config_db.ini']
 
 
-class FunctionalTestDB(TestCase):
+class FunctionalTestDB(ResetSettings, TestCase):
 
     def setUp(self):
+        super().setUp()
         # clear test database
         with open(TEST_DB, 'w'):
             pass

@@ -2,7 +2,7 @@ import datetime
 
 from todone.backends.db import SavedList, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
-from todone.config import settings
+from todone import config
 from todone.printers import print_todo
 from todone.textparser import (
     AlwaysMatch,
@@ -94,12 +94,12 @@ usage: todone list [.file] [folder/] [tags and keywords]
 def construct_query_from_argdict(args):
     query = Todo.select()
     if args['folder']:
-        if args['folder'] in settings['folders']['today']:
+        if args['folder'] in config.settings['folders']['today']:
             query = query.where(
                 (Todo.folder == args['folder']) |
                 (Todo.due <= datetime.date.today()) |
                 (Todo.remind <= datetime.date.today())
-            ).where(~(Todo.folder << settings['folders']['inactive']))
+            ).where(~(Todo.folder << config.settings['folders']['inactive']))
         else:
             query = query.where(Todo.folder == args['folder'])
     else:
@@ -131,7 +131,7 @@ def parse_args(args=[]):
         format=ApplyFunctionFormat
     )
     parser.add_argument(
-        'folder', options=settings['folders']['default_folders'],
+        'folder', options=config.settings['folders']['default_folders'],
         match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=' '.join

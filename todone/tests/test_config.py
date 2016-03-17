@@ -2,7 +2,9 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from todone.config import configure, settings
+from todone import config
+from todone.config import configure
+from todone.tests.base import ResetSettings
 
 
 @patch('configparser.ConfigParser')
@@ -21,17 +23,18 @@ class UnitTestConfig(TestCase):
         MockConfig.return_value.read.assert_called_once_with('test.ini')
 
 
-class IntegratedTestConfig(TestCase):
+class IntegratedTestConfig(ResetSettings, TestCase):
 
     def test_configure_updates_settings(self):
         test_settings = {'foo': 'bar', 'baz': 'biff'}
-        name = settings['database']['name']
+        name = config.settings['database']['name']
         configure('tests/test.ini')
-        self.assertEqual(settings['test'], test_settings)
-        self.assertEqual(settings['database']['type'], 'testing')
-        self.assertEqual(settings['database']['name'], name)
+        self.assertEqual(config.settings['test'], test_settings)
+        self.assertEqual(config.settings['database']['type'], 'testing')
+        self.assertEqual(config.settings['database']['name'], name)
 
     def test_configure_converts_comma_delineated_strings_to_lists(self):
         configure('tests/test.ini')
-        self.assertEqual(settings['folders']['active'], ['foo', 'bar', 'baz'])
-        self.assertEqual(settings['folders']['cal'], ['my_cal'])
+        self.assertEqual(
+            config.settings['folders']['active'], ['foo', 'bar', 'baz'])
+        self.assertEqual(config.settings['folders']['cal'], ['my_cal'])

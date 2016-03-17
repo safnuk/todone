@@ -1,6 +1,6 @@
 from todone.backends.db import Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
-from todone.config import settings
+from todone import config
 from todone.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
@@ -65,7 +65,7 @@ def parse_args(args=[]):
     parser = TextParser()
     parser.add_argument(
         'folder',
-        options=settings['folders']['default_folders'],
+        options=config.settings['folders']['default_folders'],
         match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=_default_inbox
@@ -100,7 +100,7 @@ def parse_args(args=[]):
 def _default_inbox(x):
     if x:
         return x[0]
-    return settings['folders']['default_inbox']
+    return config.settings['folders']['default_inbox']
 
 
 def _get_project_todo(x):

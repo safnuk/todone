@@ -4,8 +4,9 @@ import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+from todone import config
 from todone.application import main
-from todone.config import settings
+from todone.tests.base import ResetSettings
 from todone.textparser import ArgumentError
 
 mock_parsed_data = {
@@ -74,14 +75,15 @@ class UnitTestMain(TestCase):
         mock_dispatch.assert_called_once_with('command', ['args'])
 
 
-class IntegratedTestMain(TestCase):
+class IntegratedTestMain(ResetSettings, TestCase):
 
     @patch('todone.backends.db.database')
     def test_config_flag_passed_to_configure(self, mock_db):
         main(['-c', 'tests/test.ini', 'help'])
-        self.assertEqual(settings['test']['foo'], 'bar')
+        self.assertEqual(config.settings['test']['foo'], 'bar')
 
     @patch('todone.backends.db.database')
     def test_passed_config_overrides_default(self, mock_db):
         main(['-c', 'tests/config_db.ini', 'help'])
-        self.assertEqual(settings['database']['name'], 'tests/test.sqlite3')
+        self.assertEqual(
+            config.settings['database']['name'], 'tests/test.sqlite3')

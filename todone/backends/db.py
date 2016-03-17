@@ -3,7 +3,7 @@ import re
 
 import peewee
 
-from todone.config import settings
+from todone import config
 
 MOST_RECENT_SEARCH = 'last_search'
 database = peewee.SqliteDatabase(None)
@@ -19,7 +19,7 @@ class Todo(BaseModel):
         constraints=[peewee.Check("action != ''")],
     )
     folder = peewee.CharField(
-        default=settings['folders']['default_inbox']
+        default=config.settings['folders']['default_inbox']
     )
     parent = peewee.ForeignKeyField(
         'self', null=True, related_name='subitems'
@@ -47,7 +47,7 @@ class Todo(BaseModel):
         todos are: inbox, next, and today.
         """
         active = cls.select().where(
-            Todo.folder << settings['folders']['active']
+            Todo.folder << config.settings['folders']['active']
         )
         return active
 
@@ -119,7 +119,7 @@ def create_database():
 
 
 def initialize_database():
-    database.init(os.path.expanduser(settings['database']['name']))
+    database.init(os.path.expanduser(config.settings['database']['name']))
 
 
 def connect_database():
