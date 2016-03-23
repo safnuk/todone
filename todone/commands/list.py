@@ -1,6 +1,6 @@
 import datetime
 
-from todone.backends.db import SavedList, Todo
+from todone.backends.db import Folder, SavedList, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
 from todone.printers import print_todo
@@ -131,7 +131,8 @@ def parse_args(args=[]):
         format=ApplyFunctionFormat
     )
     parser.add_argument(
-        'folder', options=config.settings['folders']['default_folders'],
+        'folder',
+        options=[f.name for f in Folder.select()],
         match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=' '.join

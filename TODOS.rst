@@ -1,8 +1,9 @@
 - Make max date(9999, 12, 31) into global constant
-- Add project folder for project titles
+- Allow arbitrary folder names
 - Add cal folder for calendar items
 - Decide when and how to clear DONE and CANCEL items from saved lists
 - Decide when and how to clear CANCEL items from database
 - Refactor tests using fixtures
 - Test and code for multiple project hits with new_todo
 - Raise error when setting up db with missing config file
+- Use SQL search for FolderMatch

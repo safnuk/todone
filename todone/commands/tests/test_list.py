@@ -11,7 +11,7 @@ from todone.commands.list import (
     parse_args
 )
 from todone.config import settings
-from todone.tests.base import DB_Backend
+from todone.tests.base import DB_Backend, FolderMock
 
 folders = settings['folders']
 
@@ -90,11 +90,6 @@ class TestListItems(DB_Backend):
             folder='done',
             remind=date.today() - timedelta(days=20)
         )
-        t6 = Todo.create(
-            action='Sublime 8',
-            folder='cancel',
-            remind=date.today() - timedelta(days=20)
-        )
         t7 = Todo.create(
             action='Sublime 5',
             folder='next',
@@ -109,7 +104,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t3), s)
         self.assertIn(str(t4), s)
         self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
         self.assertNotIn(str(t7), s)
 
     def test_list_today_includes_due_items(self):
@@ -139,11 +133,6 @@ class TestListItems(DB_Backend):
             folder='done',
             due=date.today() - timedelta(days=20)
         )
-        t6 = Todo.create(
-            action='Sublime 8',
-            folder='cancel',
-            due=date.today() - timedelta(days=20)
-        )
         t7 = Todo.create(
             action='Sublime 5',
             folder='next',
@@ -158,7 +147,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t3), s)
         self.assertIn(str(t4), s)
         self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
         self.assertNotIn(str(t7), s)
 
     def test_list_restricts_by_search_keywords(self):
@@ -230,11 +218,6 @@ class TestListItems(DB_Backend):
             folder='done',
             due=date.today()
         )
-        t7 = Todo.create(
-            action='Sublime 7',
-            folder='cancel',
-            due=date.today()
-        )
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -246,7 +229,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -258,7 +240,6 @@ class TestListItems(DB_Backend):
         self.assertNotIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -270,7 +251,6 @@ class TestListItems(DB_Backend):
         self.assertNotIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -282,7 +262,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
     def test_list_restricts_by_remind_date(self):
         t1 = Todo.create(
@@ -315,11 +294,6 @@ class TestListItems(DB_Backend):
             folder='done',
             remind=date.today()
         )
-        t7 = Todo.create(
-            action='Sublime 7',
-            folder='cancel',
-            remind=date.today()
-        )
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -331,7 +305,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -343,7 +316,6 @@ class TestListItems(DB_Backend):
         self.assertNotIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -355,7 +327,6 @@ class TestListItems(DB_Backend):
         self.assertNotIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -367,7 +338,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t4), s)
         self.assertNotIn(str(t5), s)
         self.assertNotIn(str(t6), s)
-        self.assertNotIn(str(t7), s)
 
     @skip
     def test_list_restricts_by_cal_date(self):
@@ -480,6 +450,7 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t3), s)
 
 
+@patch('todone.commands.list.Folder', FolderMock)
 class TestListArgParse(TestCase):
 
     def test_parse_args_parses_filename(self):

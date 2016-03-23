@@ -55,7 +55,9 @@ class FolderMatch(AbstractMatch):
         if match:
             matches = []
             for keyword in targets:
-                if keyword.lower().startswith(match.group('start').lower()):
+                if keyword.lower().startswith(
+                        match.group('start').lower()
+                ):
                     matches.append((keyword, match.group('end').strip()))
             if len(matches) == 1:
                 unmatched_args = (
