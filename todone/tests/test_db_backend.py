@@ -116,8 +116,8 @@ class FunctionalTestDB(ResetSettings, TestCase):
 
         # User tries to create a new todo, in a non-default folder
         s = self.run_todone(['new', 'testfolder/', 'New todo'])
-        self.assertIn('Argument error', s)
-        self.assertIn('older testfolder/ does not exist ', s)
+        self.assertIn('Invalid argument', s)
+        self.assertIn('No match found for folder testfolder/', s)
 
         # User then creates the new folder, and tries again to add a todo to it
         s = self.run_todone(['new', 'testfolder/'])

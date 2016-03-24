@@ -64,18 +64,18 @@ usage: todone new [folder/] [tags and todo string]
 def parse_args(args=[]):
     parser = TextParser()
     parser.add_argument(
-        'folder',
-        options=[f.name for f in Folder.select()],
-        match=FolderMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=_default_inbox
-    )
-    parser.add_argument(
         'parent', match=ProjectMatch,
         nargs='?',
         positional=False,
         format_function=_get_project_todo,
         format=ApplyFunctionFormat
+    )
+    parser.add_argument(
+        'folder',
+        options=[f.name for f in Folder.select()],
+        match=FolderMatch, nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=_default_inbox
     )
     parser.add_argument(
         'due', options=DUE_REGEX, match=RegexMatch,

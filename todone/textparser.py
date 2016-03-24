@@ -65,6 +65,8 @@ class FolderMatch(AbstractMatch):
                     else args[1:]
                 )
                 return matches[0][0], unmatched_args
+            else:
+                raise ArgumentError
         return None, args
 
 

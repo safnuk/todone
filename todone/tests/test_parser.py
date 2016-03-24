@@ -409,13 +409,17 @@ class TestFolderMatch(TestCase):
             value, args = matcher.match(options, [key + '/'] + options)
             self.assertEqual(value, key)
 
+    def test_raises_ArgumentError_on_ambiguous_substrings(self):
+        options = ['foo', 'foa', 'fat']
+        matcher = FolderMatch()
+        with self.assertRaises(ArgumentError):
+            value, args = matcher.match(options, ['f/'])
+        with self.assertRaises(ArgumentError):
+            value, args = matcher.match(options, ['fo/'])
+
     def test_match_only_unambiguous_substrings(self):
         options = ['foo', 'foa', 'fat']
         matcher = FolderMatch()
-        value, args = matcher.match(options, ['f/'])
-        self.assertEqual(value, None)
-        value, args = matcher.match(options, ['fo/'])
-        self.assertEqual(value, None)
         value, args = matcher.match(options, ['foo/'])
         self.assertEqual(value, 'foo')
         value, args = matcher.match(options, ['foa/'])
