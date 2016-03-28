@@ -3,7 +3,7 @@ import datetime
 from todone.backends.db import SavedList, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
-from todone.printers import print_todo
+from todone.printers import print_todo_list
 from todone.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
@@ -83,8 +83,7 @@ def list_items(args):
         query = construct_query_from_argdict(parsed_args)
         SavedList.save_search(parsed_args['file'], query)
     SavedList.save_most_recent_search(query)
-    for n, todo in enumerate(query, 1):
-        print_todo(n, todo)
+    print_todo_list(query)
 
 list_items.short_help = """
 usage: todone list [.file] [folder/] [tags and keywords]
@@ -112,6 +111,7 @@ def construct_query_from_argdict(args):
         query = query.where(Todo.remind <= args['remind'])
     for keyword in args['keywords']:
         query = query.where(Todo.action.contains(keyword))
+    query = query.order_by(Todo.parent, -Todo.folder, Todo.id)
     return query
 
 

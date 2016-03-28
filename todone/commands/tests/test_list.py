@@ -2,7 +2,7 @@ from contextlib import redirect_stdout
 from datetime import date, timedelta
 import io
 from unittest import skip, TestCase
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
 from todone.commands.list import (
@@ -479,6 +479,41 @@ class TestListItems(DB_Backend):
         self.assertNotIn(str(t2), s)
         self.assertIn(str(t3), s)
 
+    def test_order_by_project(self):
+        project1 = Todo.create(
+            action='A project',
+            folder='next'
+        )
+        project2 = Todo.create(
+            action='B project',
+            folder='next'
+        )
+        t1 = Todo.create(
+            action='Test todo with search',
+            folder='today',
+            parent=project2
+        )
+        t2 = Todo.create(
+            action='Test todo with grok',
+            folder='today',
+            parent=project1
+        )
+        t3 = Todo.create(
+            action='Search todo for foo',
+            folder='today',
+        )
+
+        f = io.StringIO()
+        with redirect_stdout(f):
+            list_items(['today/'])
+        s = f.getvalue()
+        lines = s.split('\n')
+        self.assertIn(str(t3), lines[0])
+        self.assertIn(project1.action, lines[1])
+        self.assertIn(str(t2), lines[2])
+        self.assertIn(project2.action, lines[3])
+        self.assertIn(str(t1), lines[4])
+
 
 class TestListArgParse(TestCase):
 
@@ -577,8 +612,9 @@ class UnitTestListItems(TestCase):
         MockSavedList.save_search.assert_not_called()
 
     @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.print_todo_list')
     def test_if_loading_saved_search_then_saves_as_most_recent_query(
-        self, MockSavedList, mock_is_loading, mock_parse
+        self, mock_print, MockSavedList, mock_is_loading, mock_parse
     ):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = True
@@ -598,8 +634,10 @@ class UnitTestListItems(TestCase):
 
     @patch('todone.commands.list.construct_query_from_argdict')
     @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_query(
-        self, MockSavedList, mock_construct, mock_is_loading, mock_parse
+        self, mock_print, MockSavedList, mock_construct,
+        mock_is_loading, mock_parse
     ):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = False
@@ -610,8 +648,10 @@ class UnitTestListItems(TestCase):
 
     @patch('todone.commands.list.construct_query_from_argdict')
     @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_as_most_recent_query(
-        self, MockSavedList, mock_construct, mock_is_loading, mock_parse
+        self, mock_print, MockSavedList, mock_construct,
+        mock_is_loading, mock_parse
     ):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = False
@@ -619,18 +659,6 @@ class UnitTestListItems(TestCase):
         list_items([])
         MockSavedList.save_most_recent_search.assert_called_once_with(
             'test todo')
-
-    @patch('todone.commands.list.SavedList')
-    @patch('todone.commands.list.print_todo')
-    def test_prints_all_todos(
-        self, mock_print, MockSavedList, mock_is_loading, mock_parse
-    ):
-        mock_parse.return_value = self.parsed_args
-        mock_is_loading.return_value = True
-        MockSavedList.get_todos_in_list.return_value = [1, 2, 3]
-        expected = [call(x, x) for x in [1, 2, 3]]
-        list_items([])
-        self.assertEqual(mock_print.mock_calls, expected)
 
 
 class TestIsLoading(TestCase):
