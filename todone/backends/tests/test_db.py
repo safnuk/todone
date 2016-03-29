@@ -2,8 +2,11 @@ from unittest import skip
 
 import peewee
 
-from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
-from todone.config import settings
+from todone import config
+from todone.backends.db import (
+    Folder, ListItem, SavedList,
+    Todo, MOST_RECENT_SEARCH
+)
 from todone.tests.base import DB_Backend
 
 
@@ -24,28 +27,33 @@ class TestTodoModel(DB_Backend):
             t.save()
 
     def test_todo_stores_valid_folder(self):
-        for folder in [x for x in settings['folders']['default_folders']]:
+        for folder in [
+                x for x in config.settings['folders']['default_folders']
+        ]:
             t = Todo(action='Test todo', folder=folder)
             t.save()
-            self.assertEqual(t.folder, folder)
+            self.assertEqual(t.folder.name, folder)
 
     def test_todo_default_folder_is_inbox(self):
         t = Todo(action='Test')
         t.save()
-        self.assertEqual(t.folder, settings['folders']['default_inbox'])
+        self.assertEqual(
+            t.folder.name, config.settings['folders']['default_inbox'])
 
     def test_active_todos_restricts_select(self):
         todos = {}
-        for n, folder in enumerate(settings['folders']['default_folders']):
+        for n, folder in enumerate(
+            config.settings['folders']['default_folders']
+        ):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
         active = Todo.active_todos()
         active_todos = [t for t in active]
 
-        test_active = settings['folders']['active']
+        test_active = config.settings['folders']['active']
         test_inactive = [
-            x for x in settings['folders']['default_folders']
+            x for x in config.settings['folders']['default_folders']
             if x not in test_active
         ]
         for folder in test_inactive:
@@ -73,6 +81,18 @@ class TestTodoModel(DB_Backend):
         query = Todo.get_projects('Todo')
         self.assertIn(t1, query)
         self.assertIn(t2, query)
+
+
+class TestFolder(DB_Backend):
+
+    def test_folder_raises_with_empty_name(self):
+        with self.assertRaises(peewee.IntegrityError):
+            Folder.create(name='')
+
+    def test_folder_raises_with_non_unique_name(self):
+        Folder.create(name='name')
+        with self.assertRaises(peewee.IntegrityError):
+            Folder.create(name='name')
 
 
 class TestSavedList(DB_Backend):

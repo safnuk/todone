@@ -1,4 +1,5 @@
 - Make max date(9999, 12, 31) into global constant
+- Allow arbitrary folder names
 - Add cal folder for calendar items
 - Decide when and how to clear DONE and CANCEL items from saved lists
 - Decide when and how to clear CANCEL items from database
@@ -16,3 +17,4 @@
   * Use unicode check boxes ☐ ☑ ☒ ◎ ◉  ◯ ❌ ✖ ✕ ✓ ✔  ▷ ► ✅  ▢ ▣
 - Record date/time when moving to "done" folder
 - Implement recurring todos
+- Use SQL search for FolderMatch

@@ -20,7 +20,7 @@ def move_todo(args):
     target = todos[parsed_args['index']-1]
     target.folder = parsed_args['folder']
     target.save()
-    print('Moved: "{}" to {}'.format(target.action, target.folder))
+    print('Moved: "{}" to {}'.format(target.action, target.folder.name))
 
 move_todo.short_help = """
 usage: todone move N folder/

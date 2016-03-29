@@ -21,7 +21,7 @@ class TestMoveTodo(DB_Backend):
     def test_todo_moves_to_designated_folder(self):
         move_todo(['1', 'today/'])
         moved_todo = Todo.get(Todo.action == 'Todo 1')
-        self.assertEqual(moved_todo.folder, 'today')
+        self.assertEqual(moved_todo.folder.name, 'today')
 
     def test_prints_action_taken(self):
         f = io.StringIO()

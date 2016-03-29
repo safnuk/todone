@@ -14,11 +14,20 @@ class BaseModel(peewee.Model):
         database = database
 
 
+class Folder(BaseModel):
+    name = peewee.CharField(
+        constraints=[peewee.Check("name != ''")],
+        unique=True,
+        primary_key=True
+    )
+
+
 class Todo(BaseModel):
     action = peewee.CharField(
         constraints=[peewee.Check("action != ''")],
     )
-    folder = peewee.CharField(
+    folder = peewee.ForeignKeyField(
+        Folder,
         default=config.settings['folders']['default_inbox']
     )
     parent = peewee.ForeignKeyField(
@@ -33,7 +42,7 @@ class Todo(BaseModel):
     # repeat_interval = peewee.CharField()
 
     def __str__(self):
-        item = '- ' + self.folder + '/' + self.action
+        item = '- ' + self.folder.name + '/' + self.action
         return item
 
     def __repr__(self):
@@ -115,7 +124,9 @@ class ListItem(BaseModel):
 
 
 def create_database():
-    database.create_tables([Todo,  SavedList, ListItem])
+    database.create_tables([Folder, Todo,  SavedList, ListItem])
+    for folder in config.settings['folders']['default_folders']:
+        Folder.create(name=folder)
 
 
 def initialize_database():

@@ -109,3 +109,31 @@ class FunctionalTestDB(ResetSettings, TestCase):
         self.assertIn('Sub item the second', s)
         s2 = self.run_todone(['list', '[next/project]'])
         self.assertEqual(s, s2)
+
+    def test_folder_structure(self):
+        # He sets up the database.
+        s = self.run_todone(['setup'])
+
+        # User tries to create a new todo, in a non-default folder
+        s = self.run_todone(['new', 'testfolder/', 'New todo'])
+        self.assertIn('Argument error', s)
+        self.assertIn('older testfolder/ does not exist ', s)
+
+        # User then creates the new folder, and tries again to add a todo to it
+        s = self.run_todone(['new', 'testfolder/'])
+        self.assertIn('Created folder testfolder/', s)
+        s = self.run_todone(['new', 'test/', 'New todo'])
+        self.assertIn('Added New todo to testfolder', s)
+
+        # Listing the folder shows the todo
+        s = self.run_todone(['list', 'testfolder/'])
+        self.assertIn('New todo', s)
+
+        # He creates another closely-named folder
+        s = self.run_todone(['new', 'testfolder1/'])
+        self.assertIn('Created folder testfolder1/')
+
+        # Trying to add a todo to an ambiguous folder does not work
+        s = self.run_todone(['new', 'test/', 'Another todo'])
+        self.assertIn('Argument error', s)
+        self.assertIn('older has multiple matches', s)
