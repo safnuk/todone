@@ -8,6 +8,7 @@ from unittest.mock import patch
 from todone.backends.db import Todo
 from todone.commands.new import new_todo, parse_args
 from todone.tests.base import DB_Backend, FolderMock
+from todone.textparser import ArgumentError
 
 
 class TestNewAction(DB_Backend):
@@ -24,12 +25,6 @@ class TestNewAction(DB_Backend):
             new_todo(['today/', 'New todo 2'])
         s = f.getvalue()
         self.assertIn('Added: New todo 2 to {}'.format('today'), s)
-
-        f = io.StringIO()
-        with redirect_stdout(f):
-            new_todo(['nonfolder/', 'New todo 3'])
-        s = f.getvalue()
-        self.assertIn('older {} does not exist'.format('nonfolder/'), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -73,9 +68,9 @@ class TestNewAction(DB_Backend):
         t1 = Todo.get(Todo.action == 'Test todo')
         self.assertEqual(t1.parent, project)
 
-    def test_does_not_save_to_nonexisting_folder(self):
-        new_todo(['nonfolder/', 'New todo'])
-        self.assertEqual(len(Todo.select()), 0)
+    def test_raises_ArgumentError_when_saving_to_nonexisting_folder(self):
+        with self.assertRaises(ArgumentError):
+            new_todo(['nonfolder/', 'New todo'])
 
 
 @patch('todone.commands.new.Folder', FolderMock)

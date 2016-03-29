@@ -131,18 +131,18 @@ def parse_args(args=[]):
         format=ApplyFunctionFormat
     )
     parser.add_argument(
-        'folder',
-        options=[f.name for f in Folder.select()],
-        match=FolderMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.add_argument(
         'parent', match=ProjectMatch,
         nargs='?',
         positional=False,
         format_function=_get_projects,
         format=ApplyFunctionFormat
+    )
+    parser.add_argument(
+        'folder',
+        options=[f.name for f in Folder.select()],
+        match=FolderMatch, nargs='?',
+        format=ApplyFunctionFormat,
+        format_function=' '.join
     )
     parser.add_argument(
         'due', options=DUE_REGEX, match=RegexMatch,
