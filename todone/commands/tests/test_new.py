@@ -26,12 +26,6 @@ class TestNewAction(DB_Backend):
         s = f.getvalue()
         self.assertIn('Added: New todo 2 to {}'.format('today'), s)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            new_todo(['nonfolder/'])
-        s = f.getvalue()
-        self.assertIn('Created folder {}'.format('nonfolder/'), s)
-
     def test_new_item_saves_todo(self):
         new_todo(['Todo 1'])
         new_todo(['today/', 'Todo 2'])
@@ -71,6 +65,8 @@ class TestNewAction(DB_Backend):
     def test_raises_ArgumentError_when_saving_to_nonexisting_folder(self):
         with self.assertRaises(ArgumentError):
             new_todo(['nonfolder/', 'New todo'])
+        with self.assertRaises(ArgumentError):
+            new_todo(['nonfolder/'])
 
 
 @patch('todone.commands.new.Folder', FolderMock)

@@ -1,6 +1,5 @@
 from contextlib import redirect_stdout
 import io
-from unittest import skip
 from unittest import TestCase
 
 from todone.application import main
@@ -111,7 +110,6 @@ class FunctionalTestDB(ResetSettings, TestCase):
         s2 = self.run_todone(['list', '[next/project]'])
         self.assertEqual(s, s2)
 
-    @skip
     def test_folder_structure(self):
         # He sets up the database.
         s = self.run_todone(['setup'])

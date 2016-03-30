@@ -65,6 +65,10 @@ class FolderMatch(AbstractMatch):
                     else args[1:]
                 )
                 return matches[0][0], unmatched_args
+            elif len(matches) == 0:
+                raise ArgumentError('No match found for folder {}/'.format(
+                    match.group('start')
+                ))
             else:
                 raise ArgumentError
         return None, args

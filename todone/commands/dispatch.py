@@ -9,8 +9,9 @@ from todone.textparser import ArgumentError
 def dispatch_command(action, args):
     try:
         COMMAND_MAPPING[action](args)
-    except ArgumentError:
-        print("Invalid argument(s) for {} command".format(action))
+    except ArgumentError as e:
+        print("Invalid argument(s) for {} command. {}".format(
+            action, e))
         COMMAND_MAPPING['help'](['--short', action])
 
 COMMAND_MAPPING = {
