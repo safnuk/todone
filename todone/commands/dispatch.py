@@ -1,3 +1,4 @@
+from todone.commands.folder import folder_command
 from todone.commands.help import help_text
 from todone.commands.list import list_items
 from todone.commands.move import move_todo
@@ -21,6 +22,7 @@ COMMAND_MAPPING = {
     '-v': version,
     '--version': version,
     'version': version,
+    'folder': folder_command,
     'list': list_items,
     'move': move_todo,
     'new': new_todo,
