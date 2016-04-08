@@ -6,6 +6,7 @@ import peewee
 
 from todone.backends.db import Folder, Todo
 from todone.commands.folder import folder_command, parse_args
+from todone import config
 from todone.tests.base import DB_Backend
 from todone.textparser import ArgumentError
 
@@ -119,10 +120,16 @@ class TestFolderCommand(DB_Backend):
             folder_command(['delete', 'today', 'foo'])
 
     def test_list_displays_all_folders(self):
-        pass
+        f = io.StringIO()
+        with redirect_stdout(f):
+            folder_command(['list'])
+        s = f.getvalue()
+        for folder in config.settings['folders']['default_folders']:
+            self.assertIn(folder, s)
 
     def test_list_raises_with_extra_arguments(self):
-        pass
+        with self.assertRaises(ArgumentError):
+            folder_command(['list', 'foo'])
 
 
 class TestArgParse(TestCase):
@@ -136,10 +143,6 @@ class TestArgParse(TestCase):
         self.assertEqual(args['command'], 'rename')
         args = parse_args(['DEL', 'test'])
         self.assertEqual(args['command'], 'delete')
-
-    def test_raises_when_missing_folder(self):
-        with self.assertRaises(ArgumentError):
-            parse_args(['new'])
 
     def test_parses_folder(self):
         args = parse_args(['n', 'test'])

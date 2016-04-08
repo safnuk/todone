@@ -27,6 +27,10 @@ def folder_command(args):
     """
     parsed_args = parse_args(args)
     if parsed_args['command'] == 'new':
+        if not parsed_args['folders']:
+            raise ArgumentError(
+                'No folder name specified'
+            )
         for folder in parsed_args['folders']:
             try:
                 Folder.create(name=folder)
@@ -84,6 +88,13 @@ def folder_command(args):
         query.execute()
         folder.delete_instance()
         print('Deleted folder: {}/'.format(folder_name))
+    elif parsed_args['command'] == 'list':
+        if parsed_args['folders']:
+            raise ArgumentError(
+                'list command does not accept arguments'
+            )
+        for folder in Folder.select():
+            print('{}/'.format(folder.name))
 
 
 folder_command.short_help = """
@@ -102,7 +113,7 @@ def parse_args(args=[]):
     )
     parser.add_argument(
         'folders',
-        nargs='+',
+        nargs='*',
         match=AlwaysMatch,
         format=ApplyFunctionFormat,
         format_function=_strip_trailing_slash
