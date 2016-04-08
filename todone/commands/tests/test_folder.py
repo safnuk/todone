@@ -2,7 +2,9 @@ from contextlib import redirect_stdout
 import io
 from unittest import TestCase
 
-from todone.backends.db import Folder
+import peewee
+
+from todone.backends.db import Folder, Todo
 from todone.commands.folder import folder_command, parse_args
 from todone.tests.base import DB_Backend
 from todone.textparser import ArgumentError
@@ -38,28 +40,88 @@ class TestFolderCommand(DB_Backend):
         self.assertIn('Added folder: {}'.format('foo/'), s)
         self.assertIn('Added folder: {}'.format('Bar/'), s)
 
+    def test_new_with_no_folders_raises(self):
+        with self.assertRaises(ArgumentError):
+            folder_command(['new'])
+
+    def test_rename_with_no_folders_raises(self):
+        with self.assertRaises(ArgumentError):
+            folder_command(['rename'])
+
+    def test_delete_with_no_folders_raises(self):
+        with self.assertRaises(ArgumentError):
+            folder_command(['delete'])
+
     def test_rename_changes_folder_name(self):
-        return
         Folder.create(name='test')
         folder_command(['rename', 'test', 'foo'])
         Folder.get(Folder.name == 'foo')  # does not raise
+        with self.assertRaises(peewee.DoesNotExist):
+            Folder.get(Folder.name == 'test')
 
     def test_rename_to_existing_folder_raises_ArgumentError(self):
-        pass
+        Folder.create(name='test')
+        Folder.create(name='foo')
+        with self.assertRaises(ArgumentError):
+            folder_command(['rename', 'test', 'foo'])
 
     def test_rename_renames_folder_fields_for_todos(self):
-        pass
+        Folder.create(name='test')
+        Todo.create(action='Todo 1', folder='test')
+        folder_command(['rename', 'test', 'foo'])
+        t1 = Todo.get(Todo.action == 'Todo 1')
+        self.assertEqual(t1.folder.name, 'foo')
+
+    def test_rename_raises_when_source_folder_does_not_match(self):
+        with self.assertRaises(ArgumentError):
+            folder_command(['rename', 'test', 'foo'])
 
     def test_raises_when_rename_with_one_folder(self):
-        pass
+        with self.assertRaises(ArgumentError):
+            folder_command(['rename', 'today'])
 
     def test_raises_when_rename_with_three_folders(self):
-        pass
+        with self.assertRaises(ArgumentError):
+            folder_command(['rename', 'today', 'foo', 'bar'])
+
+    def test_rename_outputs_action_taken(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            folder_command(['rename', 'today', 'foo'])
+        s = f.getvalue()
+        self.assertIn('Renamed folder: {} -> {}'.format('today/', 'foo/'), s)
+
+    def test_delete_outputs_action_taken(self):
+        f = io.StringIO()
+        with redirect_stdout(f):
+            folder_command(['delete', 'today'])
+        s = f.getvalue()
+        self.assertIn('Deleted folder: {}'.format('today/'), s)
 
     def test_delete_removes_folder(self):
+        folder_command(['delete', 'today'])
+        with self.assertRaises(peewee.DoesNotExist):
+            Folder.get(name='today')
+
+    def test_delete_moves_subtodos_to_default_inbox(self):
+        Todo.create(action='Foo', folder='today')
+        Todo.create(action='Bar', folder='today')
+        folder_command(['delete', 'today'])
+        for t in Todo.select():
+            self.assertEqual(t.folder.name, 'inbox')
+
+    def test_delete_raises_when_folder_does_not_match(self):
+        with self.assertRaises(ArgumentError):
+            folder_command(['delete', 'foo'])
+
+    def test_delete_raises_when_more_than_one_folder_passed(self):
+        with self.assertRaises(ArgumentError):
+            folder_command(['delete', 'today', 'foo'])
+
+    def test_list_displays_all_folders(self):
         pass
 
-    def test_delete_moves_subtodos_to_inbox(self):
+    def test_list_raises_with_extra_arguments(self):
         pass
 
 

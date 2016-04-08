@@ -28,7 +28,8 @@ class Todo(BaseModel):
     )
     folder = peewee.ForeignKeyField(
         Folder,
-        default=config.settings['folders']['default_inbox']
+        default=config.settings['folders']['default_inbox'],
+        related_name='todos'
     )
     parent = peewee.ForeignKeyField(
         'self', null=True, related_name='subitems'

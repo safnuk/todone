@@ -18,3 +18,4 @@
 - Record date/time when moving to "done" folder
 - Implement recurring todos
 - Use SQL search for FolderMatch
+- Move folder properties from config file to db model
