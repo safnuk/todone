@@ -121,19 +121,19 @@ class FunctionalTestDB(ResetSettings, TestCase):
 
         # User then creates the new folder, and tries again to add a todo to it
         s = self.run_todone(['folder', 'new', 'testfolder/'])
-        self.assertIn('Created folder testfolder/', s)
+        self.assertIn('Added folder: testfolder/', s)
         s = self.run_todone(['new', 'test/', 'New todo'])
-        self.assertIn('Added New todo to testfolder', s)
+        self.assertIn('Added: New todo to testfolder', s)
 
         # Listing the folder shows the todo
         s = self.run_todone(['list', 'testfolder/'])
         self.assertIn('New todo', s)
 
         # He creates another closely-named folder
-        s = self.run_todone(['folder' 'new', 'testfolder1/'])
-        self.assertIn('Created folder testfolder1/')
+        s = self.run_todone(['folder', 'new', 'testfolder1/'])
+        self.assertIn('Added folder: testfolder1/', s)
 
         # Trying to add a todo to an ambiguous folder does not work
         s = self.run_todone(['new', 'test/', 'Another todo'])
-        self.assertIn('Argument error', s)
-        self.assertIn('older has multiple matches', s)
+        self.assertIn('Invalid argument', s)
+        self.assertIn('Multiple matches found for folder test/', s)

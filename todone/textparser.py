@@ -70,7 +70,10 @@ class FolderMatch(AbstractMatch):
                     match.group('start')
                 ))
             else:
-                raise ArgumentError
+                raise ArgumentError(
+                    'Multiple matches found for folder {}/'.format(
+                        match.group('start')
+                    ))
         return None, args
 
 
