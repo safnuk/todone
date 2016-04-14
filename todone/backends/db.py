@@ -4,6 +4,7 @@ import re
 import peewee
 
 from todone import config
+from todone.textparser import ArgumentError
 
 MOST_RECENT_SEARCH = 'last_search'
 database = peewee.SqliteDatabase(None)
@@ -20,6 +21,52 @@ class Folder(BaseModel):
         unique=True,
         primary_key=True
     )
+
+    @classmethod
+    def safe_new(cls, folder):
+        try:
+            Folder.create(name=folder)
+        except peewee.IntegrityError:
+            raise ArgumentError(
+                'Folder {}/ already exists'.format(folder))
+
+    @classmethod
+    def safe_rename(cls, old_folder_name, new_folder_name):
+        try:
+            old_folder = Folder.get(Folder.name == old_folder_name)
+        except peewee.DoesNotExist:
+            raise ArgumentError(
+                'No match found for folder {}/'.format(old_folder_name)
+            )
+        try:
+            new_folder = Folder.create(name=new_folder_name)
+        except peewee.IntegrityError:
+            raise ArgumentError(
+                'Folder {}/ already exists'.format(new_folder_name))
+        query = Todo.update(folder=new_folder).where(
+            Todo.folder == old_folder
+        )
+        query.execute()
+        old_folder.delete_instance()
+
+    @classmethod
+    def safe_delete(cls, folder_name):
+        try:
+            folder = Folder.get(Folder.name == folder_name)
+        except peewee.DoesNotExist:
+            raise ArgumentError(
+                'Folder {} does not exist'.format(folder_name)
+            )
+        query = Todo.update(
+            folder=config.settings['folders']['default_inbox']
+        ).where(Todo.folder == folder)
+        query.execute()
+        folder.delete_instance()
+
+    @classmethod
+    def list(cls):
+        for folder in Folder.select():
+            print('{}/'.format(folder.name))
 
 
 class Todo(BaseModel):

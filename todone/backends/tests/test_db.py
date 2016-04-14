@@ -94,6 +94,42 @@ class TestFolder(DB_Backend):
         with self.assertRaises(peewee.IntegrityError):
             Folder.create(name='name')
 
+    def test_new_creates_valid_name(self):
+        old_list_length = len(Folder.select())
+        Folder.safe_new('test')
+        Folder.safe_new('folder')
+        self.assertEqual(len(Folder.select()) - old_list_length, 2)
+        f1 = Folder.get(Folder.name == 'test')
+        self.assertEqual(f1.name, 'test')
+        f2 = Folder.get(Folder.name == 'folder')
+        self.assertEqual(f2.name, 'folder')
+
+    def test_rename_changes_folder_name(self):
+        Folder.create(name='test')
+        Folder.safe_rename('test', 'foo')
+        Folder.get(Folder.name == 'foo')  # does not raise
+        with self.assertRaises(peewee.DoesNotExist):
+            Folder.get(Folder.name == 'test')
+
+    def test_rename_renames_folder_fields_for_todos(self):
+        Folder.create(name='test')
+        Todo.create(action='Todo 1', folder='test')
+        Folder.safe_rename('test', 'foo')
+        t1 = Todo.get(Todo.action == 'Todo 1')
+        self.assertEqual(t1.folder.name, 'foo')
+
+    def test_delete_removes_folder(self):
+        Folder.safe_delete('today')
+        with self.assertRaises(peewee.DoesNotExist):
+            Folder.get(name='today')
+
+    def test_delete_moves_subtodos_to_default_inbox(self):
+        Todo.create(action='Foo', folder='today')
+        Todo.create(action='Bar', folder='today')
+        Folder.safe_delete('today')
+        for t in Todo.select():
+            self.assertEqual(t.folder.name, 'inbox')
+
 
 class TestSavedList(DB_Backend):
 

@@ -1,7 +1,4 @@
-import peewee
-
-from todone.backends.db import Folder, Todo
-from todone import config
+from todone.backends.db import Folder
 from todone.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
@@ -11,6 +8,33 @@ from todone.textparser import (
 )
 
 FOLDER_COMMANDS = ['new', 'rename', 'delete', 'list']
+FOLDER_DISPATCH = {
+    'new': Folder.safe_new,
+    'rename': Folder.safe_rename,
+    'delete': Folder.safe_delete,
+    'list': Folder.list
+}
+
+COMMAND_MESSAGE = {
+    'new': 'Added folder: {}/',
+    'rename': 'Renamed folder: {}/ -> {}/',
+    'delete': 'Deleted folder: {}/',
+    'list': '',
+}
+
+MIN_FOLDERS = {
+    'new': 1,
+    'rename': 2,
+    'delete': 1,
+    'list': 0,
+}
+
+MAX_FOLDERS = {
+    'new': 1,
+    'rename': 2,
+    'delete': 1,
+    'list': 0,
+}
 
 
 def folder_command(args):
@@ -24,77 +48,23 @@ def folder_command(args):
         new    create a new folder with the given name
         rename rename an existing folder
         delete remove a folder
+        list   list all folders
     """
     parsed_args = parse_args(args)
-    if parsed_args['command'] == 'new':
-        if not parsed_args['folders']:
-            raise ArgumentError(
-                'No folder name specified'
+    command = parsed_args['command']
+    folders = parsed_args['folders']
+    if len(folders) < MIN_FOLDERS[command]:
+        raise ArgumentError(
+            'Not enough folders provided (exptected {})'.format(
+                MIN_FOLDERS[command]
             )
-        for folder in parsed_args['folders']:
-            try:
-                Folder.create(name=folder)
-                print('Added folder: {}/'.format(folder))
-            except peewee.IntegrityError:
-                raise ArgumentError(
-                    'Folder {}/ already exists'.format(folder))
-    elif parsed_args['command'] == 'rename':
-        if len(parsed_args['folders']) > 2:
-            raise ArgumentError(
-                'Too many folder arguements for rename (2 expected)'
-            )
-        try:
-            old_folder_name = parsed_args['folders'][0]
-            new_folder_name = parsed_args['folders'][1]
-        except IndexError:
-            raise ArgumentError(
-                'Not enough folder arguments for rename (2 expected)'
-            )
-        try:
-            old_folder = Folder.get(Folder.name == old_folder_name)
-        except peewee.DoesNotExist:
-            raise ArgumentError(
-                'No match found for folder {}/'.format(old_folder_name)
-            )
-        try:
-            new_folder = Folder.create(name=new_folder_name)
-        except peewee.IntegrityError:
-            raise ArgumentError(
-                'Folder {}/ already exists'.format(new_folder_name))
-        query = Todo.update(folder=new_folder).where(
-            Todo.folder == old_folder
         )
-        query.execute()
-        old_folder.delete_instance()
-        print('Renamed folder: {}/ -> {}/'.format(
-            old_folder_name, new_folder_name))
-    elif parsed_args['command'] == 'delete':
-        if len(parsed_args['folders']) != 1:
-            raise ArgumentError(
-                'Expected one folder to delete, found {}'.format(
-                    len(parsed_args['folders'])
-                )
-            )
-        try:
-            folder_name = parsed_args['folders'][0]
-            folder = Folder.get(Folder.name == folder_name)
-        except peewee.DoesNotExist:
-            raise ArgumentError(
-                'Folder {} does not exist'.format(folder_name)
-            )
-        query = Todo.update(
-            folder=config.settings['folders']['default_inbox']
-        ).where(Todo.folder == folder)
-        query.execute()
-        folder.delete_instance()
-        print('Deleted folder: {}/'.format(folder_name))
-    elif parsed_args['command'] == 'list':
-        if parsed_args['folders']:
-            raise ArgumentError(
-                'list command does not accept arguments'
-            )
-        for folder in Folder.select():
-            print('{}/'.format(folder.name))
+    elif len(folders) > MAX_FOLDERS[command]:
+        raise ArgumentError(
+            'Too many folders provided'
+        )
+    FOLDER_DISPATCH[command](*folders)
+    print(COMMAND_MESSAGE[command].format(*folders))
 
 
 folder_command.short_help = """
