@@ -5,8 +5,8 @@ from unittest import TestCase
 from todone.application import main
 from todone.tests.base import ResetSettings
 
-TEST_DB = 'tests/test.sqlite3'
-CONFIG_DB = ['-c', 'tests/config_db.ini']
+TEST_DB = 'todone/tests/test.sqlite3'
+CONFIG_DB = ['-c', 'todone/tests/config_db.ini']
 
 
 class FunctionalTestDB(ResetSettings, TestCase):

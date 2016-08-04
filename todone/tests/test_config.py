@@ -28,13 +28,13 @@ class IntegratedTestConfig(ResetSettings, TestCase):
     def test_configure_updates_settings(self):
         test_settings = {'foo': 'bar', 'baz': 'biff'}
         name = config.settings['database']['name']
-        configure('tests/test.ini')
+        configure('todone/tests/test.ini')
         self.assertEqual(config.settings['test'], test_settings)
         self.assertEqual(config.settings['database']['type'], 'testing')
         self.assertEqual(config.settings['database']['name'], name)
 
     def test_configure_converts_comma_delineated_strings_to_lists(self):
-        configure('tests/test.ini')
+        configure('todone/tests/test.ini')
         self.assertEqual(
             config.settings['folders']['active'], ['foo', 'bar', 'baz'])
         self.assertEqual(config.settings['folders']['cal'], ['my_cal'])

@@ -1,7 +1,7 @@
 *.pyc
 /dist/
 /*.egg-info
-/venv/
+/venv-mac/
 /venv-arch/
 /.cache/
 /.eggs/
