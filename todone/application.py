@@ -21,10 +21,31 @@ from todone.textparser import (
 SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 
 
-def main(cli_args=None):
-    if cli_args is None:
-        cli_args = sys.argv[1:] if len(sys.argv) > 1 else ['help']
+def main(args=None):
+    args = return_sysargs_or_default_if_no_args_passed(args, default=['help'])
+    parser = setup_parser()
+    parser = try_to_parse_args(parser, args)
+    configure(parser.parsed_data['config'])
+    try_to_dispatch_command(parser)
 
+DB_HELP_MSG = """Cannot find valid database.
+
+Make sure you have a valid configuration file:
+    > todone help configure
+then enter
+    > todone setup
+to initialize the database before using.
+"""
+
+
+def return_sysargs_or_default_if_no_args_passed(args, default=['help']):
+    if args is None:
+        return sys.argv[1:] if len(sys.argv) > 1 else default
+    else:
+        return args
+
+
+def setup_parser():
     parser = TextParser()
     parser.add_argument(
         'config', options=['-c', '--config'],
@@ -39,15 +60,20 @@ def main(cli_args=None):
         format_function=' '.join
     )
     parser.add_argument('args', nargs='*', match=AlwaysMatch)
+    return parser
 
+
+def try_to_parse_args(parser, args):
     try:
-        parser.parse(cli_args)
+        parser.parse(args)
+        return parser
     except ArgumentError:
         print('Invalid argument(s)')
         dispatch_command('help', ['--short'])
-        return 1
+        raise SystemExit(1)
 
-    configure(parser.parsed_data['config'])
+
+def try_to_dispatch_command(parser):
     try:
         initialize_database()
         connect_database()
@@ -58,12 +84,3 @@ def main(cli_args=None):
         close_database()
     except peewee.OperationalError:
         print(DB_HELP_MSG)
-
-DB_HELP_MSG = """Cannot find valid database.
-
-Make sure you have a valid configuration file:
-    > todone help configure
-then enter
-    > todone setup
-to initialize the database before using.
-"""

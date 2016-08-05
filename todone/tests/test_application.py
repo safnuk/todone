@@ -50,7 +50,10 @@ class UnitTestMain(TestCase):
         mock_instance.parse = Mock(side_effect=ArgumentError)
         f = io.StringIO()
         with redirect_stdout(f):
-            main(['garbage', 'new'])
+            try:
+                main(['garbage', 'new'])
+            except SystemExit:
+                pass
         s = f.getvalue()
         mock_instance.parse.assert_called_once_with(['garbage', 'new'])
         self.assertIn('Invalid argument(s)', s)
