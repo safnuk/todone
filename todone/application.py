@@ -22,11 +22,10 @@ SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 
 
 def main(args=None):
-    args = return_sysargs_or_default_if_no_args_passed(args, default=['help'])
-    parser = setup_parser()
-    parser = try_to_parse_args(parser, args)
-    configure(parser.parsed_data['config'])
-    try_to_dispatch_command(parser)
+    dispatcher = CommandDispatcher(args)
+    dispatcher.parse_args()
+    dispatcher.configure()
+    dispatcher.dispatch_command()
 
 DB_HELP_MSG = """Cannot find valid database.
 
@@ -37,50 +36,55 @@ then enter
 to initialize the database before using.
 """
 
+class CommandDispatcher:
+    DEFAULT_ARGS = ['help',]
 
-def return_sysargs_or_default_if_no_args_passed(args, default=['help']):
-    if args is None:
-        return sys.argv[1:] if len(sys.argv) > 1 else default
-    else:
-        return args
+    def __init__(self, args):
+        self.store_args(args)
+        self.setup_parser()
 
+    def store_args(self, args):
+        if args:
+            self.args = args
+        else:
+            self.args = sys.argv[1:] if len(sys.argv) > 1 else self.DEFAULT_ARGS
 
-def setup_parser():
-    parser = TextParser()
-    parser.add_argument(
-        'config', options=['-c', '--config'],
-        match=FlagKeywordMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.add_argument(
-        'command', options=COMMAND_MAPPING,
-        match=SubstringMatch,
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.add_argument('args', nargs='*', match=AlwaysMatch)
-    return parser
-
-
-def try_to_parse_args(parser, args):
-    try:
-        parser.parse(args)
-        return parser
-    except ArgumentError:
-        print('Invalid argument(s)')
-        dispatch_command('help', ['--short'])
-        raise SystemExit(1)
-
-
-def try_to_dispatch_command(parser):
-    try:
-        initialize_database()
-        connect_database()
-        dispatch_command(
-            parser.parsed_data['command'],
-            parser.parsed_data['args']
+    def setup_parser(self):
+        self.parser = TextParser()
+        self.parser.add_argument(
+            'config', options=['-c', '--config'],
+            match=FlagKeywordMatch, nargs='?',
+            format=ApplyFunctionFormat,
+            format_function=' '.join
         )
-        close_database()
-    except peewee.OperationalError:
-        print(DB_HELP_MSG)
+        self.parser.add_argument(
+            'command', options=COMMAND_MAPPING,
+            match=SubstringMatch,
+            format=ApplyFunctionFormat,
+            format_function=' '.join
+        )
+        self.parser.add_argument('args', nargs='*', match=AlwaysMatch)
+
+    def parse_args(self):
+        try:
+            self.parser.parse(self.args)
+        except ArgumentError:
+            print('Invalid argument(s)')
+            dispatch_command('help', ['--short'])
+            raise SystemExit(1)
+
+    def configure(self):
+        configure(self.parser.parsed_data['config'])
+
+    def dispatch_command(self):
+        try:
+            initialize_database()
+            connect_database()
+            dispatch_command(
+                self.parser.parsed_data['command'],
+                self.parser.parsed_data['args']
+            )
+            close_database()
+        except peewee.OperationalError:
+            print(DB_HELP_MSG)
+            pass
