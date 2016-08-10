@@ -1,8 +1,6 @@
 *.pyc
 /dist/
 /*.egg-info
-/venv-mac/
-/venv-arch/
 /.cache/
 /.eggs/
 db.sqlite3
@@ -10,3 +8,4 @@ test.sqlite3
 .coverage
 htmlcov
 .ropeproject/
+.idea/
