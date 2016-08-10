@@ -1,6 +1,3 @@
-from contextlib import redirect_stdout
-import io
-import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -9,12 +6,6 @@ from todone.application import main
 from todone.commands.dispatch import CommandDispatcher, dispatch_command
 from todone.tests.base import ResetSettings
 from todone.textparser import ArgumentError, TextParser
-
-MOCK_PARSED_DATA = {
-    'command': 'command',
-    'args': ['args'],
-    'config': 'config.ini',
-}
 
 
 class IntegratedTestMain(ResetSettings, TestCase):
