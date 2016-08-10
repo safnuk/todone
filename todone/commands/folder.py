@@ -1,9 +1,11 @@
 from todone.backends.db import Folder
-from todone.parser.textparser import (
+from todone.parser.format import ApplyFunctionFormat
+from todone.parser.match import (
     AlwaysMatch,
-    ApplyFunctionFormat,
-    ArgumentError,
     SubstringMatch,
+)
+from todone.parser.textparser import (
+    ArgumentError,
     TextParser,
 )
 

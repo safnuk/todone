@@ -4,15 +4,14 @@ from todone.backends.db import Folder, SavedList, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
 from todone.printers import print_todo_list
-from todone.parser.textparser import (
+from todone.parser.format import ApplyFunctionFormat, DateFormat
+from todone.parser.match import (
     AlwaysMatch,
-    ApplyFunctionFormat,
-    DateFormat,
     FolderMatch,
     ProjectMatch,
     RegexMatch,
-    TextParser,
 )
+from todone.parser.textparser import TextParser
 
 
 def list_items(args):

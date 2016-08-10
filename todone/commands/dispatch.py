@@ -14,12 +14,14 @@ from todone.commands.move import move_todo
 from todone.commands.new import new_todo
 from todone.commands.setup import setup_db, version
 from todone.config import configure
-from todone.parser.textparser import (
+from todone.parser.format import ApplyFunctionFormat
+from todone.parser.match import (
     AlwaysMatch,
-    ApplyFunctionFormat,
-    ArgumentError,
     FlagKeywordMatch,
     SubstringMatch,
+)
+from todone.parser.textparser import (
+    ArgumentError,
     TextParser,
 )
 
@@ -32,8 +34,9 @@ then enter
 to initialize the database before using.
 """
 
+
 class CommandDispatcher:
-    DEFAULT_ARGS = ['help',]
+    DEFAULT_ARGS = ['help', ]
 
     def __init__(self, args):
         self.store_args(args)
@@ -43,7 +46,9 @@ class CommandDispatcher:
         if args:
             self.args = args
         else:
-            self.args = sys.argv[1:] if len(sys.argv) > 1 else self.DEFAULT_ARGS
+            self.args = (sys.argv[1:]
+                         if len(sys.argv) > 1
+                         else self.DEFAULT_ARGS)
 
     def setup_parser(self):
         self.parser = TextParser()
@@ -84,6 +89,8 @@ class CommandDispatcher:
         except peewee.OperationalError:
             print(DB_HELP_MSG)
             pass
+
+
 def dispatch_command(action, args):
     try:
         COMMAND_MAPPING[action](args)

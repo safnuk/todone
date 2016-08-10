@@ -1,15 +1,17 @@
 from todone.backends.db import Folder, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
-from todone.parser.textparser import (
-    AlwaysMatch,
+from todone.parser.format import (
     ApplyFunctionFormat,
     DateFormat,
+)
+from todone.parser.match import (
+    AlwaysMatch,
     FolderMatch,
     ProjectMatch,
     RegexMatch,
-    TextParser,
 )
+from todone.parser.textparser import TextParser
 
 
 def new_todo(args):

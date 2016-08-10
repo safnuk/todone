@@ -1,11 +1,11 @@
 from todone.backends.db import SavedList
 from todone.config import settings
-from todone.parser.textparser import (
-    ApplyFunctionFormat,
+from todone.parser.format import ApplyFunctionFormat
+from todone.parser.match import (
     FolderMatch,
     RegexMatch,
-    TextParser
 )
+from todone.parser.textparser import TextParser
 
 
 def move_todo(args):

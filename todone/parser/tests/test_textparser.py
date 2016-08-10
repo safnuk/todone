@@ -3,22 +3,26 @@ from dateutil.relativedelta import relativedelta
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from todone.parser.textparser import (
-    AbstractMatch,
+from todone.parser.exceptions import ArgumentError
+from todone.parser.format import (
     AbstractFormat,
-    AlwaysMatch,
     ApplyFunctionFormat,
-    Argument,
-    ArgumentError,
     DateFormat,
+    PassthroughFormat,
+)
+from todone.parser.match import (
+    AbstractMatch,
+    AlwaysMatch,
     EqualityMatch,
     FlagKeywordMatch,
     FolderMatch,
-    Nargs,
-    PassthroughFormat,
     ProjectMatch,
     RegexMatch,
     SubstringMatch,
+)
+from todone.parser.textparser import (
+    Argument,
+    Nargs,
     TextParser,
 )
 
