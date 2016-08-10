@@ -2,7 +2,7 @@ import peewee
 
 from todone.backends.db import create_database
 from todone.config import VERSION
-from todone.textparser import ArgumentError
+from todone.parser.textparser import ArgumentError
 
 
 def version(args=[]):

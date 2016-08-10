@@ -1,7 +1,7 @@
 import textwrap
 
 import todone.commands.dispatch
-from todone.textparser import ApplyFunctionFormat, TextParser
+from todone.parser.textparser import ApplyFunctionFormat, TextParser
 
 
 def help_text(args):

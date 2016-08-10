@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from todone.commands.dispatch import dispatch_command, CommandDispatcher
-from todone.textparser import ArgumentError, TextParser
+from todone.parser.textparser import ArgumentError, TextParser
 
 mock_help = Mock()
 MockCommandMap = {

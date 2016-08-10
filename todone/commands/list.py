@@ -4,7 +4,7 @@ from todone.backends.db import Folder, SavedList, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
 from todone.printers import print_todo_list
-from todone.textparser import (
+from todone.parser.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     DateFormat,

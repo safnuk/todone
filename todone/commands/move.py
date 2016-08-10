@@ -1,6 +1,6 @@
 from todone.backends.db import SavedList
 from todone.config import settings
-from todone.textparser import (
+from todone.parser.textparser import (
     ApplyFunctionFormat,
     FolderMatch,
     RegexMatch,

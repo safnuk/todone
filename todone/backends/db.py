@@ -4,7 +4,7 @@ import re
 import peewee
 
 from todone import config
-from todone.textparser import ArgumentError
+from todone.parser.textparser import ArgumentError
 
 MOST_RECENT_SEARCH = 'last_search'
 database = peewee.SqliteDatabase(None)

@@ -5,7 +5,7 @@ from unittest import TestCase
 from todone.backends.db import SavedList, Todo
 from todone.commands.move import move_todo, parse_args
 from todone.tests.base import DB_Backend
-from todone.textparser import ArgumentError
+from todone.parser.textparser import ArgumentError
 
 
 class TestMoveTodo(DB_Backend):

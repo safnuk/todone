@@ -14,7 +14,7 @@ from todone.commands.move import move_todo
 from todone.commands.new import new_todo
 from todone.commands.setup import setup_db, version
 from todone.config import configure
-from todone.textparser import (
+from todone.parser.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     ArgumentError,

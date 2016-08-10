@@ -6,7 +6,7 @@ from todone.backends.db import Folder
 from todone.commands.folder import folder_command, parse_args
 from todone import config
 from todone.tests.base import DB_Backend
-from todone.textparser import ArgumentError
+from todone.parser.textparser import ArgumentError
 
 
 class TestFolderCommand(DB_Backend):

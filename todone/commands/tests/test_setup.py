@@ -7,7 +7,7 @@ import peewee
 
 from todone.commands.setup import setup_db, version
 from todone.config import VERSION
-from todone.textparser import ArgumentError
+from todone.parser.textparser import ArgumentError
 
 
 class TestVersion(TestCase):

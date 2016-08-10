@@ -1,5 +1,5 @@
 from todone.backends.db import Folder
-from todone.textparser import (
+from todone.parser.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     ArgumentError,

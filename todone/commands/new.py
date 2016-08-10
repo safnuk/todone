@@ -1,7 +1,7 @@
 from todone.backends.db import Folder, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
-from todone.textparser import (
+from todone.parser.textparser import (
     AlwaysMatch,
     ApplyFunctionFormat,
     DateFormat,

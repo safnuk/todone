@@ -1,11 +1,9 @@
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from todone import config
 from todone.application import main
-from todone.commands.dispatch import CommandDispatcher, dispatch_command
 from todone.tests.base import ResetSettings
-from todone.textparser import ArgumentError, TextParser
 
 
 class IntegratedTestMain(ResetSettings, TestCase):

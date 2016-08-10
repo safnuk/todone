@@ -3,7 +3,7 @@ from dateutil.relativedelta import relativedelta
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from todone.textparser import (
+from todone.parser.textparser import (
     AbstractMatch,
     AbstractFormat,
     AlwaysMatch,
@@ -123,7 +123,7 @@ class TestTextParser(TestCase):
         self.assertTrue(issubclass(type(parser.arguments[0]), Argument))
         self.assertEqual(parser.arguments[1].name, 'test')
 
-    @patch('todone.textparser.Argument')
+    @patch('todone.parser.textparser.Argument')
     def test_add_argument_passes_args_to_create(self, MockArgument):
         parser = TextParser()
         parser.add_argument('name', options=['foo', 'bar'],
