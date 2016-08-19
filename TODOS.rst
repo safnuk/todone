@@ -19,3 +19,6 @@
 - Implement recurring todos
 - Use SQL search for FolderMatch
 - Move folder properties from config file to db model
+- Add timers to task "todone timer start/stop #"
+  Active timers should be displayed when performing many operations
+- Add log command to show todos done over a specified period of time
