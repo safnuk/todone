@@ -44,7 +44,18 @@ class TestParserFactory(TestCase):
         self.assertTrue(issubclass(type(arg), AlwaysMatch))
 
     def test_factory_can_create_all_presets(self):
-        pass
+        args = [(arg, {'name': 'foo'}) for arg in PresetArgument]
+        ParserFactory.from_arg_list(args)
 
     def test_factory_can_override_presets(self):
-        pass
+        arglist = [
+            (PresetArgument.index,
+             {'name': 'foo',
+              'options': ['bar', 'baz'],
+              'match': AlwaysMatch}
+             ),
+        ]
+        parser = ParserFactory.from_arg_list(arglist)
+        arg = parser.arguments[0]
+        self.assertEqual(arg.options, ['bar', 'baz'])
+        self.assertTrue(issubclass(type(arg), AlwaysMatch))
