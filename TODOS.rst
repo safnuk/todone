@@ -22,3 +22,6 @@
 - Add timers to task "todone timer start/stop #"
   Active timers should be displayed when performing many operations
 - Add log command to show todos done over a specified period of time
+- Add quick-entry command: "todone quick folder/ [project]"
+  Prompt to enter a list of todos (blank line to terminate)
+- Make sure framework can easily implement a "notes" folder
