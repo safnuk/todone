@@ -547,12 +547,6 @@ class TestListArgParse(TestCase):
         self.assertFalse(args['file'])
         self.assertFalse(args['folder'])
 
-    @patch('todone.commands.list.Todo')
-    def test_parses_projects(self, MockTodo):
-        args = parse_args(['[test/project]'])
-        self.assertEqual(args['parent'], MockTodo.get_projects.return_value)
-        MockTodo.get_projects.assert_called_once_with('test/project')
-
 
 @patch('todone.commands.list.parse_args')
 @patch('todone.commands.list.is_loading_saved_search')

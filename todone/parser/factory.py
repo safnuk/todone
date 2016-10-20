@@ -112,12 +112,14 @@ PRESET_ARGUMENTS = {
         'match': RegexMatch,
         'nargs': '?',
         'format': DateFormat,
+        'positional': False,
     },
     PresetArgument.remind_date: {
         'options': REMIND_REGEX,
         'match': RegexMatch,
         'nargs': '?',
         'format': DateFormat,
+        'positional': False,
     },
     PresetArgument.file: {
         'match': RegexMatch,
