@@ -11,14 +11,13 @@ def help_text(args):
     usage: todone <command> [<args>]
 
     Allowed commands include:
-        configure   Setup a basic config file based on user responses
         done        Move a todo to the done/ folder
         folder      Commands for manipulating folders (new, rename, delete)
         help        Display this help message
         list        Print a list of todos matching given search terms
         move        Move a todo to a new folder or project
         new         Add a new todo item
-        setup       Configure database
+        setup       Create config file and initialize database
         version     Display version number
 
     See todone help <command> to read more about a specific command.

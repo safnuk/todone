@@ -29,8 +29,7 @@
 
 0.1 Roadmap
 ===========
-- Add configure command (creates config.ini file with user defined db)
-- setup command should raise an error when run with empty/missing config file
+- setup command should create a basic config file if one is missing/empty
 - Improve output messages for completed operations
 - Update classifiers (setup.py)
 - Add folder rename and folder delete commands

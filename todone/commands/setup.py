@@ -26,7 +26,8 @@ usage: todone version
 
 def setup_db(args=[]):
     """
-    Performs initial setup of database specified by configuration file.
+    Create a basic configuration file (if needed), based on user input, and
+    initializes a new, empty database (if one does not exist).
 
     usage: todone setup
     """
