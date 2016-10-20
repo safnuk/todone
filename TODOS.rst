@@ -31,7 +31,6 @@
 - setup command should raise an error when run with empty/missing config file
 - Move folder properties from config file to db model
 - Improve output messages for completed operations
-- Improve README file
 - Make sure license is acceptable
 - Update classifiers (setup.py)
 - Add folder and move commands to help message

@@ -1,41 +1,77 @@
 Todone
 ======
 
-Todo list manager and agenda, inspired by taskwarrior, todo.sh, and some basic features from org-mode. 
+Command-line todo list manager and agenda, inspired by taskwarrior, todo.sh, and some basic features from org-mode. 
 
-Commands
---------
 
-new [project]
-show
-list
-move
-edit
-tag
-done
+Installation
+------------
 
-change?
+The easiest way to install todone is through PyPi:
 
-Fields
-------
+    pip install todone
 
-_type in [INBOX, NEXT, TODAY, REMIND, DONE, CANCEL]
-    (use REMIND for calendar entries??)
-action / item / title
-repeat
-tags
-remind date
-due date
-notes
-date completed
-project
+If you prefer, it can be installed by cloning the git repository:
 
-Prefixes
---------
+    git clone https://github.com/safnuk/todone.git
+    cd todone
+    python setup.py install
 
-_  [+N{d,w,m,y}] inbox (with optional repeat)
-__  next
-___ today
-r YYYY-MM-DD[+N{d,w,m,y}] reminder (with optional repeat)
-x YYYY-MM-DD  done
-xx  cancel
+Basic Setup
+-----------
+
+Before using todone, you need to tell it where to store the data. Type
+
+    todone configure
+
+and answer the questions. The default is to create a sqlite database file. Then type
+
+    todone setup
+
+to create the database with sensible defaults. You are now ready to start tracking your todo items!
+
+Usage
+-----
+
+To enter a new todo item, type
+
+    todone new This is my todo item
+
+By default, it will put the todo into the inbox/ folder. You can prepend the item with a different folder:
+
+    todone new today/More important todo
+
+List your todos by folder, keyword search, etc.
+
+    todone list todo
+
+    1 - inbox/This is my todo item
+    2 - today/More important todo
+
+    todone list today/
+
+    1 - today/More important todo
+
+    todone move 1 done/
+
+    todone list todo
+
+    1 - inbox/This is my todo item
+
+More comprehensive help is available from the command line
+
+    todone help
+
+gives a general overview, while
+
+    todone help list
+
+gives more specific help on the list command.
+
+Most commands can be entered short hand. For example,
+
+    todone new today/My todo
+    todone n to/My todo
+    todone ne t/ My todo
+
+are all parsed identically by the program.
