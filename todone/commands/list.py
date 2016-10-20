@@ -1,17 +1,9 @@
 import datetime
 
 from todone.backends.db import Folder, SavedList, Todo
-from todone.commands.constants import DUE_REGEX, REMIND_REGEX
 from todone import config
 from todone.printers import print_todo_list
-from todone.parser.format import ApplyFunctionFormat, DateFormat
-from todone.parser.match import (
-    AlwaysMatch,
-    FolderMatch,
-    ProjectMatch,
-    RegexMatch,
-)
-from todone.parser.textparser import TextParser
+from todone.parser.factory import ParserFactory, PresetArgument
 
 
 def list_items(args):
@@ -122,52 +114,22 @@ def is_loading_saved_search(args):
 
 
 def parse_args(args=[]):
-    parser = TextParser()
-    parser.add_argument(
-        'file', options=[r'\.(?P<file>.+)', ],
-        match=RegexMatch, nargs='?',
-        format_function=_get_file_name,
-        format=ApplyFunctionFormat
-    )
-    parser.add_argument(
-        'parent', match=ProjectMatch,
-        nargs='?',
-        positional=False,
-        format_function=_get_projects,
-        format=ApplyFunctionFormat
-    )
-    parser.add_argument(
-        'folder',
-        options=[f.name for f in Folder.select()],
-        match=FolderMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.add_argument(
-        'due', options=DUE_REGEX, match=RegexMatch,
-        format=DateFormat, nargs='?',
-        positional=False
-    )
-    parser.add_argument(
-        'remind', options=REMIND_REGEX, match=RegexMatch,
-        format=DateFormat, nargs='?',
-        positional=False
-    )
-    parser.add_argument(
-        'keywords', match=AlwaysMatch,
-        nargs='*'
-    )
+    parser_initialization = [
+        (PresetArgument.file,
+         {'name': 'file'}),
+        (PresetArgument.all_matching_projects,
+         {'name': 'parent'}),
+        (PresetArgument.folder,
+         {'name': 'folder',
+          'options': [x.name.lower() for x in Folder.select()]}),
+        (PresetArgument.due_date,
+         {'name': 'due'}),
+        (PresetArgument.remind_date,
+         {'name': 'remind'}),
+        (PresetArgument.all_remaining,
+         {'name': 'keywords',
+          'format_function': lambda x: x}),
+    ]
+    parser = ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
-
-
-def _get_file_name(x):
-    if x:
-        return x[0].group('file')
-    return None
-
-
-def _get_projects(x):
-    if x:
-        return Todo.get_projects(x[0])
-    return None

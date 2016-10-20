@@ -1,13 +1,6 @@
 from todone.backends.db import Folder
-from todone.parser.format import ApplyFunctionFormat
-from todone.parser.match import (
-    AlwaysMatch,
-    SubstringMatch,
-)
-from todone.parser.textparser import (
-    ArgumentError,
-    TextParser,
-)
+from todone.parser.factory import ParserFactory, PresetArgument
+from todone.parser.textparser import ArgumentError
 
 FOLDER_COMMANDS = ['new', 'rename', 'delete', 'list']
 FOLDER_DISPATCH = {
@@ -75,21 +68,13 @@ usage todone folder <command> <args>
 
 
 def parse_args(args=[]):
-    parser = TextParser()
-    parser.add_argument(
-        'command',
-        options=FOLDER_COMMANDS,
-        match=SubstringMatch,
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.add_argument(
-        'folders',
-        nargs='*',
-        match=AlwaysMatch,
-        format=ApplyFunctionFormat,
-        format_function=_strip_trailing_slash
-    )
+    arglist = [
+        (PresetArgument.required_switch,
+         {'name': 'command', 'options': FOLDER_COMMANDS}),
+        (PresetArgument.all_remaining,
+         {'name': 'folders', 'format_function': _strip_trailing_slash}),
+    ]
+    parser = ParserFactory.from_arg_list(arglist)
     parser.parse(args)
     return parser.parsed_data
 

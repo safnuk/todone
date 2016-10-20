@@ -1,8 +1,7 @@
 import textwrap
 
 import todone.commands.dispatch
-from todone.parser.format import ApplyFunctionFormat
-from todone.parser.textparser import TextParser
+from todone.parser.factory import ParserFactory, PresetArgument
 
 
 def help_text(args):
@@ -20,23 +19,10 @@ def help_text(args):
 
     See todone help <command> to read more about a specific command.
     """
-    parser = TextParser()
-    parser.add_argument(
-        'short', options=['-s', '--short'],
-        nargs='?', positional=False,
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.add_argument(
-        'command', options=todone.commands.dispatch.COMMAND_MAPPING,
-        nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
-    parser.parse(args)
-    command = parser.parsed_data['command']
+    parsed_args = parse_args(args)
+    command = parsed_args['command']
 
-    if parser.parsed_data['short']:
+    if parsed_args['short']:
         if command:
             print(todone.commands.dispatch.COMMAND_MAPPING[command].short_help)
         else:
@@ -48,6 +34,22 @@ def help_text(args):
                 todone.commands.dispatch.COMMAND_MAPPING[command].__doc__
             )
         )
+
+
+def parse_args(args):
+    parser_initialization = [
+        (PresetArgument.optional_switch,
+         {'name': 'short',
+          'options': ['-s', '--short'],
+          'positional': False}),
+        (PresetArgument.optional_switch,
+         {'name': 'command',
+          'options': todone.commands.dispatch.COMMAND_MAPPING}),
+    ]
+    parser = ParserFactory.from_arg_list(parser_initialization)
+    parser.parse(args)
+    return parser.parsed_data
+
 
 help_text.short_general_help = """
 usage: todone <command> [args]
