@@ -11,9 +11,8 @@ settings = {
     },
     'folders': {
         'default_inbox': 'inbox',
-        'default_project': 'project',
         'default_folders': [
-            'today', 'next', 'inbox', 'cal', 'project',
+            'today', 'next', 'inbox', 'cal',
             'done', 'someday'
         ],
         'active': ['today', 'next', 'inbox'],

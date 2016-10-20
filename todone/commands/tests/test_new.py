@@ -29,7 +29,7 @@ class TestNewAction(DB_Backend):
     def test_new_item_saves_todo(self):
         new_todo(['Todo 1'])
         new_todo(['today/', 'Todo 2'])
-        new_todo(['project/', 'Todo 3'])
+        new_todo(['done/', 'Todo 3'])
         new_todo(['someday/', 'Todo 4'])
         todos = Todo.select()
         self.assertEqual(len(todos), 4)
@@ -41,12 +41,12 @@ class TestNewAction(DB_Backend):
 
     def test_new_item_saves_to_specified_folder(self):
         new_todo(['today/Todo 1'])
-        new_todo(['project/Todo 2'])
+        new_todo(['done/Todo 2'])
         new_todo(['someday/Todo 3'])
         t1 = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(t1.folder.name, 'today')
         t2 = Todo.get(Todo.action == 'Todo 2')
-        self.assertEqual(t2.folder.name, 'project')
+        self.assertEqual(t2.folder.name, 'done')
         t3 = Todo.get(Todo.action == 'Todo 3')
         self.assertEqual(t3.folder.name, 'someday')
 
