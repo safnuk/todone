@@ -24,19 +24,17 @@
   Prompt to enter a list of todos (blank line to terminate),
   all of folder, project and context are optional
 - Make sure framework can easily implement a "notes" folder
+- Move folder properties from config file to db model
+- Add folder properties (active/inactive, etc)
 
 0.1 Roadmap
 ===========
 - Add configure command (creates config.ini file with user defined db)
 - setup command should raise an error when run with empty/missing config file
-- Move folder properties from config file to db model
 - Improve output messages for completed operations
-- Make sure license is acceptable
 - Update classifiers (setup.py)
-- Add folder and move commands to help message
 - Add folder rename and folder delete commands
 - Make list help message correct
 - Improve move help message
-- Add folder properties (active/inactive, etc)
 - Add done shorthand command
 - Update version number (in code and setup.py)
