@@ -137,3 +137,16 @@ class FunctionalTestDB(ResetSettings, TestCase):
         s = self.run_todone(['new', 'test/', 'Another todo'])
         self.assertIn('Invalid argument', s)
         self.assertIn('Multiple matches found for folder test/', s)
+
+        # He renames the folder, and sees that the todo in it reflects the
+        # change
+        s = self.run_todone(['folder', 'rename', 'testfolder/', 'myfolder/'])
+        self.assertIn('Renamed folder: testfolder/ -> myfolder/', s)
+        s = self.run_todone(['list', 'myfolder/'])
+        self.assertIn('New todo', s)
+
+        # He deletes the folder. The associated todo is moved to inbox/
+        s = self.run_todone(['folder', 'delete', 'myfolder/'])
+        self.assertIn('Deleted folder: myfolder/', s)
+        s = self.run_todone(['list', 'inbox/'])
+        self.assertIn('New todo', s)
