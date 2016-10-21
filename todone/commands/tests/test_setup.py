@@ -28,20 +28,23 @@ class TestVersion(TestCase):
 @patch('todone.commands.setup.create_database')
 class TestSetup(TestCase):
 
-    def test_setup_with_arguments_raises(self, mock_create_database):
+    def test_setup_without_arguments_raises(self, mock_create_database):
         with self.assertRaises(ArgumentError):
-            setup_db(['arg'])
+            setup_db([])
         mock_create_database.assert_not_called()
 
-    def test_setup_calls_create_database_once(self, mock_create_database):
-        setup_db([])
+    def test_setup_with_subcommand_does_not_raise(self, mock_create_database):
+        setup_db(['init'])  # should not raise
+
+    def test_setup_init_calls_create_database_once(self, mock_create_database):
+        setup_db(['init'])
         mock_create_database.assert_called_once_with()
 
     def test_peewee_Exception_prints_db_exists_msg(self, mock_create_database):
         mock_create_database.side_effect = peewee.OperationalError
         f = io.StringIO()
         with redirect_stdout(f):
-            setup_db([])
+            setup_db(['init'])
         s = f.getvalue()
         self.assertNotIn('New todone database initialized', s)
         self.assertIn('Database has already been setup - get working!', s)
