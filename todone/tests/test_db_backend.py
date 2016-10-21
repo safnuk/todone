@@ -1,12 +1,15 @@
 from contextlib import redirect_stdout
 import io
 from unittest import TestCase
+from unittest.mock import patch
 
 from todone.application import main
 from todone.tests.base import ResetSettings
 
 TEST_DB = 'todone/tests/test.sqlite3'
 CONFIG_DB = ['-c', 'todone/tests/config_db.ini']
+BLANK_CONFIG_FILE = 'todone/tests/blank_config.ini'
+BLANK_CONFIG_ARGS = ['-c', BLANK_CONFIG_FILE]
 
 
 class FunctionalTestDB(ResetSettings, TestCase):
@@ -16,11 +19,17 @@ class FunctionalTestDB(ResetSettings, TestCase):
         # clear test database
         with open(TEST_DB, 'w'):
             pass
+        # clear blank config file
+        with open(BLANK_CONFIG_FILE, 'w'):
+            pass
 
     def run_todone(self, args):
+        return self.run_todone_with_config(args, CONFIG_DB)
+
+    def run_todone_with_config(self, args, config):
         f = io.StringIO()
         with redirect_stdout(f):
-            main(CONFIG_DB + args)
+            main(config + args)
         return f.getvalue()
 
     def test_basic_usage(self):
@@ -150,3 +159,10 @@ class FunctionalTestDB(ResetSettings, TestCase):
         self.assertIn('Deleted folder: myfolder/', s)
         s = self.run_todone(['list', 'inbox/'])
         self.assertIn('New todo', s)
+
+    @patch('builtins.input', side_effect=[''])
+    def test_default_config_setup(self, mock_input):
+        # User sets up db with blank config file, and is prompted for name
+        # of database file to use
+        s = self.run_todone_with_config(['setup'], BLANK_CONFIG_ARGS)
+        self.fail("Finish this test!")
