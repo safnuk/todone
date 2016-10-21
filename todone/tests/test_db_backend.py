@@ -160,9 +160,10 @@ class FunctionalTestDB(ResetSettings, TestCase):
         s = self.run_todone(['list', 'inbox/'])
         self.assertIn('New todo', s)
 
-    @patch('builtins.input', side_effect=[''])
+    @patch('builtins.input', side_effect=[TEST_DB])
     def test_default_config_setup(self, mock_input):
         # User sets up db with blank config file, and is prompted for name
         # of database file to use
         s = self.run_todone_with_config(['setup', 'init'], BLANK_CONFIG_ARGS)
-        self.fail("Finish this test!")
+        self.assertIn('Created basic config file', s)
+        self.assertIn('New todone database initialized', s)

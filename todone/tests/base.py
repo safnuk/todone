@@ -35,8 +35,10 @@ class ResetSettings():
 
     def setUp(self):
         self.saved_settings = copy.deepcopy(config.settings)
+        self.saved_file = copy.deepcopy(config.config_file)
         super().setUp()
 
     def tearDown(self):
         config.settings = self.saved_settings
+        config.config_file = self.saved_file
         super().tearDown()

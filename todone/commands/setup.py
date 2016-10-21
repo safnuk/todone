@@ -1,13 +1,15 @@
 import peewee
 
 from todone.backends.db import create_database
-from todone.config import VERSION
+from todone import config
+from todone.config import save_configuration, VERSION
 from todone.parser.factory import ParserFactory, PresetArgument
 from todone.parser.textparser import ArgumentError
 
 
 class Setup:
     COMMANDS = ['init']
+    DEFAULT_DB = '~/.todone.sqlite'
 
     @classmethod
     def dispatch(cls, command, args):
@@ -18,11 +20,27 @@ class Setup:
 
     @classmethod
     def initialize(cls):
+        if not config.settings['database']['name']:
+            config.settings['database']['name'] = cls.query_user_for_db_name()
+            save_configuration()
+            print("Created basic config file '{}'".format(config.config_file))
         try:
             create_database()
-            print('New todone database initialized')
+            print("New todone database initialized at '{}'".format(
+                config.settings['database']['name']
+            ))
         except peewee.OperationalError:
             print('Database has already been setup - get working!')
+
+    @classmethod
+    def query_user_for_db_name(cls):
+        name = cls.get_input()
+        return name if name else cls.DEFAULT_DB
+
+    @classmethod
+    def get_input(cls):
+        query = "Enter location of database ['{}']: ".format(cls.DEFAULT_DB)
+        return input(query).strip()
 
 
 def version(args=[]):
