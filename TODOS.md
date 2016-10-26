@@ -19,12 +19,12 @@
 - Make sure framework can easily implement a "notes" folder
 - Move folder properties from config file to db model
 - Add folder properties (active/inactive, etc)
+- Improve output messages for completed operations
 
 0.1 Roadmap
------------
+- setup command should create a basic config file if one is missing/empty
 - fix error with setup of empty config not creating db file
 - setup command should handle missing directories gracefully
-- configure command should create a basic config file if one is missing/empty
 - Update classifiers (setup.py)
 - Make list help message correct
 - Improve move help message
