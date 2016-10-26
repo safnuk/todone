@@ -23,6 +23,7 @@
 0.1 Roadmap
 -----------
 - fix error with setup of empty config not creating db file
+- setup command should handle missing directories gracefully
 - configure command should create a basic config file if one is missing/empty
 - Update classifiers (setup.py)
 - Make list help message correct
