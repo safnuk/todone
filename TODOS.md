@@ -26,13 +26,12 @@
 - Make sure framework can easily implement a "notes" folder
 - Move folder properties from config file to db model
 - Add folder properties (active/inactive, etc)
+- Improve output messages for completed operations
 
 0.1 Roadmap
 ===========
 - setup command should create a basic config file if one is missing/empty
-- Improve output messages for completed operations
 - Update classifiers (setup.py)
-- Add folder rename and folder delete commands
 - Make list help message correct
 - Improve move help message
 - Add done shorthand command
