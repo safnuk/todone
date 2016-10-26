@@ -7,44 +7,37 @@ Command-line todo list manager and agenda, inspired by taskwarrior, todo.sh, and
 
 The easiest way to install todone is through PyPi:
 ```
-pip install todone
+pip3 install todone
 ```
 
 If you prefer, it can be installed by cloning the git repository:
 ```
 git clone https://github.com/safnuk/todone.git
 cd todone
-python setup.py install
+python3 setup.py install
 ```
 
 ## Basic Setup
 
 Before using todone, you need to tell it where to store the data. Type
 ```
-todone configure
+todone setup init
 ```
-and answer the questions. The default is to create a sqlite database file. Then type
-```
-todone setup
-```
-to create the database with sensible defaults. You are now ready to start tracking your todo items!
+and answer the questions. The default is to create a sqlite database file. You are now ready to start tracking your todo items!
 
 ## Usage
 
 To enter a new todo item, type
-
 ```
 todone new This is my todo item
 ```
 
 By default, it will put the todo into the inbox/ folder. You can prepend the item with a different folder:
-
 ```
 todone new today/More important todo
 ```
 
 List your todos by folder, keyword search, etc.
-
 ```
 todone list todo
 
@@ -68,10 +61,10 @@ todone help
 ```
 gives a general overview, while
 ```
-todone help list
+todone help <command>
 ```
 
-gives more specific help on the list command.
+gives more specific help on a given command.
 
 Most commands can be entered short hand. For example,
 ```

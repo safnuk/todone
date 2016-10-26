@@ -4,6 +4,7 @@ import os
 VERSION = '0.01'
 DEFAULT_CONFIG_FILE = '~/.config/todone/config.ini'
 
+config_file = DEFAULT_CONFIG_FILE
 settings = {
     'database': {
         'type': 'sqlite3',
@@ -29,8 +30,8 @@ _folder_lists = [
 ]
 
 
-def configure(config_file):
-    config_file = config_file if config_file else DEFAULT_CONFIG_FILE
+def configure(filename):
+    globals()['config_file'] = filename if filename else DEFAULT_CONFIG_FILE
     config = configparser.ConfigParser()
     config.read(os.path.expanduser(config_file))
     for key in config.sections():
@@ -46,3 +47,14 @@ def configure(config_file):
             settings[key].update(config[key])
         else:
             settings[key] = dict(config[key])
+
+
+def save_configuration():
+    config = configparser.ConfigParser()
+    config.read_dict(settings)
+    with open(os.path.expanduser(config_file), 'w') as configfile:
+        config.write(configfile)
+
+
+class ConfigurationError(Exception):
+    pass

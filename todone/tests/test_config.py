@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from todone import config
-from todone.config import configure
+from todone.config import configure, save_configuration
 from todone.tests.base import ResetSettings
 
 
@@ -25,6 +25,12 @@ class UnitTestConfig(TestCase):
 
 class IntegratedTestConfig(ResetSettings, TestCase):
 
+    def setUp(self):
+        self.blank_file = 'todone/tests/blank_config.ini'
+        with open(self.blank_file, 'w'):
+            pass
+        super().setUp()
+
     def test_configure_updates_settings(self):
         test_settings = {'foo': 'bar', 'baz': 'biff'}
         name = config.settings['database']['name']
@@ -38,3 +44,15 @@ class IntegratedTestConfig(ResetSettings, TestCase):
         self.assertEqual(
             config.settings['folders']['active'], ['foo', 'bar', 'baz'])
         self.assertEqual(config.settings['folders']['cal'], ['my_cal'])
+
+    def test_save_configuration_saves(self):
+        config.config_file = self.blank_file
+        config.settings['database']['type'] = 'testing'
+        config.settings['database']['name'] = 'foo'
+        save_configuration()
+        config.settings['database']['type'] = 'changed'
+        config.settings['database']['name'] = 'new'
+        configure(self.blank_file)
+
+        self.assertEqual(config.settings['database']['type'], 'testing')
+        self.assertEqual(config.settings['database']['name'], 'foo')

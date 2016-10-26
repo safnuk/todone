@@ -44,7 +44,7 @@ class FunctionalTestDB(ResetSettings, TestCase):
         self.assertIn('Cannot find valid database', s)
 
         # He sets up the database.
-        s = self.run_todone(['setup'])
+        s = self.run_todone(['setup', 'init'])
         self.assertIn('New todone database initialized', s)
 
         # He successfully adds a new todo.
@@ -99,7 +99,7 @@ class FunctionalTestDB(ResetSettings, TestCase):
 
     def test_project_functionality(self):
         # He sets up the database.
-        s = self.run_todone(['setup'])
+        s = self.run_todone(['setup', 'init'])
         self.maxDiff = None
         self.assertIn('New todone database initialized', s)
 
@@ -121,7 +121,7 @@ class FunctionalTestDB(ResetSettings, TestCase):
 
     def test_folder_structure(self):
         # He sets up the database.
-        s = self.run_todone(['setup'])
+        s = self.run_todone(['setup', 'init'])
 
         # User tries to create a new todo, in a non-default folder
         s = self.run_todone(['new', 'testfolder/', 'New todo'])
@@ -160,9 +160,10 @@ class FunctionalTestDB(ResetSettings, TestCase):
         s = self.run_todone(['list', 'inbox/'])
         self.assertIn('New todo', s)
 
-    @patch('builtins.input', side_effect=[''])
+    @patch('builtins.input', side_effect=[TEST_DB])
     def test_default_config_setup(self, mock_input):
         # User sets up db with blank config file, and is prompted for name
         # of database file to use
-        s = self.run_todone_with_config(['setup'], BLANK_CONFIG_ARGS)
-        self.fail("Finish this test!")
+        s = self.run_todone_with_config(['setup', 'init'], BLANK_CONFIG_ARGS)
+        self.assertIn('Created basic config file', s)
+        self.assertIn('New todone database initialized', s)
