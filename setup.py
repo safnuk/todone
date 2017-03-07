@@ -1,19 +1,19 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup(name='todone',
-      version='0.01',
+      version='0.0.2',
       description='Todo list manager and agenda',
       long_description=readme(),
       url='https://github.com/safnuk/todone',
       author='Brad Safnuk',
       author_email='safnuk@gmail.com',
       license='MIT',
-      packages=['todone'],
+      packages=find_packages(),
       include_package_data=True,
       entry_points={
           'console_scripts': [
