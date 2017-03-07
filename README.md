@@ -2,6 +2,9 @@
 
 Command-line todo list manager and agenda, inspired by taskwarrior, todo.sh, and some basic features from org-mode. 
 
+## Warning
+
+This is work in progress - it is very likely to be in a broken or somewhat nonfunctioning state at random times. Use at your own risk!
 
 ## Installation
 
