@@ -1,10 +1,11 @@
 from contextlib import redirect_stdout
 import io
 from unittest import TestCase
+from unittest.mock import patch
 
 from todone.backends.db import SavedList, Todo
 from todone.commands.move import move_todo, parse_args
-from todone.tests.base import DB_Backend
+from todone.tests.base import DB_Backend, FolderMock
 from todone.parser.textparser import ArgumentError
 
 
@@ -34,6 +35,7 @@ class TestMoveTodo(DB_Backend):
         pass
 
 
+@patch('todone.commands.move.Folder', FolderMock)
 class TestMoveArgParse(TestCase):
 
     def test_parses_integer(self):

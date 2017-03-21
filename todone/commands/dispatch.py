@@ -1,8 +1,7 @@
 import sys
 
-import peewee
-
 from todone.backends.db import Database
+from todone.backends.exceptions import DatabaseError
 from todone.commands.folder import folder_command
 from todone.commands.help import help_text
 from todone.commands.list import list_items
@@ -21,12 +20,12 @@ from todone.parser.textparser import (
     TextParser,
 )
 
-DB_HELP_MSG = """Cannot find valid database.
+DB_HELP_MSG = """{}
 
 Make sure you have a valid configuration file:
     > todone help configure
 then enter
-    > todone setup
+    > todone setup init
 to initialize the database before using.
 """
 
@@ -81,8 +80,8 @@ class CommandDispatcher:
                 self.parser.parsed_data['args']
             )
             Database.close()
-        except peewee.OperationalError:
-            print(DB_HELP_MSG)
+        except DatabaseError as e:
+            print(DB_HELP_MSG.format(e))
             pass
 
 

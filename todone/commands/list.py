@@ -121,7 +121,7 @@ def parse_args(args=[]):
          {'name': 'parent'}),
         (PresetArgument.folder,
          {'name': 'folder',
-          'options': [x.name.lower() for x in Folder.select()]}),
+          'options': [x.name.lower() for x in Folder.all()]}),
         (PresetArgument.due_date,
          {'name': 'due'}),
         (PresetArgument.remind_date,

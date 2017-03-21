@@ -1,5 +1,4 @@
-from todone.backends.db import SavedList
-from todone.config import settings
+from todone.backends.db import Folder, SavedList
 from todone.parser.format import ApplyFunctionFormat
 from todone.parser.match import (
     FolderMatch,
@@ -38,7 +37,7 @@ def parse_args(args):
         format=ApplyFunctionFormat
     )
     parser.add_argument(
-        'folder', options=settings['folders']['default_folders'],
+        'folder', options=[f.name for f in Folder.all()],
         match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=' '.join

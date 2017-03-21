@@ -4,10 +4,11 @@ from todone.parser.textparser import ArgumentError
 
 FOLDER_COMMANDS = ['new', 'rename', 'delete', 'list']
 FOLDER_DISPATCH = {
-    'new': Folder.safe_new,
-    'rename': Folder.safe_rename,
-    'delete': Folder.safe_delete,
-    'list': Folder.list
+    'new': Folder.new,
+    'rename': Folder.rename,
+    'delete': Folder.remove,
+    'list': lambda: print(
+        '\n'.join(['{}/'.format(f.name) for f in Folder.all()]))
 }
 
 COMMAND_MESSAGE = {

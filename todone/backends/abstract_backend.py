@@ -13,9 +13,9 @@ class AbstractFolder:
             ERROR.format(cls.__class__.__name__, "rename()"))
 
     @classmethod
-    def delete(cls, folder_name):
+    def remove(cls, folder_name):
         raise NotImplementedError(
-            ERROR.format(cls.__class__.__name__, "delete()"))
+            ERROR.format(cls.__class__.__name__, "remove()"))
 
     @classmethod
     def all(cls):

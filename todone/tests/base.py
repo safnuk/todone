@@ -17,7 +17,7 @@ class FakeFolder():
 
 
 FolderMock = Mock()
-FolderMock.select.return_value = [
+FolderMock.all.return_value = [
     FakeFolder(name) for name in config.settings['folders']['default_folders']
 ]
 

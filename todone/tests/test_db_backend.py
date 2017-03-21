@@ -41,7 +41,7 @@ class FunctionalTestDB(ResetSettings, TestCase):
         # He tries to enter a new todo item, but is told that
         # the database is not setup yet.
         s = self.run_todone(['new', 'New todo'])
-        self.assertIn('Cannot find valid database', s)
+        self.assertIn('Database not setup properly', s)
 
         # He sets up the database.
         s = self.run_todone(['setup', 'init'])

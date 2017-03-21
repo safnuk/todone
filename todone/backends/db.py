@@ -3,7 +3,8 @@ import re
 
 import peewee
 
-from todone.backends.abstract_backend import AbstractDatabase
+from todone.backends.abstract_backend import AbstractDatabase, AbstractFolder
+from todone.backends.exceptions import DatabaseError
 from todone import config
 from todone.parser.textparser import ArgumentError
 
@@ -15,19 +16,28 @@ class Database(AbstractDatabase):
 
     @classmethod
     def create(cls):
-        cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
-        for folder in config.settings['folders']['default_folders']:
-            Folder.create(name=folder)
+        try:
+            cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
+            for folder in config.settings['folders']['default_folders']:
+                Folder.create(name=folder)
+        except peewee.OperationalError:
+            raise DatabaseError("Could not create the databse")
 
     @classmethod
     def connect(cls):
-        cls.database.init(
-            os.path.expanduser(config.settings['database']['name']))
-        cls.database.connect()
+        try:
+            cls.database.init(
+                os.path.expanduser(config.settings['database']['name']))
+            cls.database.connect()
+        except peewee.OperationalError:
+            raise DatabaseError("Could not connect to the database")
 
     @classmethod
     def close(cls):
-        cls.database.close()
+        try:
+            cls.database.close()
+        except peewee.OperationalError:
+            raise DatabaseError("Could not close the database")
 
 
 class BaseModel(peewee.Model):
@@ -35,7 +45,7 @@ class BaseModel(peewee.Model):
         database = Database.database
 
 
-class Folder(BaseModel):
+class Folder(BaseModel, AbstractFolder):
     name = peewee.CharField(
         constraints=[peewee.Check("name != ''")],
         unique=True,
@@ -43,7 +53,14 @@ class Folder(BaseModel):
     )
 
     @classmethod
-    def safe_new(cls, folder):
+    def all(cls):
+        try:
+            return [f for f in cls.select()]
+        except peewee.OperationalError:
+            raise DatabaseError('Database not setup properly')
+
+    @classmethod
+    def new(cls, folder):
         try:
             Folder.create(name=folder)
         except peewee.IntegrityError:
@@ -51,7 +68,7 @@ class Folder(BaseModel):
                 'Folder {}/ already exists'.format(folder))
 
     @classmethod
-    def safe_rename(cls, old_folder_name, new_folder_name):
+    def rename(cls, old_folder_name, new_folder_name):
         try:
             old_folder = Folder.get(Folder.name == old_folder_name)
         except peewee.DoesNotExist:
@@ -70,7 +87,7 @@ class Folder(BaseModel):
         old_folder.delete_instance()
 
     @classmethod
-    def safe_delete(cls, folder_name):
+    def remove(cls, folder_name):
         try:
             folder = Folder.get(Folder.name == folder_name)
         except peewee.DoesNotExist:
@@ -82,11 +99,6 @@ class Folder(BaseModel):
         ).where(Todo.folder == folder)
         query.execute()
         folder.delete_instance()
-
-    @classmethod
-    def list(cls):
-        for folder in Folder.select():
-            print('{}/'.format(folder.name))
 
 
 class Todo(BaseModel):

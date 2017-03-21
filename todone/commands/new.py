@@ -74,7 +74,7 @@ def parse_args(args=[]):
     )
     parser.add_argument(
         'folder',
-        options=[f.name for f in Folder.select()],
+        options=[f.name for f in Folder.all()],
         match=FolderMatch, nargs='?',
         format=ApplyFunctionFormat,
         format_function=_default_inbox
