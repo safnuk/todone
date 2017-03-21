@@ -1,6 +1,6 @@
 import peewee
 
-from todone.backends.db import create_database
+from todone.backends.db import Database
 from todone import config
 from todone.config import save_configuration, VERSION
 from todone.parser.factory import ParserFactory, PresetArgument
@@ -25,7 +25,7 @@ class Setup:
             save_configuration()
             print("Created basic config file '{}'".format(config.config_file))
         try:
-            create_database()
+            Database.create()
             print("New todone database initialized at '{}'".format(
                 config.settings['database']['name']
             ))

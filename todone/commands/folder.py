@@ -50,7 +50,7 @@ def folder_command(args):
     folders = parsed_args['folders']
     if len(folders) < MIN_FOLDERS[command]:
         raise ArgumentError(
-            'Not enough folders provided (exptected {})'.format(
+            'Not enough folders provided (expected {})'.format(
                 MIN_FOLDERS[command]
             )
         )

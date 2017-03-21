@@ -27,7 +27,7 @@ class TestVersion(TestCase):
 
 
 @patch('todone.commands.setup.save_configuration')
-@patch('todone.commands.setup.create_database')
+@patch('todone.commands.setup.Database.create')
 class TestSetup(TestCase):
 
     def test_setup_without_arguments_raises(
@@ -71,7 +71,7 @@ class TestSetup(TestCase):
 
 
 @patch('todone.commands.setup.save_configuration')
-@patch('todone.commands.setup.create_database')
+@patch('todone.commands.setup.Database.create')
 class TestInitialize(TestCase):
     @patch('todone.commands.setup.Setup.get_input', return_value='test file')
     def test_blank_db_name_queries_creation_of_config_file(

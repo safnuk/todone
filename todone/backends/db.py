@@ -3,16 +3,36 @@ import re
 
 import peewee
 
+from todone.backends.abstract_backend import AbstractDatabase
 from todone import config
 from todone.parser.textparser import ArgumentError
 
 MOST_RECENT_SEARCH = 'last_search'
-database = peewee.SqliteDatabase(None)
+
+
+class Database(AbstractDatabase):
+    database = peewee.SqliteDatabase(None)
+
+    @classmethod
+    def create(cls):
+        cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
+        for folder in config.settings['folders']['default_folders']:
+            Folder.create(name=folder)
+
+    @classmethod
+    def connect(cls):
+        cls.database.init(
+            os.path.expanduser(config.settings['database']['name']))
+        cls.database.connect()
+
+    @classmethod
+    def close(cls):
+        cls.database.close()
 
 
 class BaseModel(peewee.Model):
     class Meta:
-        database = database
+        database = Database.database
 
 
 class Folder(BaseModel):
@@ -169,21 +189,3 @@ class SavedList(BaseModel):
 class ListItem(BaseModel):
     savedlist = peewee.ForeignKeyField(SavedList, related_name='items')
     todo = peewee.ForeignKeyField(Todo)
-
-
-def create_database():
-    database.create_tables([Folder, Todo,  SavedList, ListItem])
-    for folder in config.settings['folders']['default_folders']:
-        Folder.create(name=folder)
-
-
-def initialize_database():
-    database.init(os.path.expanduser(config.settings['database']['name']))
-
-
-def connect_database():
-    database.connect()
-
-
-def close_database():
-    database.close()

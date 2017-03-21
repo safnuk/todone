@@ -2,11 +2,7 @@ import sys
 
 import peewee
 
-from todone.backends.db import (
-    close_database,
-    connect_database,
-    initialize_database,
-)
+from todone.backends.db import Database
 from todone.commands.folder import folder_command
 from todone.commands.help import help_text
 from todone.commands.list import list_items
@@ -79,13 +75,12 @@ class CommandDispatcher:
 
     def dispatch_command(self):
         try:
-            initialize_database()
-            connect_database()
+            Database.connect()
             dispatch_command(
                 self.parser.parsed_data['command'],
                 self.parser.parsed_data['args']
             )
-            close_database()
+            Database.close()
         except peewee.OperationalError:
             print(DB_HELP_MSG)
             pass
