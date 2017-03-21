@@ -75,7 +75,6 @@ class TestCommandDispatcher(TestCase):
         with self.assertRaises(SystemExit):
             cd.parse_args()
 
-
     @patch('todone.commands.dispatch.TextParser')
     @patch('todone.commands.dispatch.configure')
     def test_configure_with_config_flag_calls_config_with_passed_file(
@@ -86,10 +85,11 @@ class TestCommandDispatcher(TestCase):
         cd.configure()
         mock_configure.assert_called_once_with('config.ini')
 
+    @patch('todone.commands.dispatch.Database')
     @patch('todone.commands.dispatch.TextParser')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_dispatch_command_passes_command_and_remaining_args_to_dispatch(
-        self, mock_dispatch, MockParser
+        self, mock_dispatch, MockParser, MockDatabase
     ):
         mock_instance = MockParser.return_value
         mock_instance.parsed_data = MOCK_PARSED_DATA

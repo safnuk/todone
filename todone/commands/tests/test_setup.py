@@ -71,14 +71,21 @@ class TestSetup(TestCase):
 
 
 @patch('todone.commands.setup.save_configuration')
-@patch('todone.commands.setup.Database.create')
+@patch('todone.commands.setup.Database')
+@patch('todone.commands.setup.Setup.get_input', return_value='test file')
 class TestInitialize(TestCase):
-    @patch('todone.commands.setup.Setup.get_input', return_value='test file')
     def test_blank_db_name_queries_creation_of_config_file(
-        self, mock_input, mock_create_database, mock_save_configuration
+        self, mock_input, MockDatabase, mock_save_configuration
     ):
         with patch.dict(config.settings, {'database': {'name': ''}}):
             setup_db(['init'])
             self.assertEquals(config.settings['database']['name'], 'test file')
             mock_save_configuration.assert_called_once_with()
-            mock_create_database.assert_called_once_with()
+            MockDatabase.create.assert_called_once_with()
+
+    def test_blank_db_name_calls_Database_update(
+        self, mock_input, MockDatabase, mock_save_configuration
+    ):
+        with patch.dict(config.settings, {'database': {'name': ''}}):
+            setup_db(['init'])
+            MockDatabase.update.assert_called_once()

@@ -65,3 +65,8 @@ class AbstractDatabase:
     def close(cls):
         raise NotImplementedError(
             ERROR.format(cls.__class__.__name__, "close()"))
+
+    @classmethod
+    def update(cls):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "update()"))

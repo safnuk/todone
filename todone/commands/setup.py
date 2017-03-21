@@ -23,6 +23,7 @@ class Setup:
         if not config.settings['database']['name']:
             config.settings['database']['name'] = cls.query_user_for_db_name()
             save_configuration()
+            Database.update()
             print("Created basic config file '{}'".format(config.config_file))
         try:
             Database.create()

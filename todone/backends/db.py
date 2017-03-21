@@ -26,10 +26,13 @@ class Database(AbstractDatabase):
             for folder in config.settings['folders']['default_folders']:
                 Folder.create(name=folder)
         except peewee.OperationalError:
-            raise DatabaseError("Could not create the databse")
+            raise DatabaseError("Could not create the database")
 
     @classmethod
     def connect(cls):
+        # don't try to connect to a nameless database
+        if config.settings['database']['name'] == '':
+            return
         try:
             cls.database.init(
                 os.path.expanduser(config.settings['database']['name']))
@@ -40,9 +43,15 @@ class Database(AbstractDatabase):
     @classmethod
     def close(cls):
         try:
-            cls.database.close()
+            if not cls.database.is_closed():
+                cls.database.close()
         except peewee.OperationalError:
             raise DatabaseError("Could not close the database")
+
+    @classmethod
+    def update(cls):
+        cls.close()
+        cls.connect()
 
 
 class BaseModel(peewee.Model):

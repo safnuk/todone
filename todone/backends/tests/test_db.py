@@ -1,10 +1,11 @@
-from unittest import skip
+from unittest import skip, TestCase
+from unittest.mock import patch, Mock
 
 import peewee
 
 from todone import config
 from todone.backends.db import (
-    Folder, ListItem, SavedList,
+    Database, Folder, ListItem, SavedList,
     Todo, MOST_RECENT_SEARCH
 )
 from todone.tests.base import DB_Backend
@@ -238,3 +239,18 @@ class TestListItem(DB_Backend):
         pairs = zip(items, todos)
         for item, todo in pairs:
             self.assertEqual(item.todo, todo)
+
+
+class TestDatabase(TestCase):
+
+    @patch('todone.backends.db.config.settings')
+    @patch('todone.backends.db.Database.database')
+    def test_database_should_ignore_connect_request_to_empty_db_name(
+        self, mock_database, mock_settings
+    ):
+        mock_database.init = Mock()
+        mock_database.connect = Mock()
+        mock_settings.__getitem__.return_value = {'name': ''}
+        Database.connect()
+        mock_database.init.assert_not_called()
+        mock_database.connect.assert_not_called()

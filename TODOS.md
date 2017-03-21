@@ -25,6 +25,7 @@
 - setup command should create a basic config file if one is missing/empty
 - fix error with setup of empty config not creating db file
 - setup command should handle missing directories gracefully
+- setup init with existing db should give a more helpful message
 - Update classifiers (setup.py)
 - Make list help message correct
 - Improve move help message
@@ -33,6 +34,7 @@
 - Add trash shorthand command
 - Make max date(9999, 12, 31) into global constant
 - Update version number (in code and setup.py)
+- Allow postgresql backend
 
 0.2 Roadmap
 -----------
