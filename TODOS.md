@@ -35,6 +35,7 @@
 - Make max date(9999, 12, 31) into global constant
 - Update version number (in code and setup.py)
 - Allow postgresql backend
+- Move bulk of config details into db table
 
 0.2 Roadmap
 -----------
@@ -47,3 +48,4 @@
 - Implement reminder date property
 - Improve output messages for completed operations
 - Add agenda command
+- Implement undo/redo operation

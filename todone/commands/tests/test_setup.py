@@ -6,8 +6,7 @@ from unittest.mock import patch
 import peewee
 
 from todone.commands.setup import setup_db, version
-from todone import config
-from todone.config import VERSION
+from todone import config, __version__
 from todone.parser.textparser import ArgumentError
 
 
@@ -19,7 +18,7 @@ class TestVersion(TestCase):
             version([])
         s = f.getvalue()
         self.assertIn('Todone', s)
-        self.assertIn(VERSION, s)
+        self.assertIn(__version__, s)
 
     def test_version_with_arguments_raises(self):
         with self.assertRaises(ArgumentError):

@@ -11,8 +11,7 @@ from todone.tests.base import ResetSettings
 class UnitTestConfig(TestCase):
 
     def test_configure_with_blank_file_loads_default_ini(self, MockConfig):
-        default_config = os.environ.get('HOME')
-        default_config += '/.config/todone/config.ini'
+        default_config = os.path.expanduser('~/.config/todone/config.ini')
         configure('')
         MockConfig.return_value.read.assert_called_once_with(
             default_config

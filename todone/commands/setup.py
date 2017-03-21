@@ -1,8 +1,8 @@
 import peewee
 
 from todone.backends.db import Database
-from todone import config
-from todone.config import save_configuration, VERSION
+from todone import config, __version__
+from todone.config import save_configuration
 from todone.parser.factory import ParserFactory, PresetArgument
 from todone.parser.textparser import ArgumentError
 
@@ -54,7 +54,7 @@ def version(args=[]):
 
     """
     if not args:
-        print('Todone {}'.format(VERSION))
+        print('Todone {}'.format(__version__))
     else:
         raise ArgumentError()
 

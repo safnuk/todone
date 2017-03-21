@@ -1,7 +1,6 @@
 import configparser
 import os
 
-VERSION = '0.01'
 DEFAULT_CONFIG_FILE = '~/.config/todone/config.ini'
 
 config_file = DEFAULT_CONFIG_FILE
