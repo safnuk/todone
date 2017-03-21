@@ -587,7 +587,7 @@ class UnitTestListItems(TestCase):
         list_items([])
         MockSavedList.save_most_recent_search.assert_called_once_with('test')
 
-    @patch('todone.commands.list.construct_query_from_argdict')
+    @patch('todone.commands.list.Todo.query')
     @patch('todone.commands.list.SavedList')
     def test_if_not_loading_saved_search_then_constructs_query(
         self, MockSavedList, mock_construct, mock_is_loading, mock_parse
@@ -595,9 +595,9 @@ class UnitTestListItems(TestCase):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = False
         list_items([])
-        mock_construct.assert_called_once_with(self.parsed_args)
+        mock_construct.assert_called_once_with(**self.parsed_args)
 
-    @patch('todone.commands.list.construct_query_from_argdict')
+    @patch('todone.commands.list.Todo.query')
     @patch('todone.commands.list.SavedList')
     @patch('todone.commands.list.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_query(
@@ -611,7 +611,7 @@ class UnitTestListItems(TestCase):
         MockSavedList.save_search.assert_called_once_with(
             self.parsed_args['file'], 'test todo')
 
-    @patch('todone.commands.list.construct_query_from_argdict')
+    @patch('todone.commands.list.Todo.query')
     @patch('todone.commands.list.SavedList')
     @patch('todone.commands.list.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_as_most_recent_query(

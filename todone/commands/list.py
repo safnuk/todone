@@ -1,7 +1,4 @@
-import datetime
-
 from todone.backends.db import Folder, SavedList, Todo
-from todone import config
 from todone.printers import print_todo_list
 from todone.parser.factory import ParserFactory, PresetArgument
 
@@ -71,7 +68,7 @@ def list_items(args):
     if is_loading_saved_search(parsed_args):
         query = SavedList.get_todos_in_list(parsed_args['file'])
     else:
-        query = construct_query_from_argdict(parsed_args)
+        query = Todo.query(**parsed_args)
         SavedList.save_search(parsed_args['file'], query)
     SavedList.save_most_recent_search(query)
     print_todo_list(query)
@@ -79,31 +76,6 @@ def list_items(args):
 list_items.short_help = """
 usage: todone list [.file] [folder/] [tags and keywords]
 """
-
-
-def construct_query_from_argdict(args):
-    query = Todo.select()
-    if args['folder']:
-        if args['folder'] in config.settings['folders']['today']:
-            query = query.where(
-                (Todo.folder == args['folder']) |
-                (Todo.due <= datetime.date.today()) |
-                (Todo.remind <= datetime.date.today())
-            ).where(~(Todo.folder << config.settings['folders']['inactive']))
-        else:
-            query = query.where(Todo.folder == args['folder'])
-    else:
-        query = Todo.active_todos()
-    if args['parent']:
-        query = query.where(Todo.parent << args['parent'])
-    if args['due']:
-        query = query.where(Todo.due <= args['due'])
-    if args['remind']:
-        query = query.where(Todo.remind <= args['remind'])
-    for keyword in args['keywords']:
-        query = query.where(Todo.action.contains(keyword))
-    query = query.order_by(Todo.parent, -Todo.folder, Todo.id)
-    return query
 
 
 def is_loading_saved_search(args):

@@ -25,7 +25,7 @@ class AbstractFolder:
 
 class AbstractTodo:
     @classmethod
-    def query(cls, search_parameters):
+    def query(cls, **search_parameters):
         raise NotImplementedError(
             ERROR.format(cls.__class__.__name__, "query()"))
 
@@ -41,9 +41,9 @@ class AbstractTodo:
             ERROR.format(cls.__class__.__name__, "get_projects()"))
 
     @classmethod
-    def create(cls, **args):
+    def new(cls, **args):
         raise NotImplementedError(
-            ERROR.format(cls.__class__.__name__, "create()"))
+            ERROR.format(cls.__class__.__name__, "new()"))
 
     def save(self):
         raise NotImplementedError(

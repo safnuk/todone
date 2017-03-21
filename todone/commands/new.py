@@ -54,7 +54,7 @@ def new_todo(args):
     project.
     """
     parsed_args = parse_args(args)
-    Todo.create(**parsed_args)
+    Todo.new(**parsed_args)
     print('Added: {} to {}'.format(
         parsed_args['action'], parsed_args['folder']))
 

@@ -1,9 +1,14 @@
+import datetime
 import os
 import re
 
 import peewee
 
-from todone.backends.abstract_backend import AbstractDatabase, AbstractFolder
+from todone.backends.abstract_backend import (
+    AbstractDatabase,
+    AbstractFolder,
+    AbstractTodo,
+)
 from todone.backends.exceptions import DatabaseError
 from todone import config
 from todone.parser.textparser import ArgumentError
@@ -101,7 +106,7 @@ class Folder(BaseModel, AbstractFolder):
         folder.delete_instance()
 
 
-class Todo(BaseModel):
+class Todo(BaseModel, AbstractTodo):
     action = peewee.CharField(
         constraints=[peewee.Check("action != ''")],
     )
@@ -128,6 +133,39 @@ class Todo(BaseModel):
     def __repr__(self):
         output = '{}/{}'.format(self.folder, self.action)
         return output
+
+    @classmethod
+    def new(cls, **args):
+        try:
+            Todo.create(**args)
+        except peewee.OperationalError:
+            raise DatabaseError('Error connecting to the database')
+
+    @classmethod
+    def query(cls, **args):
+        results = Todo.select()
+        if args['folder']:
+            if args['folder'] in config.settings['folders']['today']:
+                results = results.where(
+                    (Todo.folder == args['folder']) |
+                    (Todo.due <= datetime.date.today()) |
+                    (Todo.remind <= datetime.date.today())
+                ).where(
+                    ~(Todo.folder << config.settings['folders']['inactive']))
+            else:
+                results = results.where(Todo.folder == args['folder'])
+        else:
+            results = Todo.active_todos()
+        if args['parent']:
+            results = results.where(Todo.parent << args['parent'])
+        if args['due']:
+            results = results.where(Todo.due <= args['due'])
+        if args['remind']:
+            results = results.where(Todo.remind <= args['remind'])
+        for keyword in args['keywords']:
+            results = results.where(Todo.action.contains(keyword))
+        results = results.order_by(Todo.parent, -Todo.folder, Todo.id)
+        return results
 
     @classmethod
     def active_todos(cls):
