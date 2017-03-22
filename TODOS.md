@@ -1,3 +1,37 @@
+
+0.1 Roadmap
+-----------
+- Allow todos to move into or change projects
+- Improve project matching logic
+- Find discrepancy between list behavior in testing and live
+- Make list help message correct
+- Change integration tests to behave
+- Improve move help message
+- Add done shorthand command
+- Add trash folder
+- Add trash shorthand command
+- Make max date(9999, 12, 31) into global constant
+- Allow postgresql backend
+- Move bulk of config details into db table
+- Update classifiers (setup.py)
+- Update version number (in code)
+
+0.2 Roadmap
+-----------
+- Separate console output to a different module
+- Use SQL search for FolderMatch
+- Record date/time when moving to "done" folder
+- Decide when and how to clear DONE and CANCEL items from saved lists
+- Decide when and how to clear CANCEL items from database
+- Add "context" field to Todo
+- Implement due date property
+- Implement reminder date property
+- Improve output messages for completed operations
+- Add agenda command
+- Implement undo/redo operation
+
+Future
+------
 - Add cal folder for calendar items
 - Refactor tests using fixtures
 - Test and code for multiple project hits with new_todo
@@ -20,32 +54,3 @@
 - Move folder properties from config file to db model
 - Add folder properties (active/inactive, etc)
 - Improve output messages for completed operations
-
-0.1 Roadmap
-- setup command should create a basic config file if one is missing/empty
-- fix error with setup of empty config not creating db file
-- setup command should handle missing directories gracefully
-- setup init with existing db should give a more helpful message
-- Update classifiers (setup.py)
-- Make list help message correct
-- Improve move help message
-- Add done shorthand command
-- Add trash folder
-- Add trash shorthand command
-- Make max date(9999, 12, 31) into global constant
-- Update version number (in code and setup.py)
-- Allow postgresql backend
-- Move bulk of config details into db table
-
-0.2 Roadmap
------------
-- Use SQL search for FolderMatch
-- Record date/time when moving to "done" folder
-- Decide when and how to clear DONE and CANCEL items from saved lists
-- Decide when and how to clear CANCEL items from database
-- Add "context" field to Todo
-- Implement due date property
-- Implement reminder date property
-- Improve output messages for completed operations
-- Add agenda command
-- Implement undo/redo operation

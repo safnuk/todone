@@ -18,13 +18,13 @@ class TestNewAction(DB_Backend):
         with redirect_stdout(f):
             new_todo(['New todo'])
         s = f.getvalue()
-        self.assertIn('Added: New todo to {}'.format('inbox'), s)
+        self.assertIn('Added: {}/New todo'.format('inbox'), s)
 
         f = io.StringIO()
         with redirect_stdout(f):
             new_todo(['today/', 'New todo 2'])
         s = f.getvalue()
-        self.assertIn('Added: New todo 2 to {}'.format('today'), s)
+        self.assertIn('Added: {}/New todo 2'.format('today'), s)
 
     def test_new_item_saves_todo(self):
         new_todo(['Todo 1'])

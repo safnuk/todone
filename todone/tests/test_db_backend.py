@@ -49,53 +49,58 @@ class FunctionalTestDB(ResetSettings, TestCase):
 
         # He successfully adds a new todo.
         s = self.run_todone(['new', 'New todo'])
-        self.assertIn('New todo to inbox', s)
+        self.assertIn('inbox/New todo', s)
 
         # He lists the inbox, and sees his new todo printed.
         s = self.run_todone(['list', 'inbox/'])
         self.assertIn('New todo', s)
 
         # He adds another todo, this time a next action
-        s = self.run_todone(['new', 'next/', 'Another thing to do'])
-        self.assertIn('Another thing to do to next', s)
+        s = self.run_todone(['new', 'next/', 'Another thing todo'])
+        self.assertIn('next/Another thing todo', s)
 
         # The todos appear only in their respective folders when listed.
         s = self.run_todone(['list', 'inbox/'])
         self.assertIn('New todo', s)
-        self.assertNotIn('Another thing to do', s)
+        self.assertNotIn('Another thing todo', s)
         s = self.run_todone(['list', 'next/'])
         self.assertNotIn('New todo', s)
-        self.assertIn('Another thing to do', s)
+        self.assertIn('Another thing todo', s)
 
         # He uses the last-list save feature
         s = self.run_todone(['list'])
         self.assertNotIn('New todo', s)
-        self.assertIn('Another thing to do', s)
+        self.assertIn('Another thing todo', s)
 
         # Next he creates a saved search
         s = self.run_todone(['list', '.next', 'next/'])
         self.assertNotIn('New todo', s)
-        self.assertIn('Another thing to do', s)
+        self.assertIn('Another thing todo', s)
 
         s = self.run_todone(['list', 'today/'])
         self.assertNotIn('New todo', s)
-        self.assertNotIn('Another thing to do', s)
+        self.assertNotIn('Another thing todo', s)
 
         # He lists the saved search
         s = self.run_todone(['list', '.next'])
         self.assertNotIn('New todo', s)
-        self.assertIn('Another thing to do', s)
+        self.assertIn('Another thing todo', s)
 
         # The default search should be a repeat
         s = self.run_todone(['list'])
         self.assertNotIn('New todo', s)
-        self.assertIn('Another thing to do', s)
+        self.assertIn('Another thing todo', s)
+
+        # Searching for keywords spans folders
+        s = self.run_todone(['list', 'todo'])
+        self.assertIn('Another thing', s)
+        self.assertIn('New todo', s)
 
         # He moves the listed todo to the today folder
         s = self.run_todone(['move', '1', 'today/'])
-        self.assertIn('Moved: "Another thing to do" to today', s)
+        self.assertIn('Moved: "Another thing todo" to today', s)
         s = self.run_todone(['list', 'today/'])
-        self.assertIn('Another thing to do', s)
+        self.assertIn('Another thing todo', s)
 
     def test_project_functionality(self):
         # He sets up the database.
@@ -132,7 +137,7 @@ class FunctionalTestDB(ResetSettings, TestCase):
         s = self.run_todone(['folder', 'new', 'testfolder/'])
         self.assertIn('Added folder: testfolder/', s)
         s = self.run_todone(['new', 'test/', 'New todo'])
-        self.assertIn('Added: New todo to testfolder', s)
+        self.assertIn('Added: testfolder/New todo', s)
 
         # Listing the folder shows the todo
         s = self.run_todone(['list', 'testfolder/'])

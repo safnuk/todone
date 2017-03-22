@@ -1,4 +1,5 @@
 import os
+import shutil
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -26,6 +27,9 @@ class IntegratedTestConfig(ResetSettings, TestCase):
 
     def setUp(self):
         self.blank_file = 'todone/tests/blank_config.ini'
+        self.blankdir = 'todone/tests/tmpdir/another/'
+        self.file_in_nonexisting_dir = self.blankdir + 'blank_config.ini'
+        shutil.rmtree('todone/tests/tmpdir', ignore_errors=True)
         with open(self.blank_file, 'w'):
             pass
         super().setUp()
@@ -52,6 +56,18 @@ class IntegratedTestConfig(ResetSettings, TestCase):
         config.settings['database']['type'] = 'changed'
         config.settings['database']['name'] = 'new'
         configure(self.blank_file)
+
+        self.assertEqual(config.settings['database']['type'], 'testing')
+        self.assertEqual(config.settings['database']['name'], 'foo')
+
+    def test_save_configuration_creates_necessary_dirs(self):
+        config.config_file = self.file_in_nonexisting_dir
+        config.settings['database']['type'] = 'testing'
+        config.settings['database']['name'] = 'foo'
+        save_configuration()
+        config.settings['database']['type'] = 'changed'
+        config.settings['database']['name'] = 'new'
+        configure(self.file_in_nonexisting_dir)
 
         self.assertEqual(config.settings['database']['type'], 'testing')
         self.assertEqual(config.settings['database']['name'], 'foo')

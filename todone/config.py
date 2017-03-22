@@ -51,7 +51,9 @@ def configure(filename):
 def save_configuration():
     config = configparser.ConfigParser()
     config.read_dict(settings)
-    with open(os.path.expanduser(config_file), 'w') as configfile:
+    filename = os.path.expanduser(config_file)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, 'w') as configfile:
         config.write(configfile)
 
 
