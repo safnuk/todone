@@ -3,8 +3,8 @@ import io
 from unittest import TestCase
 from unittest.mock import patch
 
-import peewee
 
+from todone.backends.exceptions import DatabaseError
 from todone.commands.setup import setup_db, version
 from todone import config, __version__
 from todone.parser.textparser import ArgumentError
@@ -56,17 +56,27 @@ class TestSetup(TestCase):
             setup_db(['init'])
         mock_create_database.assert_called_once_with()
 
-    def test_peewee_Exception_prints_db_exists_msg(
+    def test_DatabaseError_for_existing_db_prints_db_exists_msg(
         self, mock_create_database, mock_save_configuration
     ):
         with patch.dict(config.settings, {'database': {'name': 'nonempty'}}):
-            mock_create_database.side_effect = peewee.OperationalError
+            mock_create_database.side_effect = DatabaseError(
+                "Database already exists")
             f = io.StringIO()
             with redirect_stdout(f):
                 setup_db(['init'])
             s = f.getvalue()
         self.assertNotIn('New todone database initialized', s)
         self.assertIn('Database has already been setup - get working!', s)
+
+    def test_database_creation_error_should_raise(
+        self, mock_create_database, mock_save_configuration
+    ):
+        with patch.dict(config.settings, {'database': {'name': 'nonempty'}}):
+            mock_create_database.side_effect = DatabaseError(
+                "Could not create the database")
+            with self.assertRaises(DatabaseError):
+                setup_db(['init'])
 
 
 @patch('todone.commands.setup.save_configuration')

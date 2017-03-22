@@ -1,6 +1,5 @@
-import peewee
-
 from todone.backends.db import Database
+from todone.backends.exceptions import DatabaseError
 from todone import config, __version__
 from todone.config import save_configuration
 from todone.parser.factory import ParserFactory, PresetArgument
@@ -30,8 +29,11 @@ class Setup:
             print("New todone database initialized at '{}'".format(
                 config.settings['database']['name']
             ))
-        except peewee.OperationalError:
-            print('Database has already been setup - get working!')
+        except DatabaseError as e:
+            if "already exists" in str(e):
+                print('Database has already been setup - get working!')
+            else:
+                raise e
 
     @classmethod
     def query_user_for_db_name(cls):

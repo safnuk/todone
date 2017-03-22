@@ -25,8 +25,11 @@ class Database(AbstractDatabase):
             cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
             for folder in config.settings['folders']['default_folders']:
                 Folder.create(name=folder)
-        except peewee.OperationalError:
-            raise DatabaseError("Could not create the database")
+        except peewee.OperationalError as e:
+            if "already exists" in str(e):
+                raise DatabaseError("Database already exists")
+            else:
+                raise DatabaseError("Could not create the database")
 
     @classmethod
     def connect(cls):
