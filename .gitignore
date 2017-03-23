@@ -10,3 +10,4 @@ htmlcov
 .ropeproject/
 .idea/
 .tox/
+build/
