@@ -11,6 +11,7 @@
 - Add trash folder
 - Add trash shorthand command
 - Make max date(9999, 12, 31) into global constant
+- Add missing api documentation
 - Allow postgresql backend
 - Move bulk of config details into db table
 - Update classifiers (setup.py)
