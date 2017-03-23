@@ -9,3 +9,4 @@ test.sqlite3
 htmlcov
 .ropeproject/
 .idea/
+build/
