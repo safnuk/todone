@@ -493,6 +493,8 @@ class TestListArgParse(TestCase):
         self.assertEqual(args['file'], 'filename')
         args = parse_args(['.filename', 'string1', '.string2'])
         self.assertEqual(args['file'], 'filename')
+        args = parse_args(['.filename',  'string1', '.string2'])
+        self.assertEqual(args['file'], 'filename')
         args = parse_args(['string', 'filename'])
         self.assertEqual(args['file'], None)
         args = parse_args(['string1', 'string2', 'string.3'])
