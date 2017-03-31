@@ -1,6 +1,6 @@
+from todone.backends import DEFAULT_FOLDERS
 from todone.backends.db import Folder, Todo
 from todone.commands.constants import DUE_REGEX, REMIND_REGEX
-from todone import config
 from todone.parser.format import (
     ApplyFunctionFormat,
     DateFormat,
@@ -104,7 +104,7 @@ def parse_args(args=[]):
 def _default_inbox(x):
     if x:
         return x[0]
-    return config.settings['folders']['default_inbox']
+    return DEFAULT_FOLDERS['inbox']
 
 
 def _get_project_todo(x):

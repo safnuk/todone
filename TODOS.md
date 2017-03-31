@@ -1,4 +1,3 @@
-
 0.1 Roadmap
 -----------
 - Allow todos to move into or change projects
@@ -23,8 +22,6 @@
 - Decide when and how to clear DONE and TRASH items from saved lists
 - Decide when and how to clear TRASH items from database
 - Add "context" field to Todo
-- Implement due date property
-- Implement reminder date property
 - Improve output messages for completed operations
 - Add agenda command
 - Add trash folder
@@ -32,6 +29,8 @@
 
 Future
 ------
+- Implement due date property
+- Implement reminder date property
 - Add cal folder for calendar items
 - Refactor tests using fixtures
 - Test and code for multiple project hits with new_todo

@@ -4,23 +4,23 @@ import io
 from unittest import skip, TestCase
 from unittest.mock import patch
 
+from todone.backends import DEFAULT_FOLDERS
 from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
 from todone.commands.list import (
     is_loading_saved_search,
     list_items,
     parse_args
 )
-from todone.config import settings
 from todone.tests.base import DB_Backend, FolderMock
 
-folders = settings['folders']
+folders = DEFAULT_FOLDERS['folders']
 
 
 class TestListItems(DB_Backend):
 
     def test_list_folder_restricts_to_correct_todos(self):
         todos = {}
-        for n, folder in enumerate(folders['default_folders']):
+        for n, folder in enumerate(folders):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
@@ -29,18 +29,18 @@ class TestListItems(DB_Backend):
             list_items(['t/'])
         s = f.getvalue()
         for folder in [
-            x for x in folders['default_folders'] if x is not 'today'
+            x for x in folders if x is not 'today'
         ]:
             self.assertNotIn(str(todos[folder]), s)
         self.assertIn(str(todos['today']), s)
 
-        for list_folder in folders['default_folders']:
+        for list_folder in folders:
             f = io.StringIO()
             with redirect_stdout(f):
                 list_items([list_folder + '/'])
             s = f.getvalue()
             for folder in [
-                x for x in folders['default_folders']
+                x for x in folders
                 if x is not list_folder
             ]:
                 self.assertNotIn(str(todos[folder]), s)
@@ -48,7 +48,7 @@ class TestListItems(DB_Backend):
 
     def test_list_without_folder_restricts_to_active_todos(self):
         todos = {}
-        for n, folder in enumerate(folders['default_folders']):
+        for n, folder in enumerate(folders):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
@@ -56,8 +56,8 @@ class TestListItems(DB_Backend):
         with redirect_stdout(f):
             list_items(['Item'])
         s = f.getvalue()
-        active = folders['active']
-        inactive = [x for x in folders['default_folders'] if x not in active]
+        active = DEFAULT_FOLDERS['active']
+        inactive = [x for x in folders if x not in active]
         for folder in inactive:
             self.assertNotIn(str(todos[folder]), s)
         for folder in active:

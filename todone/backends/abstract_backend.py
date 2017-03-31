@@ -1,5 +1,21 @@
 ERROR = "Class {} doesn't implement {}"
 
+DEFAULT_FOLDERS = {
+    'inbox': 'inbox',  # default location for new todos
+    # initial folders created
+    'folders': [
+        'today', 'next', 'inbox', 'cal',
+        'done', 'someday', 'garbage'
+    ],
+    'active': ['today', 'next', 'inbox'],  # folders searched if none specified
+    'inactive': ['done', 'garbage'],  # never searched unless specified
+    'cal': ['cal'],  # behavior not yet defined (future plans)
+    # current: includes upcoming reminders and due todos from other folders
+    # when searching for today/ (behavior may change in future)
+    'today': ['today'],
+    'trash': ['garbage'],  # folder that is regularly cleared
+}
+
 
 class AbstractFolder:
     @classmethod
@@ -48,6 +64,34 @@ class AbstractTodo:
     def save(self):
         raise NotImplementedError(
             ERROR.format(self.__class__.__name__, "save()"))
+
+
+class AbstractSavedList:
+    @classmethod
+    def get_most_recent(cls):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "get_most_recent()"))
+
+    @classmethod
+    def get_todos_in_list(cls, listname):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "get_todos_in_list()"))
+
+    @classmethod
+    def get_todos_from_most_recent_search(cls):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__,
+                         "get_todos_from_most_recent_search()"))
+
+    @classmethod
+    def save_search(cls, name, todo_query):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "save_search()"))
+
+    @classmethod
+    def save_most_recent_search(cls, todo_query):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "save_most_recent_search()"))
 
 
 class AbstractDatabase:

@@ -6,6 +6,7 @@ import peewee
 from playhouse.test_utils import test_database
 
 from todone import config
+from todone.backends import DEFAULT_FOLDERS
 from todone.backends.db import Folder, ListItem, SavedList, Todo
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
@@ -18,7 +19,7 @@ class FakeFolder():
 
 FolderMock = Mock()
 FolderMock.all.return_value = [
-    FakeFolder(name) for name in config.settings['folders']['default_folders']
+    FakeFolder(name) for name in DEFAULT_FOLDERS['folders']
 ]
 
 
@@ -26,7 +27,7 @@ class DB_Backend(TestCase):
 
     def run(self, result=None):
         with test_database(in_memory_db, [Folder, Todo, SavedList, ListItem]):
-            for folder in config.settings['folders']['default_folders']:
+            for folder in DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
             super().run(result)
 
