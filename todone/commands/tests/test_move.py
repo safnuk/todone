@@ -29,7 +29,7 @@ class TestMoveTodo(DB_Backend):
         with redirect_stdout(f):
             move_todo(['3', 'done/'])
         s = f.getvalue()
-        self.assertIn('Moved: "Todo 3" to {}'.format('done'), s)
+        self.assertIn('Moved: Todo 3 -> {}'.format('done'), s)
 
     def test_invalid_index_displays_error_message(self):
         pass
