@@ -1,12 +1,16 @@
 from contextlib import redirect_stdout
 import io
+from unittest.mock import patch
 
 from behave import given, when, then
 from hamcrest import assert_that, contains_string, not_
 
 from todone.application import main
 
+TEST_DB = 'todone/tests/test.sqlite3'
 CONFIG_DB = ['-c', 'todone/tests/config_db.ini']
+BLANK_CONFIG_FILE = 'todone/tests/blank_config.ini'
+BLANK_CONFIG_ARGS = ['-c', BLANK_CONFIG_FILE]
 
 
 def run_todone(args):
@@ -43,6 +47,13 @@ def step_impl(context):
     run_todone(['setup', 'init'])
 
 
+@when('we initialize the database with a blank config file')
+@patch('builtins.input', side_effect=[TEST_DB])
+def step_impl(context, mock_input):
+    context.output += run_todone_with_config(['setup', 'init'],
+                                             BLANK_CONFIG_ARGS)
+
+
 @then('the output includes "{text}"')
 def step_impl(context, text):
     assert_that(context.output, contains_string(text))
@@ -73,6 +84,11 @@ def step_impl(context):
         context.execute_steps('when we run the command "{}"'.format(entry))
 
 
-@given('an unitialized database')
+@given('an uninitialized database')
+def step_impl(context):
+    pass
+
+
+@then('we are prompted for name of database file to use')
 def step_impl(context):
     pass

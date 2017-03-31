@@ -1,6 +1,5 @@
 TEST_DB = 'todone/tests/test.sqlite3'
 BLANK_CONFIG_FILE = 'todone/tests/blank_config.ini'
-BLANK_CONFIG_ARGS = ['-c', BLANK_CONFIG_FILE]
 
 
 def before_scenario(context, scenario):
