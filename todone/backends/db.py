@@ -7,8 +7,10 @@ import peewee
 from todone.backends.abstract_backend import (
     AbstractDatabase,
     AbstractFolder,
+    AbstractSavedList,
     AbstractTodo,
 )
+from todone.backends import DEFAULT_FOLDERS
 from todone.backends.exceptions import DatabaseError
 from todone import config
 from todone.parser.textparser import ArgumentError
@@ -23,7 +25,7 @@ class Database(AbstractDatabase):
     def create(cls):
         try:
             cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
-            for folder in config.settings['folders']['default_folders']:
+            for folder in DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
         except peewee.OperationalError as e:
             if "already exists" in str(e):
@@ -112,7 +114,7 @@ class Folder(BaseModel, AbstractFolder):
                 'Folder {} does not exist'.format(folder_name)
             )
         query = Todo.update(
-            folder=config.settings['folders']['default_inbox']
+            folder=DEFAULT_FOLDERS['inbox']
         ).where(Todo.folder == folder)
         query.execute()
         folder.delete_instance()
@@ -124,7 +126,7 @@ class Todo(BaseModel, AbstractTodo):
     )
     folder = peewee.ForeignKeyField(
         Folder,
-        default=config.settings['folders']['default_inbox'],
+        default=DEFAULT_FOLDERS['inbox'],
         related_name='todos'
     )
     parent = peewee.ForeignKeyField(
@@ -157,13 +159,13 @@ class Todo(BaseModel, AbstractTodo):
     def query(cls, **args):
         results = Todo.select()
         if args['folder']:
-            if args['folder'] in config.settings['folders']['today']:
+            if args['folder'] in DEFAULT_FOLDERS['today']:
                 results = results.where(
                     (Todo.folder == args['folder']) |
                     (Todo.due <= datetime.date.today()) |
                     (Todo.remind <= datetime.date.today())
                 ).where(
-                    ~(Todo.folder << config.settings['folders']['inactive']))
+                    ~(Todo.folder << DEFAULT_FOLDERS['inactive']))
             else:
                 results = results.where(Todo.folder == args['folder'])
         else:
@@ -186,7 +188,7 @@ class Todo(BaseModel, AbstractTodo):
         todos are: inbox, next, and today.
         """
         active = cls.select().where(
-            Todo.folder << config.settings['folders']['active']
+            Todo.folder << DEFAULT_FOLDERS['active']
         )
         return active
 
@@ -205,7 +207,7 @@ class Todo(BaseModel, AbstractTodo):
         return query
 
 
-class SavedList(BaseModel):
+class SavedList(BaseModel, AbstractSavedList):
     name = peewee.CharField(
         constraints=[peewee.Check("name != ''")],
         unique=True,

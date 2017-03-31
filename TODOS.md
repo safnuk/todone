@@ -1,38 +1,36 @@
-
 0.1 Roadmap
 -----------
 - Allow todos to move into or change projects
-- Improve project matching logic
-- Find discrepancy between list behavior in testing and live
+- Move bulk of config details into db table
 - Make list help message correct
 - Change integration tests to behave
 - Improve move help message
 - Add done shorthand command
-- Add trash folder
-- Add trash shorthand command
 - Make max date(9999, 12, 31) into global constant
 - Add missing api documentation
 - Allow postgresql backend
-- Move bulk of config details into db table
 - Update classifiers (setup.py)
 - Update version number (in code)
 
 0.2 Roadmap
 -----------
+- Implement undo/redo operation
+- Improve project matching logic
 - Separate console output to a different module
 - Use SQL search for FolderMatch
 - Record date/time when moving to "done" folder
-- Decide when and how to clear DONE and CANCEL items from saved lists
-- Decide when and how to clear CANCEL items from database
+- Decide when and how to clear DONE and TRASH items from saved lists
+- Decide when and how to clear TRASH items from database
 - Add "context" field to Todo
-- Implement due date property
-- Implement reminder date property
 - Improve output messages for completed operations
 - Add agenda command
-- Implement undo/redo operation
+- Add trash folder
+- Add trash shorthand command
 
 Future
 ------
+- Implement due date property
+- Implement reminder date property
 - Add cal folder for calendar items
 - Refactor tests using fixtures
 - Test and code for multiple project hits with new_todo

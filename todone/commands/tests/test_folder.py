@@ -2,9 +2,9 @@ from contextlib import redirect_stdout
 import io
 from unittest import TestCase
 
+from todone.backends import DEFAULT_FOLDERS
 from todone.backends.db import Folder
 from todone.commands.folder import folder_command, parse_args
-from todone import config
 from todone.tests.base import DB_Backend
 from todone.parser.textparser import ArgumentError
 
@@ -84,7 +84,7 @@ class TestFolderCommand(DB_Backend):
         with redirect_stdout(f):
             folder_command(['list'])
         s = f.getvalue()
-        for folder in config.settings['folders']['default_folders']:
+        for folder in DEFAULT_FOLDERS['folders']:
             self.assertIn(folder, s)
 
     def test_list_raises_with_extra_arguments(self):

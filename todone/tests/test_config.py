@@ -42,12 +42,6 @@ class IntegratedTestConfig(ResetSettings, TestCase):
         self.assertEqual(config.settings['database']['type'], 'testing')
         self.assertEqual(config.settings['database']['name'], name)
 
-    def test_configure_converts_comma_delineated_strings_to_lists(self):
-        configure('todone/tests/test.ini')
-        self.assertEqual(
-            config.settings['folders']['active'], ['foo', 'bar', 'baz'])
-        self.assertEqual(config.settings['folders']['cal'], ['my_cal'])
-
     def test_save_configuration_saves(self):
         config.config_file = self.blank_file
         config.settings['database']['type'] = 'testing'

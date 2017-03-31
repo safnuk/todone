@@ -3,7 +3,7 @@ from unittest.mock import patch, Mock
 
 import peewee
 
-from todone import config
+from todone.backends import DEFAULT_FOLDERS
 from todone.backends.db import (
     Database, Folder, ListItem, SavedList,
     Todo, MOST_RECENT_SEARCH
@@ -29,7 +29,7 @@ class TestTodoModel(DB_Backend):
 
     def test_todo_stores_valid_folder(self):
         for folder in [
-                x for x in config.settings['folders']['default_folders']
+                x for x in DEFAULT_FOLDERS['folders']
         ]:
             t = Todo(action='Test todo', folder=folder)
             t.save()
@@ -39,12 +39,12 @@ class TestTodoModel(DB_Backend):
         t = Todo(action='Test')
         t.save()
         self.assertEqual(
-            t.folder.name, config.settings['folders']['default_inbox'])
+            t.folder.name, DEFAULT_FOLDERS['inbox'])
 
     def test_active_todos_restricts_select(self):
         todos = {}
         for n, folder in enumerate(
-            config.settings['folders']['default_folders']
+            DEFAULT_FOLDERS['folders']
         ):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
@@ -52,9 +52,9 @@ class TestTodoModel(DB_Backend):
         active = Todo.active_todos()
         active_todos = [t for t in active]
 
-        test_active = config.settings['folders']['active']
+        test_active = DEFAULT_FOLDERS['active']
         test_inactive = [
-            x for x in config.settings['folders']['default_folders']
+            x for x in DEFAULT_FOLDERS['folders']
             if x not in test_active
         ]
         for folder in test_inactive:
