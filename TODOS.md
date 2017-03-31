@@ -8,6 +8,7 @@
 - Improve move help message
 - Add done shorthand command
 - Make max date(9999, 12, 31) into global constant
+- Add missing api documentation
 - Allow postgresql backend
 - Update classifiers (setup.py)
 - Update version number (in code)

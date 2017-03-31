@@ -115,7 +115,8 @@ class FunctionalTestDB(ResetSettings, TestCase):
         s = self.run_todone(['new', '[test project]', 'Sub item the first'])
         s = self.run_todone(['new', 'Sub item the second', '[next/project]'])
         self.assertIn('Sub item the second', s)
-        self.assertNotIn('project', s)
+        self.assertIn('[test project]', s)
+        self.assertNotIn('next/project', s)
 
         # Listing the project shows the sub-items
         s = self.run_todone(['list', '[test project]'])

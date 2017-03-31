@@ -55,7 +55,10 @@ def new_todo(args):
     """
     parsed_args = parse_args(args)
     Todo.new(**parsed_args)
-    print('Added: {}/{}'.format(parsed_args['folder'], parsed_args['action']))
+    msg = 'Added: {}/{}'.format(parsed_args['folder'], parsed_args['action'])
+    if parsed_args['parent']:
+        msg += ' [{}]'.format(parsed_args['parent'].action)
+    print(msg)
 
 new_todo.short_help = """
 usage: todone new [folder/] [tags and todo string]

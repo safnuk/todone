@@ -26,6 +26,12 @@ class TestNewAction(DB_Backend):
         s = f.getvalue()
         self.assertIn('Added: {}/New todo 2'.format('today'), s)
 
+        f = io.StringIO()
+        with redirect_stdout(f):
+            new_todo(['today/', 'Sub item', '[New todo]'])
+        s = f.getvalue()
+        self.assertIn('Added: {}/Sub item [New todo]'.format('today'), s)
+
     def test_new_item_saves_todo(self):
         new_todo(['Todo 1'])
         new_todo(['today/', 'Todo 2'])
