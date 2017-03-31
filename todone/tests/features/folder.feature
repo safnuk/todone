@@ -24,17 +24,11 @@ Feature: Change folder structure
     Then  the output includes "Invalid argument"
     And   the output includes "Multiple matches found for folder test/"
 
-  Scenario: Exact pattern match on closely named folder
-    Given we ran the command "folder new testfolder"
-    And   we ran the command "folder new testfolder1"
-    When  we run the command "new testfolder/Another todo"
-    Then  the output includes "Added: testfolder/Another todo"
-
   Scenario: Rename a folder should move associated todos
     Given we ran the command "folder new testfolder"
     And   we ran the command "new testfolder/My todo"
     When  we run the command "folder rename testfolder/ myfolder/"
-    And   we run the command "list My todo"
+    And   we run the command "list myfolder/"
     Then  the output includes "Renamed folder: testfolder/ -> myfolder/"
     And   the output includes "myfolder/My todo"
 

@@ -1,9 +1,9 @@
 0.1 Roadmap
 -----------
-- Allow todos to move into or change projects
-- Move bulk of config details into db table
-- Make list help message correct
 - Change integration tests to behave
+- Allow todos to move into or change projects
+- Refactor backends to backend, with import of classes into __init__
+- Make list help message correct
 - Improve move help message
 - Add done shorthand command
 - Make max date(9999, 12, 31) into global constant
@@ -15,20 +15,22 @@
 0.2 Roadmap
 -----------
 - Implement undo/redo operation
+- Implement REST interface
+- Implement local/master sync
 - Improve project matching logic
 - Separate console output to a different module
 - Use SQL search for FolderMatch
 - Record date/time when moving to "done" folder
 - Decide when and how to clear DONE and TRASH items from saved lists
-- Decide when and how to clear TRASH items from database
-- Add "context" field to Todo
 - Improve output messages for completed operations
 - Add agenda command
-- Add trash folder
 - Add trash shorthand command
 
 Future
 ------
+- Move bulk of config details into db table
+- Decide when and how to clear TRASH items from database
+- Add "context" field to Todo
 - Implement due date property
 - Implement reminder date property
 - Add cal folder for calendar items
