@@ -22,17 +22,17 @@ Feature: Move todos between folders and projects
     Then  the output includes "New todo"
 
   Scenario: Move a todo into a project
-    Given we ran the command "list inbox"
+    Given we ran the command "list inbox/"
     When  we run the command "move 1 [next/project]"
-    Then  the output includes "Moved: New todo -> [next/test project]"
+    Then  the output includes "Moved: New todo -> [test project]"
 
   Scenario: Move a todo into a project and check original folder
-    Given we ran the command "list inbox"
+    Given we ran the command "list inbox/"
     And   we ran the command "move 1 [next/project]"
-    When  we run the command "list inbox"
+    When  we run the command "list inbox/"
     Then  the output includes "New todo"
 
   Scenario: Move a todo from one project into another
-    Given we ran the command "list [project]"
-    When  we run the command "move 2 [New todo]"
-    Then the output includes "Moved: Sub item the second -> [inbox/New todo]"
+    Given we ran the command "list [project] second"
+    When  we run the command "move 1 [New todo]"
+    Then the output includes "Moved: Sub item the second -> [New todo]"

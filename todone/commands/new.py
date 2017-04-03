@@ -1,17 +1,6 @@
 from todone.backends import DEFAULT_FOLDERS
 from todone.backends.db import Folder, Todo
-from todone.commands.constants import DUE_REGEX, REMIND_REGEX
-from todone.parser.format import (
-    ApplyFunctionFormat,
-    DateFormat,
-)
-from todone.parser.match import (
-    AlwaysMatch,
-    FolderMatch,
-    ProjectMatch,
-    RegexMatch,
-)
-from todone.parser.textparser import TextParser
+from todone.parser.factory import ParserFactory, PresetArgument
 
 
 def new_todo(args):
@@ -66,37 +55,22 @@ usage: todone new [folder/] [tags and todo string]
 
 
 def parse_args(args=[]):
-    parser = TextParser()
-    parser.add_argument(
-        'parent', match=ProjectMatch,
-        nargs='?',
-        positional=False,
-        format_function=_get_project_todo,
-        format=ApplyFunctionFormat
-    )
-    parser.add_argument(
-        'folder',
-        options=[f.name for f in Folder.all()],
-        match=FolderMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=_default_inbox
-    )
-    parser.add_argument(
-        'due', options=DUE_REGEX, match=RegexMatch,
-        format=DateFormat, nargs='?',
-        positional=False
-    )
-    parser.add_argument(
-        'remind', options=REMIND_REGEX, match=RegexMatch,
-        format=DateFormat, nargs='?',
-        positional=False
-    )
-    parser.add_argument(
-        'action', match=AlwaysMatch,
-        nargs='*',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
+    parser_initialization = [
+        (PresetArgument.unique_project,
+         {'name': 'parent',
+          'positional': False}),
+        (PresetArgument.folder,
+         {'name': 'folder',
+          'options': [f.name for f in Folder.all()],
+          'format_function': _default_inbox}),
+        (PresetArgument.due_date,
+         {'name': 'due'}),
+        (PresetArgument.remind_date,
+         {'name': 'remind'}),
+        (PresetArgument.all_remaining,
+         {'name': 'action'}),
+    ]
+    parser = ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
 
@@ -105,9 +79,3 @@ def _default_inbox(x):
     if x:
         return x[0]
     return DEFAULT_FOLDERS['inbox']
-
-
-def _get_project_todo(x):
-    if x:
-        return Todo.get_projects(x[0])[0]
-    return None

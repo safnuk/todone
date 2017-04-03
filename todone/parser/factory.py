@@ -100,6 +100,7 @@ PRESET_ARGUMENTS = {
         'nargs': '?',
         'format': ApplyFunctionFormat,
         'format_function': PresetArgument.get_project_todo,
+        'positional': False,
     },
     PresetArgument.all_matching_projects: {
         'match': ProjectMatch,

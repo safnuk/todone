@@ -105,7 +105,7 @@ class TestNewArgParse(TestCase):
         args = parse_args(['due+1m', 'Test todo'])
         self.assertEqual(args['due'], today + relativedelta(months=1))
 
-    @patch('todone.commands.new.Todo')
+    @patch('todone.parser.factory.Todo')
     def test_parses_project_and_calls_get_project_todo(self, MockTodo):
         args = parse_args(['Test todo', '[project]'])
         self.assertEqual(
