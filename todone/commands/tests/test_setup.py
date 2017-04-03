@@ -4,7 +4,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 
-from todone.backends.exceptions import DatabaseError
+from todone.backend import DatabaseError
 from todone.commands.setup import setup_db, version
 from todone import config, __version__
 from todone.parser.textparser import ArgumentError

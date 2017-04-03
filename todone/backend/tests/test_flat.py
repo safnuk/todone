@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from todone.backends import DEFAULT_FOLDERS
-from todone.backends.flat import Todo
+from todone.backend import DEFAULT_FOLDERS
+from todone.backend.flat import Todo
 
 
 class TestFlatTodoModel(TestCase):

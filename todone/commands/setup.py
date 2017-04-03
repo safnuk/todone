@@ -1,5 +1,4 @@
-from todone.backends.db import Database
-from todone.backends.exceptions import DatabaseError
+from todone.backend import Database, DatabaseError
 from todone import config, __version__
 from todone.config import save_configuration
 from todone.parser.factory import ParserFactory, PresetArgument

@@ -3,11 +3,12 @@ from unittest.mock import patch, Mock
 
 import peewee
 
-from todone.backends import DEFAULT_FOLDERS
-from todone.backends.db import (
+from todone.backend import DEFAULT_FOLDERS
+from todone.backend import (
     Database, Folder, ListItem, SavedList,
-    Todo, MOST_RECENT_SEARCH
+    Todo
 )
+from todone.backend.db import MOST_RECENT_SEARCH
 from todone.tests.base import DB_Backend
 
 
@@ -243,8 +244,8 @@ class TestListItem(DB_Backend):
 
 class TestDatabase(TestCase):
 
-    @patch('todone.backends.db.config.settings')
-    @patch('todone.backends.db.Database.database')
+    @patch('todone.backend.db.config.settings')
+    @patch('todone.backend.db.Database.database')
     def test_database_should_ignore_connect_request_to_empty_db_name(
         self, mock_database, mock_settings
     ):

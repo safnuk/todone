@@ -1,4 +1,4 @@
-from todone.backends.db import Folder
+from todone.backend import Folder
 from todone.parser.factory import ParserFactory, PresetArgument
 from todone.parser.textparser import ArgumentError
 

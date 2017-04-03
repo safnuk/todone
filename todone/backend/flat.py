@@ -1,4 +1,4 @@
-from todone.backends import DEFAULT_FOLDERS
+from todone.backend import DEFAULT_FOLDERS
 
 
 class Todo:

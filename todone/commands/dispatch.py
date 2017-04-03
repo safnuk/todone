@@ -1,7 +1,6 @@
 import sys
 
-from todone.backends.db import Database
-from todone.backends.exceptions import DatabaseError
+from todone.backend import Database, DatabaseError
 from todone.commands.folder import folder_command
 from todone.commands.help import help_text
 from todone.commands.list import list_items

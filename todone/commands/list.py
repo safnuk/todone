@@ -1,4 +1,4 @@
-from todone.backends.db import Folder, SavedList, Todo
+from todone.backend import Folder, SavedList, Todo
 from todone.printers import print_todo_list
 from todone.parser.factory import ParserFactory, PresetArgument
 

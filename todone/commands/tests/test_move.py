@@ -3,7 +3,7 @@ import io
 from unittest import TestCase
 from unittest.mock import patch
 
-from todone.backends.db import SavedList, Todo
+from todone.backend import SavedList, Todo
 from todone.commands.move import move_todo, parse_args
 from todone.tests.base import DB_Backend, FolderMock
 from todone.parser.textparser import ArgumentError

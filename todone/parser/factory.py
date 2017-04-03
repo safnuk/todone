@@ -1,6 +1,6 @@
 import enum
 
-from todone.backends.db import Todo
+from todone.backend import Todo
 from todone.parser.format import (
     ApplyFunctionFormat,
     DateFormat,

@@ -1,8 +1,5 @@
 0.1 Roadmap
 -----------
-- Change integration tests to behave
-- Allow todos to move into or change projects
-- Refactor backends to backend, with import of classes into __init__
 - Make list help message correct
 - Improve move help message
 - Add done shorthand command

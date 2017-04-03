@@ -4,8 +4,11 @@ import io
 from unittest import skip, TestCase
 from unittest.mock import patch
 
-from todone.backends import DEFAULT_FOLDERS
-from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
+from todone.backend import (
+    DEFAULT_FOLDERS, ListItem,
+    SavedList, Todo
+)
+from todone.backend.db import MOST_RECENT_SEARCH
 from todone.commands.list import (
     is_loading_saved_search,
     list_items,

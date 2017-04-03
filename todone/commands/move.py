@@ -1,4 +1,4 @@
-from todone.backends.db import Folder, SavedList
+from todone.backend import Folder, SavedList
 from todone.parser.factory import ParserFactory, PresetArgument
 
 

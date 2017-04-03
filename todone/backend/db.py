@@ -4,14 +4,14 @@ import re
 
 import peewee
 
-from todone.backends.abstract_backend import (
+from todone.backend.abstract_backend import (
     AbstractDatabase,
     AbstractFolder,
     AbstractSavedList,
     AbstractTodo,
 )
-from todone.backends import DEFAULT_FOLDERS
-from todone.backends.exceptions import DatabaseError
+from todone.backend import DEFAULT_FOLDERS
+from todone.backend.exceptions import DatabaseError
 from todone import config
 from todone.parser.textparser import ArgumentError
 

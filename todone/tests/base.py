@@ -6,8 +6,10 @@ import peewee
 from playhouse.test_utils import test_database
 
 from todone import config
-from todone.backends import DEFAULT_FOLDERS
-from todone.backends.db import Folder, ListItem, SavedList, Todo
+from todone.backend import (
+    DEFAULT_FOLDERS,
+    Folder, ListItem, SavedList, Todo
+)
 
 in_memory_db = peewee.SqliteDatabase(':memory:')
 

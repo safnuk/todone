@@ -1,5 +1,4 @@
-from todone.backends import DEFAULT_FOLDERS
-from todone.backends.db import Folder, Todo
+from todone.backend import DEFAULT_FOLDERS, Folder, Todo
 from todone.parser.factory import ParserFactory, PresetArgument
 
 
