@@ -1,11 +1,9 @@
 0.1 Roadmap
 -----------
-- Make list help message correct
-- Improve move help message
-- Add done shorthand command
-- Make max date(9999, 12, 31) into global constant
-- Add missing api documentation
 - Allow postgresql backend
+- Add missing api documentation
+- Setup Sphinx for doc creation
+- Add Travis integration
 - Update classifiers (setup.py)
 - Update version number (in code)
 
@@ -20,14 +18,15 @@
 - Record date/time when moving to "done" folder
 - Decide when and how to clear DONE and TRASH items from saved lists
 - Improve output messages for completed operations
-- Add agenda command
 - Add trash shorthand command
 
 Future
 ------
 - Move bulk of config details into db table
 - Decide when and how to clear TRASH items from database
+- Add agenda command
 - Add "context" field to Todo
+- Make max date(9999, 12, 31) into global constant
 - Implement due date property
 - Implement reminder date property
 - Add cal folder for calendar items

@@ -11,45 +11,38 @@ def list_items(args):
 
     Search criteria can be any string expression.
 
-    Allowed folder keywords are: today, next, inbox, project,
-    cal[-N{d|w|m|y}][+N{d|w|m|y}], someday, done. Shortened
-    versions accepted when unambiguous, so, for example "done", "don",
-    "do", and "d" all indicate the done folder.
-    If folder is not specified, the default is to search all active
-    folders (inbox, next, today).
-    The date specification for cal items limits to items with
-    a date within the specified time interval, where -N{d|w|m|y}
-    sets a lower bound on allowed dates (shift from today by
-    given amount) and +N{d|w|m|y} sets an upper bound.
+    Allowed folder keywords are any valid folder name, followed by
+    a slash. Examples: today/, next/, inbox/, someday/, done/. Shortened
+    versions accepted when unambiguous, so, for example "done/", "don/",
+    "do/", and "d/" all indicate the done folder.
 
-    If folder is "today", then, in addition to items in the today
+    If folder is not specified, the search is over all active
+    folders (default is: inbox/, next/, today/).
+
+    If folder is today/, then, in addition to items in the today
     folder, items with a reminder or due date prior to or equal to
-    today's date are also included.
+    today's date are also included. This behavior may change in future
+    versions.
 
     Allowed tags are:
 
     due[+N{d|w|m|y}],
     remind[+N{d|w|m|y}],
-    [project name] or [N] where N is the number associated to the
-    project. This can be obtained by typing
-        todone list project
+    [project name]
 
     The remainder of the search string provides keywords that must
     appear in the todo title. However, searches are always case
     insensitive.
 
-    If any keyword begins with '~', then the search limits to items
-    that do not contain the given item
-
     If .file is specified, then search results are saved to .file.
 
     If no search criteria is provided, then the todos in the given file
     are listed. If no search criteria and no file is specified, then
-    the most recently run search is repeated.
+    the most recently run search is listed.
 
     E.g.,
         > todone list .my_search today/ @Work
-            Lists all today items containing tag @Work
+            Lists all today items containing tag @Work, and saves to .my_search
         > todone list n/due+1w [My Project]
             Lists all next items from project [My Project] due in
             the next week
@@ -59,10 +52,6 @@ def list_items(args):
             Repeats list from first search
         > todone list
             Repeats list from first search
-        > todone list r+5d "(foo | baz)"
-            List all upcoming reminders (in next 5 days) containing
-            foo or baz. Quotes are needed to avoiding shell escaping
-            special characters.
     """
     parsed_args = parse_args(args)
     if is_loading_saved_search(parsed_args):

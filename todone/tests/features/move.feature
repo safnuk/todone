@@ -36,3 +36,8 @@ Feature: Move todos between folders and projects
     Given we ran the command "list [project] second"
     When  we run the command "move 1 [New todo]"
     Then the output includes "Moved: Sub item the second -> [New todo]"
+
+  Scenario: Use done command to move a todo into done folder
+    Given we ran the command "list today/"
+    When  we run the command "done 1"
+    Then  the output includes "Moved: Sub item the second -> done/"

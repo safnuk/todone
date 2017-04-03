@@ -1,6 +1,7 @@
 import sys
 
 from todone.backend import Database, DatabaseError
+from todone.commands.done import done_todo
 from todone.commands.folder import folder_command
 from todone.commands.help import help_text
 from todone.commands.list import list_items
@@ -104,4 +105,5 @@ COMMAND_MAPPING = {
     'move': move_todo,
     'new': new_todo,
     'setup': setup_db,
+    'done': done_todo,
 }

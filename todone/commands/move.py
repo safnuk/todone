@@ -8,6 +8,8 @@ def move_todo(args):
     usage: todone move N folder/
            todone move N [project]
 
+    The index N refers to the position of the todo listed in
+    the most recent search.
     """
     parsed_args = parse_args(args)
     todos = SavedList.get_todos_from_most_recent_search()
