@@ -9,6 +9,8 @@ from todone.backend import DatabaseError
 # from .db import DatabaseSQL, FolderSQL, ListItemSQL, SavedListSQL, TodoSQL
 import todone
 
+SQL_TYPES = ['sqlite3', 'postgresql']
+
 
 class Folder(AbstractFolder):
     @classmethod
@@ -92,6 +94,6 @@ class Database(AbstractDatabase):
 def get_module():
     if ('database' in config.settings and
             'type' in config.settings['database']):
-        if config.settings['database']['type'] == 'sqlite3':
+        if config.settings['database']['type'] in SQL_TYPES:
             return todone.backend.db
     raise DatabaseError("Invalid database configuration specified")

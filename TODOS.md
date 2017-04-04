@@ -1,6 +1,5 @@
 0.1 Roadmap
 -----------
-- Allow postgresql backend
 - Add missing api documentation
 - Setup Sphinx for doc creation
 - Add Travis integration

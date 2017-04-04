@@ -19,7 +19,7 @@ MOST_RECENT_SEARCH = 'last_search'
 
 
 class Database(AbstractDatabase):
-    database = peewee.SqliteDatabase(None)
+    database = peewee.Proxy()
 
     @classmethod
     def create(cls):
@@ -34,13 +34,25 @@ class Database(AbstractDatabase):
                 raise DatabaseError("Could not create the database")
 
     @classmethod
+    def initialize(cls):
+        dbname = config.settings['database']['name']
+        options = {key: value for key, value in
+                   config.settings['database'].items()
+                   if key not in ['type', 'name']}
+        if config.settings['database']['type'] == 'sqlite3':
+            db = peewee.SqliteDatabase(os.path.expanduser(dbname), **options)
+        elif config.settings['database']['type'] == 'postgresql':
+            db = peewee.PostgresqlDatabase(dbname, **options)
+
+        cls.database.initialize(db)
+
+    @classmethod
     def connect(cls):
         # don't try to connect to a nameless database
         if config.settings['database']['name'] == '':
             return
         try:
-            cls.database.init(
-                os.path.expanduser(config.settings['database']['name']))
+            cls.initialize()
             cls.database.connect()
         except peewee.OperationalError:
             raise DatabaseError("Could not connect to the database")
