@@ -2,7 +2,8 @@ from contextlib import redirect_stdout
 import io
 from unittest import TestCase
 
-from todone.backend import SavedList, Todo
+from todone.backend import SavedList
+from todone.backend.db import Todo
 from todone.commands.done import done_todo, parse_args
 from todone.tests.base import DB_Backend
 from todone.parser.textparser import ArgumentError

@@ -1,3 +1,4 @@
 from .abstract_backend import DEFAULT_FOLDERS
-from .db import Database, Folder, ListItem, SavedList, Todo
 from .exceptions import DatabaseError
+from .loader import Database, Folder, SavedList, Todo
+from . import db

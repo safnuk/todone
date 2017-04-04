@@ -2,7 +2,8 @@ from contextlib import redirect_stdout
 import io
 from unittest import TestCase
 
-from todone.backend import DEFAULT_FOLDERS, Folder
+from todone.backend import DEFAULT_FOLDERS
+from todone.backend.db import Folder
 from todone.commands.folder import folder_command, parse_args
 from todone.tests.base import DB_Backend
 from todone.parser.textparser import ArgumentError

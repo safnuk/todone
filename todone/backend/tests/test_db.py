@@ -4,11 +4,11 @@ from unittest.mock import patch, Mock
 import peewee
 
 from todone.backend import DEFAULT_FOLDERS
-from todone.backend import (
-    Database, Folder, ListItem, SavedList,
+from todone.backend.db import (
+    Database, Folder, SavedList,
     Todo
 )
-from todone.backend.db import MOST_RECENT_SEARCH
+from todone.backend.db import ListItem, MOST_RECENT_SEARCH
 from todone.tests.base import DB_Backend
 
 

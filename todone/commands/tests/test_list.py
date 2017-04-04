@@ -5,10 +5,9 @@ from unittest import skip, TestCase
 from unittest.mock import patch
 
 from todone.backend import (
-    DEFAULT_FOLDERS, ListItem,
-    SavedList, Todo
+    DEFAULT_FOLDERS,
 )
-from todone.backend.db import MOST_RECENT_SEARCH
+from todone.backend.db import ListItem, MOST_RECENT_SEARCH, SavedList, Todo
 from todone.commands.list import (
     is_loading_saved_search,
     list_items,
