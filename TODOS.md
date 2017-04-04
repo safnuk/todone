@@ -1,7 +1,7 @@
 0.1 Roadmap
 -----------
-- Add missing api documentation
 - Setup Sphinx for doc creation
+- Add missing api documentation
 - Add Travis integration
 - Update classifiers (setup.py)
 - Update version number (in code)
