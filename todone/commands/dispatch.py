@@ -9,16 +9,8 @@ from todone.commands.move import move_todo
 from todone.commands.new import new_todo
 from todone.commands.setup import setup_db, version
 from todone.config import configure
-from todone.parser.format import ApplyFunctionFormat
-from todone.parser.match import (
-    AlwaysMatch,
-    FlagKeywordMatch,
-    SubstringMatch,
-)
-from todone.parser.textparser import (
-    ArgumentError,
-    TextParser,
-)
+from todone.parser.factory import ParserFactory, PresetArgument
+from todone.parser.textparser import ArgumentError
 
 DB_HELP_MSG = """{}
 
@@ -46,20 +38,13 @@ class CommandDispatcher:
                          else self.DEFAULT_ARGS)
 
     def setup_parser(self):
-        self.parser = TextParser()
-        self.parser.add_argument(
-            'config', options=['-c', '--config'],
-            match=FlagKeywordMatch, nargs='?',
-            format=ApplyFunctionFormat,
-            format_function=' '.join
-        )
-        self.parser.add_argument(
-            'command', options=COMMAND_MAPPING,
-            match=SubstringMatch,
-            format=ApplyFunctionFormat,
-            format_function=' '.join
-        )
-        self.parser.add_argument('args', nargs='*', match=AlwaysMatch)
+        parser_initialization = [
+            (PresetArgument.config, {'name': 'config'}),
+            (PresetArgument.required_switch,
+             {'name': 'command', 'options': COMMAND_MAPPING}),
+            (PresetArgument.all_remaining_passthrough, {'name': 'args'}),
+        ]
+        self.parser = ParserFactory.from_arg_list(parser_initialization)
 
     def parse_args(self):
         try:

@@ -18,10 +18,6 @@ MOCK_PARSED_DATA = {
 
 class TestCommandDispatcher(TestCase):
 
-    def test_class_can_init(self):
-        cd = CommandDispatcher(None)
-        self.assertEqual(type(cd), CommandDispatcher)
-
     def test_init_stores_passed_args(self):
         test_args = ['test', 'foo']
         cd = CommandDispatcher(test_args)
@@ -43,7 +39,7 @@ class TestCommandDispatcher(TestCase):
         cd = CommandDispatcher(None)
         self.assertEqual(type(cd.parser), TextParser)
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.ParserFactory.from_arg_list')
     def test_parse_args_calls_TextParser_parse(self, MockParser):
         testargs = ['foo', 'bar']
         mock_instance = MockParser.return_value
@@ -52,7 +48,7 @@ class TestCommandDispatcher(TestCase):
         cd.parse_args()
         mock_instance.parse.assert_called_once_with(testargs)
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_parse_args_with_ArgumentError_dispatches_help_command(
             self, mock_dispatch, MockParser):
@@ -65,7 +61,7 @@ class TestCommandDispatcher(TestCase):
             pass
         mock_dispatch.assert_called_with('help', ['--short'])
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_parse_args_with_ArgumentError_exits(
             self, mock_dispatch, MockParser):
@@ -75,7 +71,7 @@ class TestCommandDispatcher(TestCase):
         with self.assertRaises(SystemExit):
             cd.parse_args()
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.configure')
     def test_configure_with_config_flag_calls_config_with_passed_file(
             self, mock_configure, MockParser):
@@ -86,7 +82,7 @@ class TestCommandDispatcher(TestCase):
         mock_configure.assert_called_once_with('config.ini')
 
     @patch('todone.commands.dispatch.Database')
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_dispatch_command_passes_command_and_remaining_args_to_dispatch(
         self, mock_dispatch, MockParser, MockDatabase

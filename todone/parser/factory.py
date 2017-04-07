@@ -7,6 +7,7 @@ from todone.parser.format import (
 )
 from todone.parser.match import (
     AlwaysMatch,
+    FlagKeywordMatch,
     FolderMatch,
     ProjectMatch,
     RegexMatch,
@@ -36,6 +37,8 @@ class PresetArgument(enum.Enum):
     due_date = 8
     remind_date = 9
     file = 10
+    config = 11
+    all_remaining_passthrough = 12
 
     @staticmethod
     def get_index(arg):
@@ -63,6 +66,10 @@ class PresetArgument(enum.Enum):
 
 
 PRESET_ARGUMENTS = {
+    PresetArgument.all_remaining_passthrough: {
+        'match': AlwaysMatch,
+        'nargs': '*',
+    },
     PresetArgument.all_remaining: {
         'match': AlwaysMatch,
         'nargs': '*',
@@ -129,6 +136,13 @@ PRESET_ARGUMENTS = {
         'format': ApplyFunctionFormat,
         'format_function': PresetArgument.get_file_name,
     },
+    PresetArgument.config: {
+        'match': FlagKeywordMatch,
+        'options': ['-c', '--config'],
+        'nargs': '?',
+        'format': ApplyFunctionFormat,
+        'format_function': ' '.join,
+    }
 }
 
 
