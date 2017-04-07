@@ -1,30 +1,19 @@
 todone\.commands package
 ========================
 
-Subpackages
------------
-
-.. toctree::
-
-    todone.commands.tests
-
-Submodules
-----------
-
-todone\.commands\.constants module
-----------------------------------
-
-.. automodule:: todone.commands.constants
+.. automodule:: todone.commands
     :members:
     :undoc-members:
     :show-inheritance:
+
+Submodules
+----------
 
 todone\.commands\.dispatch module
 ---------------------------------
 
 .. automodule:: todone.commands.dispatch
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.done module
@@ -32,7 +21,6 @@ todone\.commands\.done module
 
 .. automodule:: todone.commands.done
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.folder module
@@ -40,7 +28,6 @@ todone\.commands\.folder module
 
 .. automodule:: todone.commands.folder
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.help module
@@ -48,7 +35,6 @@ todone\.commands\.help module
 
 .. automodule:: todone.commands.help
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.list module
@@ -56,7 +42,6 @@ todone\.commands\.list module
 
 .. automodule:: todone.commands.list
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.move module
@@ -64,7 +49,6 @@ todone\.commands\.move module
 
 .. automodule:: todone.commands.move
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.new module
@@ -72,7 +56,6 @@ todone\.commands\.new module
 
 .. automodule:: todone.commands.new
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.commands\.setup module
@@ -80,14 +63,4 @@ todone\.commands\.setup module
 
 .. automodule:: todone.commands.setup
     :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: todone.commands
-    :members:
-    :undoc-members:
     :show-inheritance:

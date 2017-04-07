@@ -6,7 +6,7 @@ from todone.backend import SavedList
 from todone.backend.db import Todo
 from todone.commands.done import done_todo, parse_args
 from todone.tests.base import DB_Backend
-from todone.parser.textparser import ArgumentError
+from todone.parser import exceptions as pe
 
 
 class TestDoneTodo(DB_Backend):
@@ -41,15 +41,15 @@ class TestDoneArgParse(TestCase):
         self.assertEqual(args['index'], 5)
 
     def test_negative_integer_does_not_match(self):
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             parse_args(['-5'])
 
     def test_rejects_noninteger_index(self):
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             parse_args(['test'])
 
     def test_rejects_two_args(self):
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             parse_args(['1', '2'])
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             parse_args(['1', 'test'])

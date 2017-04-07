@@ -1,5 +1,8 @@
-from todone.backend import Folder, SavedList
-from todone.parser.factory import ParserFactory, PresetArgument
+"""Module for the move command, which moves a todo to a different
+folder or project.
+"""
+from todone import backend
+from todone.parser import factory
 
 
 def move_todo(args):
@@ -12,7 +15,7 @@ def move_todo(args):
     the most recent search.
     """
     parsed_args = parse_args(args)
-    todos = SavedList.get_todos_from_most_recent_search()
+    todos = backend.SavedList.get_todos_from_most_recent_search()
     target = todos[parsed_args['index']-1]
     if parsed_args['folder']:
         target.folder = parsed_args['folder']
@@ -31,14 +34,14 @@ where N is the number of the todo referenced in most recent search.
 
 def parse_args(args):
     parser_initialization = [
-        (PresetArgument.index,
+        (factory.PresetArgument.index,
          {'name': 'index'}),
-        (PresetArgument.unique_project,
+        (factory.PresetArgument.unique_project,
          {'name': 'parent'}),
-        (PresetArgument.folder,
+        (factory.PresetArgument.folder,
          {'name': 'folder',
-          'options': [f.name for f in Folder.all()]}),
+          'options': [f.name for f in backend.Folder.all()]}),
     ]
-    parser = ParserFactory.from_arg_list(parser_initialization)
+    parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data

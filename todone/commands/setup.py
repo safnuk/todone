@@ -1,8 +1,11 @@
-from todone.backend import Database, DatabaseError
-from todone import config, __version__
-from todone.config import save_configuration
-from todone.parser.factory import ParserFactory, PresetArgument
-from todone.parser.textparser import ArgumentError
+"""Module for creating a configuration file (if necessary) and initializing
+the database.
+"""
+from todone import backend
+from todone import config
+from todone import __version__
+from todone.parser import factory
+from todone.parser import exceptions as pe
 
 
 class Setup:
@@ -20,15 +23,15 @@ class Setup:
     def initialize(cls):
         if not config.settings['database']['name']:
             config.settings['database']['name'] = cls.query_user_for_db_name()
-            save_configuration()
-            Database.update()
+            config.save_configuration()
+            backend.Database.update()
             print("Created basic config file '{}'".format(config.config_file))
         try:
-            Database.create()
+            backend.Database.create()
             print("New todone database initialized at '{}'".format(
                 config.settings['database']['name']
             ))
-        except DatabaseError as e:
+        except backend.DatabaseError as e:
             if "already exists" in str(e):
                 print('Database has already been setup - get working!')
             else:
@@ -57,7 +60,7 @@ def version(args=[]):
     if not args:
         print('Todone {}'.format(__version__))
     else:
-        raise ArgumentError()
+        raise pe.ArgumentError()
 
 version.short_help = """
 usage: todone version
@@ -75,7 +78,7 @@ def setup_db(args=[]):
     command = parsed_args['command']
     remaining_args = parsed_args['args']
     if remaining_args:
-        raise ArgumentError()
+        raise pe.ArgumentError()
     Setup.dispatch(command, remaining_args)
 
 setup_db.short_help = """
@@ -85,11 +88,11 @@ usage: todone setup init
 
 def parse_args(args=[]):
     argtypes = [
-        (PresetArgument.required_switch,
+        (factory.PresetArgument.required_switch,
          {'name': 'command', 'options': Setup.COMMANDS}),
-        (PresetArgument.all_remaining,
+        (factory.PresetArgument.all_remaining,
          {'name': 'args', }),
     ]
-    parser = ParserFactory.from_arg_list(argtypes)
+    parser = factory.ParserFactory.from_arg_list(argtypes)
     parser.parse(args)
     return parser.parsed_data

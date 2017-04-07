@@ -1,24 +1,17 @@
+"""Dispatch a list of args to a specified command."""
+
 import sys
 
-from todone.backend import Database, DatabaseError
-from todone.commands.done import done_todo
-from todone.commands.folder import folder_command
-from todone.commands.help import help_text
-from todone.commands.list import list_items
-from todone.commands.move import move_todo
-from todone.commands.new import new_todo
-from todone.commands.setup import setup_db, version
-from todone.config import configure
-from todone.parser.format import ApplyFunctionFormat
-from todone.parser.match import (
-    AlwaysMatch,
-    FlagKeywordMatch,
-    SubstringMatch,
-)
-from todone.parser.textparser import (
-    ArgumentError,
-    TextParser,
-)
+from todone import backend, config
+from todone.commands import done
+from todone.commands import folder
+from todone.commands import help as cmd_help
+from todone.commands import list as cmd_list
+from todone.commands import move
+from todone.commands import new
+from todone.commands import setup
+from todone.parser import factory
+from todone.parser import exceptions as pe
 
 DB_HELP_MSG = """{}
 
@@ -31,13 +24,27 @@ to initialize the database before using.
 
 
 class CommandDispatcher:
+    """Dispatch a list of arguments to a specified command.
+
+    Split off the first keyword in :attr:`args` and use it to determine
+    which command to call. The remaining elements of :attr:`args` are
+    passed along to the command unchanged.
+
+    If :attr:`args` is empty or :obj:`None`,
+    use arguments passed from the command line. If both are empty,
+    initialize as if calling the :func:`~commands.help_text` command.
+
+    :param args: list of strings to be parsed
+    """
     DEFAULT_ARGS = ['help', ]
 
     def __init__(self, args):
-        self.store_args(args)
-        self.setup_parser()
+        """Initialize CommandDispatcher.
+        """
+        self._store_args(args)
+        self._setup_parser()
 
-    def store_args(self, args):
+    def _store_args(self, args):
         if args:
             self.args = args
         else:
@@ -45,42 +52,53 @@ class CommandDispatcher:
                          if len(sys.argv) > 1
                          else self.DEFAULT_ARGS)
 
-    def setup_parser(self):
-        self.parser = TextParser()
-        self.parser.add_argument(
-            'config', options=['-c', '--config'],
-            match=FlagKeywordMatch, nargs='?',
-            format=ApplyFunctionFormat,
-            format_function=' '.join
-        )
-        self.parser.add_argument(
-            'command', options=COMMAND_MAPPING,
-            match=SubstringMatch,
-            format=ApplyFunctionFormat,
-            format_function=' '.join
-        )
-        self.parser.add_argument('args', nargs='*', match=AlwaysMatch)
+    def _setup_parser(self):
+        parser_initialization = [
+            (factory.PresetArgument.config, {'name': 'config'}),
+            (factory.PresetArgument.required_switch,
+             {'name': 'command', 'options': COMMAND_MAPPING}),
+            (factory.PresetArgument.all_remaining_passthrough,
+             {'name': 'args'}),
+        ]
+        self.parser = factory.ParserFactory.from_arg_list(parser_initialization)
 
     def parse_args(self):
+        """Parse :attr:`args` for the pattern ``[command, *remaining_args]``.
+
+        :raises SystemExit: if a valid command cannot be parsed
+        from :attr:`args`
+        """
         try:
             self.parser.parse(self.args)
-        except ArgumentError:
+        except pe.ArgumentError:
             print('Invalid argument(s)')
             dispatch_command('help', ['--short'])
             raise SystemExit(1)
 
     def configure(self):
-        configure(self.parser.parsed_data['config'])
+        """Setup program-wide configuration settings.
+
+        Uses either the configuration filename parsed from :attr:`args`,
+        or, if missing, the default config behavior of :mod:`config`.
+
+        Must be called *after* calling :meth:`parse_args`.
+        """
+        config.configure(self.parser.parsed_data['config'])
 
     def dispatch_command(self):
+        """Call command determined from parsed arguments.
+
+        Must be called *after* calling :meth:`parse_args` and
+        :meth:`configure`.
+        """
         try:
-            Database.connect()
+            backend.Database.connect()
             dispatch_command(
                 self.parser.parsed_data['command'],
                 self.parser.parsed_data['args']
             )
-            Database.close()
-        except DatabaseError as e:
+            backend.Database.close()
+        except backend.DatabaseError as e:
             print(DB_HELP_MSG.format(e))
             pass
 
@@ -88,22 +106,22 @@ class CommandDispatcher:
 def dispatch_command(action, args):
     try:
         COMMAND_MAPPING[action](args)
-    except ArgumentError as e:
+    except pe.ArgumentError as e:
         print("Invalid argument(s) for {} command. {}".format(
             action, e))
         COMMAND_MAPPING['help'](['--short', action])
 
 COMMAND_MAPPING = {
-    '-h': help_text,
-    '--help': help_text,
-    'help': help_text,
-    '-v': version,
-    '--version': version,
-    'version': version,
-    'folder': folder_command,
-    'list': list_items,
-    'move': move_todo,
-    'new': new_todo,
-    'setup': setup_db,
-    'done': done_todo,
+    '-h': cmd_help.help_text,
+    '--help': cmd_help.help_text,
+    'help': cmd_help.help_text,
+    '-v': setup.version,
+    '--version': setup.version,
+    'version': setup.version,
+    'folder': folder.folder_command,
+    'list': cmd_list.list_items,
+    'move': move.move_todo,
+    'new': new.new_todo,
+    'setup': setup.setup_db,
+    'done': done.done_todo,
 }

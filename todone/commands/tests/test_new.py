@@ -8,7 +8,7 @@ from unittest.mock import patch
 from todone.backend.db import Todo
 from todone.commands.new import new_todo, parse_args
 from todone.tests.base import DB_Backend, FolderMock
-from todone.parser.textparser import ArgumentError
+from todone.parser import exceptions as pe
 
 
 class TestNewAction(DB_Backend):
@@ -69,13 +69,13 @@ class TestNewAction(DB_Backend):
         self.assertEqual(t1.parent, project)
 
     def test_raises_ArgumentError_when_saving_to_nonexisting_folder(self):
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             new_todo(['nonfolder/', 'New todo'])
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             new_todo(['nonfolder/'])
 
 
-@patch('todone.commands.new.Folder', FolderMock)
+@patch('todone.commands.new.backend.Folder', FolderMock)
 class TestNewArgParse(TestCase):
 
     def test_parse_args_defaults_to_inbox_folder(self):
@@ -105,7 +105,7 @@ class TestNewArgParse(TestCase):
         args = parse_args(['due+1m', 'Test todo'])
         self.assertEqual(args['due'], today + relativedelta(months=1))
 
-    @patch('todone.parser.factory.Todo')
+    @patch('todone.parser.factory.backend.Todo')
     def test_parses_project_and_calls_get_project_todo(self, MockTodo):
         args = parse_args(['Test todo', '[project]'])
         self.assertEqual(

@@ -1,5 +1,6 @@
-from todone.commands.move import move_todo
-from todone.parser.factory import ParserFactory, PresetArgument
+"""Module for command which moves a todo to the ``done/`` folder."""
+from todone.commands import move
+from todone.parser import factory
 
 
 def done_todo(args):
@@ -11,7 +12,7 @@ def done_todo(args):
     the most recent search.
     """
     parsed_args = parse_args(args)
-    move_todo([str(parsed_args['index']), 'done/'])
+    move.move_todo([str(parsed_args['index']), 'done/'])
 
 done_todo.short_help = """
 usage: todone done N
@@ -22,9 +23,9 @@ where N is the number of the todo referenced in most recent search.
 
 def parse_args(args):
     parser_initialization = [
-        (PresetArgument.index,
+        (factory.PresetArgument.index,
          {'name': 'index'}),
     ]
-    parser = ParserFactory.from_arg_list(parser_initialization)
+    parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
