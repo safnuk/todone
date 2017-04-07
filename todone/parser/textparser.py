@@ -1,12 +1,6 @@
-from todone.parser.exceptions import ArgumentError
-from todone.parser.format import (
-    AbstractFormat,
-    PassthroughFormat
-)
-from todone.parser.match import (
-    AbstractMatch,
-    EqualityMatch,
-)
+from todone.parser import exceptions as pe
+from todone.parser import format as pf
+from todone.parser import match
 
 
 class TextParser:
@@ -22,10 +16,10 @@ class TextParser:
             key, value, args = arg.parse(args)
             self.parsed_data[key] = value
         if args:
-            raise ArgumentError()
+            raise pe.ArgumentError()
 
 
-class Argument(AbstractMatch, AbstractFormat):
+class Argument(match.AbstractMatch, pf.AbstractFormat):
     """
     Class which attempts to match a specified type of argument
     from a list of arguments. Use factory function create, with arguments:
@@ -66,8 +60,8 @@ class Argument(AbstractMatch, AbstractFormat):
     @staticmethod
     def create(
         name,
-        match=EqualityMatch,
-        format=PassthroughFormat,
+        match=match.EqualityMatch,
+        format=pf.PassthroughFormat,
         *args, **kwargs
     ):
         class CustomArgument(Argument, match, format):
@@ -89,7 +83,7 @@ class Argument(AbstractMatch, AbstractFormat):
                 args = args[1:]
         unmatched_args += args
         if len(parsed) < self.nargs.min:
-            raise ArgumentError()
+            raise pe.ArgumentError()
         if self.default:
             parsed = parsed if parsed else self.default
         return self.name, self.format(parsed), unmatched_args

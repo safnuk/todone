@@ -1,6 +1,6 @@
 """Module for the new command, which creates a new todo."""
-from todone.backend import DEFAULT_FOLDERS, Folder, Todo
-from todone.parser.factory import ParserFactory, PresetArgument
+from todone import backend
+from todone.parser import factory
 
 
 def new_todo(args):
@@ -43,7 +43,7 @@ def new_todo(args):
     project.
     """
     parsed_args = parse_args(args)
-    Todo.new(**parsed_args)
+    backend.Todo.new(**parsed_args)
     msg = 'Added: {}/{}'.format(parsed_args['folder'], parsed_args['action'])
     if parsed_args['parent']:
         msg += ' [{}]'.format(parsed_args['parent'].action)
@@ -56,21 +56,21 @@ usage: todone new [folder/] [tags and todo string]
 
 def parse_args(args=[]):
     parser_initialization = [
-        (PresetArgument.unique_project,
+        (factory.PresetArgument.unique_project,
          {'name': 'parent',
           'positional': False}),
-        (PresetArgument.folder,
+        (factory.PresetArgument.folder,
          {'name': 'folder',
-          'options': [f.name for f in Folder.all()],
+          'options': [f.name for f in backend.Folder.all()],
           'format_function': _default_inbox}),
-        (PresetArgument.due_date,
+        (factory.PresetArgument.due_date,
          {'name': 'due'}),
-        (PresetArgument.remind_date,
+        (factory.PresetArgument.remind_date,
          {'name': 'remind'}),
-        (PresetArgument.all_remaining,
+        (factory.PresetArgument.all_remaining,
          {'name': 'action'}),
     ]
-    parser = ParserFactory.from_arg_list(parser_initialization)
+    parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
 
@@ -78,4 +78,4 @@ def parse_args(args=[]):
 def _default_inbox(x):
     if x:
         return x[0]
-    return DEFAULT_FOLDERS['inbox']
+    return backend.DEFAULT_FOLDERS['inbox']

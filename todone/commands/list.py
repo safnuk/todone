@@ -1,9 +1,9 @@
 """Module for searching the database based on user-supplied queries, and
 display the result to the user.
 """
-from todone.backend import Folder, SavedList, Todo
-from todone.printers import print_todo_list
-from todone.parser.factory import ParserFactory, PresetArgument
+from todone import backend
+from todone import printers
+from todone.parser import factory
 
 
 def list_items(args):
@@ -58,12 +58,12 @@ def list_items(args):
     """
     parsed_args = parse_args(args)
     if is_loading_saved_search(parsed_args):
-        query = SavedList.get_todos_in_list(parsed_args['file'])
+        query = backend.SavedList.get_todos_in_list(parsed_args['file'])
     else:
-        query = Todo.query(**parsed_args)
-        SavedList.save_search(parsed_args['file'], query)
-    SavedList.save_most_recent_search(query)
-    print_todo_list(query)
+        query = backend.Todo.query(**parsed_args)
+        backend.SavedList.save_search(parsed_args['file'], query)
+    backend.SavedList.save_most_recent_search(query)
+    printers.print_todo_list(query)
 
 list_items.short_help = """
 usage: todone list [.file] [folder/] [tags and keywords]
@@ -79,21 +79,21 @@ def is_loading_saved_search(args):
 
 def parse_args(args=[]):
     parser_initialization = [
-        (PresetArgument.file,
+        (factory.PresetArgument.file,
          {'name': 'file'}),
-        (PresetArgument.all_matching_projects,
+        (factory.PresetArgument.all_matching_projects,
          {'name': 'parent'}),
-        (PresetArgument.folder,
+        (factory.PresetArgument.folder,
          {'name': 'folder',
-          'options': [x.name.lower() for x in Folder.all()]}),
-        (PresetArgument.due_date,
+          'options': [x.name.lower() for x in backend.Folder.all()]}),
+        (factory.PresetArgument.due_date,
          {'name': 'due'}),
-        (PresetArgument.remind_date,
+        (factory.PresetArgument.remind_date,
          {'name': 'remind'}),
-        (PresetArgument.all_remaining,
+        (factory.PresetArgument.all_remaining,
          {'name': 'keywords',
           'format_function': lambda x: x}),
     ]
-    parser = ParserFactory.from_arg_list(parser_initialization)
+    parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data

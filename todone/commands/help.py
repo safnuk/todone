@@ -1,8 +1,8 @@
 """Module for displaying help messages for todone commands."""
 import textwrap
 
-import todone.commands.dispatch
-from todone.parser.factory import ParserFactory, PresetArgument
+from todone.commands import dispatch
+from todone.parser import factory
 
 
 def help_text(args):
@@ -28,29 +28,29 @@ def help_text(args):
 
     if parsed_args['short']:
         if command:
-            print(todone.commands.dispatch.COMMAND_MAPPING[command].short_help)
+            print(dispatch.COMMAND_MAPPING[command].short_help)
         else:
             print(help_text.short_general_help)
     else:
         command = command if command else 'help'
         print(
             textwrap.dedent(
-                todone.commands.dispatch.COMMAND_MAPPING[command].__doc__
+                dispatch.COMMAND_MAPPING[command].__doc__
             )
         )
 
 
 def parse_args(args):
     parser_initialization = [
-        (PresetArgument.optional_switch,
+        (factory.PresetArgument.optional_switch,
          {'name': 'short',
           'options': ['-s', '--short'],
           'positional': False}),
-        (PresetArgument.optional_switch,
+        (factory.PresetArgument.optional_switch,
          {'name': 'command',
-          'options': todone.commands.dispatch.COMMAND_MAPPING}),
+          'options': dispatch.COMMAND_MAPPING}),
     ]
-    parser = ParserFactory.from_arg_list(parser_initialization)
+    parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
 

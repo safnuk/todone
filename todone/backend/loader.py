@@ -1,18 +1,11 @@
-import todone.config as config
-from todone.backend.abstract_backend import (
-    AbstractDatabase,
-    AbstractFolder,
-    AbstractSavedList,
-    AbstractTodo,
-)
-from todone.backend import DatabaseError
-# from .db import DatabaseSQL, FolderSQL, ListItemSQL, SavedListSQL, TodoSQL
-import todone
+from todone import backend
+from todone import config
+from todone.backend import abstract_backend as abstract
 
 SQL_TYPES = ['sqlite3', 'postgresql']
 
 
-class Folder(AbstractFolder):
+class Folder(abstract.AbstractFolder):
     @classmethod
     def new(cls, folder_name):
         return get_module().Folder.new(folder_name)
@@ -30,7 +23,7 @@ class Folder(AbstractFolder):
         return get_module().Folder.all()
 
 
-class Todo(AbstractTodo):
+class Todo(abstract.AbstractTodo):
     @classmethod
     def query(cls, **search_parameters):
         return get_module().Todo.query(**search_parameters)
@@ -51,7 +44,7 @@ class Todo(AbstractTodo):
         return get_module().Todo.save()
 
 
-class SavedList(AbstractSavedList):
+class SavedList(abstract.AbstractSavedList):
     @classmethod
     def get_most_recent(cls):
         return get_module().SavedList.get_most_recent()
@@ -73,7 +66,7 @@ class SavedList(AbstractSavedList):
         return get_module().SavedList.save_most_recent_search(todo_query)
 
 
-class Database(AbstractDatabase):
+class Database(abstract.AbstractDatabase):
     @classmethod
     def create(cls):
         return get_module().Database.create()
@@ -95,5 +88,5 @@ def get_module():
     if ('database' in config.settings and
             'type' in config.settings['database']):
         if config.settings['database']['type'] in SQL_TYPES:
-            return todone.backend.db
-    raise DatabaseError("Invalid database configuration specified")
+            return backend.db
+    raise backend.DatabaseError("Invalid database configuration specified")

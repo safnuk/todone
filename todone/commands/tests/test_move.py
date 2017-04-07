@@ -7,7 +7,7 @@ from todone.backend import SavedList
 from todone.backend.db import Todo as TodoSQL
 from todone.commands.move import move_todo, parse_args
 from todone.tests.base import DB_Backend, FolderMock
-from todone.parser.textparser import ArgumentError
+from todone.parser import exceptions as pe
 
 
 class TestMoveTodo(DB_Backend):
@@ -61,7 +61,7 @@ class TestMoveTodo(DB_Backend):
         pass
 
 
-@patch('todone.commands.move.Folder', FolderMock)
+@patch('todone.commands.move.backend.Folder', FolderMock)
 class TestMoveArgParse(TestCase):
 
     def test_parses_integer(self):
@@ -69,14 +69,14 @@ class TestMoveArgParse(TestCase):
         self.assertEqual(args['index'], 5)
 
     def test_negative_integer_does_not_match(self):
-        with self.assertRaises(ArgumentError):
+        with self.assertRaises(pe.ArgumentError):
             parse_args(['-5', 'today/'])
 
     def test_parses_folder(self):
         args = parse_args(['0', 'in/'])
         self.assertEqual(args['folder'], 'inbox')
 
-    @patch('todone.parser.factory.Todo')
+    @patch('todone.parser.factory.backend.Todo')
     def test_parses_project_and_calls_get_project_todo(self, MockTodo):
         args = parse_args(['1', '[project]'])
         self.assertEqual(
