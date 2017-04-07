@@ -1,3 +1,8 @@
+"""Implementation of todone's backend API as a flat directory structure.
+
+In particular, each :class:`Todo`is saved as a separate file, with
+:class:`Folder` implemented as a file system folder.
+"""
 from todone import backend
 
 

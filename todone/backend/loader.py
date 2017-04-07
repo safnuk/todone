@@ -1,3 +1,7 @@
+"""Determine which backend to use based on global configuration settings,
+allowing the rest of the program to simply utilize :class:`backend.Todo`,
+:class:`backend.Folder`, etc., without knowing which backend is in use.
+"""
 from todone import backend
 from todone import config
 from todone.backend import abstract_backend as abstract

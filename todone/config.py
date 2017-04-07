@@ -1,3 +1,10 @@
+"""Handle global configuration settings for use by other modules in todone.
+
+Includes:
+    :data:`settings` Dictionary of global configuration settings.
+    :func:`configure` Read configuration settings from disk.
+    :func:`save_configuration` Save configuration settings to disk.
+"""
 import configparser
 import os
 
@@ -13,6 +20,13 @@ settings = {
 
 
 def configure(filename):
+    """Read configuration settngs from disk.
+
+    If :data:`filename` is the empty string, use default configuration
+    settings.
+
+    :param filename: Location of config file on disk.
+    """
     globals()['config_file'] = filename if filename else DEFAULT_CONFIG_FILE
     config = configparser.ConfigParser()
     config.read(os.path.expanduser(config_file))
@@ -24,6 +38,7 @@ def configure(filename):
 
 
 def save_configuration():
+    """Save configuration settings to the file :data:`config.config_file`."""
     config = configparser.ConfigParser()
     config.read_dict(settings)
     filename = os.path.expanduser(config_file)

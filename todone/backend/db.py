@@ -1,3 +1,7 @@
+"""Implementation of todone's backend API for accessing SQL databases.
+
+Uses the peewee package to connect to databases.
+"""
 import datetime
 import os
 import re
