@@ -4,34 +4,28 @@ import re
 
 import peewee
 
-from todone.backend.abstract_backend import (
-    AbstractDatabase,
-    AbstractFolder,
-    AbstractSavedList,
-    AbstractTodo,
-)
-from todone.backend import DEFAULT_FOLDERS
-from todone.backend.exceptions import DatabaseError
+from todone.backend import abstract_backend as abstract
+from todone import backend
 from todone import config
-from todone.parser.textparser import ArgumentError
+from todone.parser import exceptions as pe
 
 MOST_RECENT_SEARCH = 'last_search'
 
 
-class Database(AbstractDatabase):
+class Database(abstract.AbstractDatabase):
     database = peewee.Proxy()
 
     @classmethod
     def create(cls):
         try:
             cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
-            for folder in DEFAULT_FOLDERS['folders']:
+            for folder in backend.DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
         except peewee.OperationalError as e:
             if "already exists" in str(e):
-                raise DatabaseError("Database already exists")
+                raise backend.DatabaseError("Database already exists")
             else:
-                raise DatabaseError("Could not create the database")
+                raise backend.DatabaseError("Could not create the database")
 
     @classmethod
     def initialize(cls):
@@ -55,7 +49,7 @@ class Database(AbstractDatabase):
             cls.initialize()
             cls.database.connect()
         except peewee.OperationalError:
-            raise DatabaseError("Could not connect to the database")
+            raise backend.DatabaseError("Could not connect to the database")
 
     @classmethod
     def close(cls):
@@ -63,7 +57,7 @@ class Database(AbstractDatabase):
             if not cls.database.is_closed():
                 cls.database.close()
         except peewee.OperationalError:
-            raise DatabaseError("Could not close the database")
+            raise backend.DatabaseError("Could not close the database")
 
     @classmethod
     def update(cls):
@@ -76,7 +70,7 @@ class BaseModel(peewee.Model):
         database = Database.database
 
 
-class Folder(BaseModel, AbstractFolder):
+class Folder(BaseModel, abstract.AbstractFolder):
     name = peewee.CharField(
         constraints=[peewee.Check("name != ''")],
         unique=True,
@@ -88,14 +82,14 @@ class Folder(BaseModel, AbstractFolder):
         try:
             return [f for f in cls.select()]
         except peewee.OperationalError:
-            raise DatabaseError('Database not setup properly')
+            raise backend.DatabaseError('Database not setup properly')
 
     @classmethod
     def new(cls, folder):
         try:
             Folder.create(name=folder)
         except peewee.IntegrityError:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'Folder {}/ already exists'.format(folder))
 
     @classmethod
@@ -103,13 +97,13 @@ class Folder(BaseModel, AbstractFolder):
         try:
             old_folder = Folder.get(Folder.name == old_folder_name)
         except peewee.DoesNotExist:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'No match found for folder {}/'.format(old_folder_name)
             )
         try:
             new_folder = Folder.create(name=new_folder_name)
         except peewee.IntegrityError:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'Folder {}/ already exists'.format(new_folder_name))
         query = Todo.update(folder=new_folder).where(
             Todo.folder == old_folder
@@ -122,23 +116,23 @@ class Folder(BaseModel, AbstractFolder):
         try:
             folder = Folder.get(Folder.name == folder_name)
         except peewee.DoesNotExist:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'Folder {} does not exist'.format(folder_name)
             )
         query = Todo.update(
-            folder=DEFAULT_FOLDERS['inbox']
+            folder=backend.DEFAULT_FOLDERS['inbox']
         ).where(Todo.folder == folder)
         query.execute()
         folder.delete_instance()
 
 
-class Todo(BaseModel, AbstractTodo):
+class Todo(BaseModel, abstract.AbstractTodo):
     action = peewee.CharField(
         constraints=[peewee.Check("action != ''")],
     )
     folder = peewee.ForeignKeyField(
         Folder,
-        default=DEFAULT_FOLDERS['inbox'],
+        default=backend.DEFAULT_FOLDERS['inbox'],
         related_name='todos'
     )
     parent = peewee.ForeignKeyField(
@@ -165,19 +159,19 @@ class Todo(BaseModel, AbstractTodo):
         try:
             Todo.create(**args)
         except peewee.OperationalError:
-            raise DatabaseError('Error connecting to the database')
+            raise backend.DatabaseError('Error connecting to the database')
 
     @classmethod
     def query(cls, **args):
         results = Todo.select()
         if args['folder']:
-            if args['folder'] in DEFAULT_FOLDERS['today']:
+            if args['folder'] in backend.DEFAULT_FOLDERS['today']:
                 results = results.where(
                     (Todo.folder == args['folder']) |
                     (Todo.due <= datetime.date.today()) |
                     (Todo.remind <= datetime.date.today())
                 ).where(
-                    ~(Todo.folder << DEFAULT_FOLDERS['inactive']))
+                    ~(Todo.folder << backend.DEFAULT_FOLDERS['inactive']))
             else:
                 results = results.where(Todo.folder == args['folder'])
         else:
@@ -200,7 +194,7 @@ class Todo(BaseModel, AbstractTodo):
         todos are: inbox, next, and today.
         """
         active = cls.select().where(
-            Todo.folder << DEFAULT_FOLDERS['active']
+            Todo.folder << backend.DEFAULT_FOLDERS['active']
         )
         return active
 
@@ -219,7 +213,7 @@ class Todo(BaseModel, AbstractTodo):
         return query
 
 
-class SavedList(BaseModel, AbstractSavedList):
+class SavedList(BaseModel, abstract.AbstractSavedList):
     name = peewee.CharField(
         constraints=[peewee.Check("name != ''")],
         unique=True,

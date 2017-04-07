@@ -1,21 +1,21 @@
-"""Module containing commands for modifying todone database folder.
+"""Module containing commands for modifying folders in todone database.
 
 Includes the subcommands:
     * ``new`` for creating new folders
     * ``rename`` for renaming a folder
     * ``delete`` for deleting a folder
 """
-from todone.backend import Folder
-from todone.parser.factory import ParserFactory, PresetArgument
-from todone.parser.textparser import ArgumentError
+from todone import backend
+from todone.parser import factory
+from todone.parser import exceptions as pe
 
 FOLDER_COMMANDS = ['new', 'rename', 'delete', 'list']
 FOLDER_DISPATCH = {
-    'new': Folder.new,
-    'rename': Folder.rename,
-    'delete': Folder.remove,
+    'new': backend.Folder.new,
+    'rename': backend.Folder.rename,
+    'delete': backend.Folder.remove,
     'list': lambda: print(
-        '\n'.join(['{}/'.format(f.name) for f in Folder.all()]))
+        '\n'.join(['{}/'.format(f.name) for f in backend.Folder.all()]))
 }
 
 COMMAND_MESSAGE = {
@@ -57,13 +57,13 @@ def folder_command(args):
     command = parsed_args['command']
     folders = parsed_args['folders']
     if len(folders) < MIN_FOLDERS[command]:
-        raise ArgumentError(
+        raise pe.ArgumentError(
             'Not enough folders provided (expected {})'.format(
                 MIN_FOLDERS[command]
             )
         )
     elif len(folders) > MAX_FOLDERS[command]:
-        raise ArgumentError(
+        raise pe.ArgumentError(
             'Too many folders provided'
         )
     FOLDER_DISPATCH[command](*folders)
@@ -77,12 +77,12 @@ usage todone folder <command> <args>
 
 def parse_args(args=[]):
     arglist = [
-        (PresetArgument.required_switch,
+        (factory.PresetArgument.required_switch,
          {'name': 'command', 'options': FOLDER_COMMANDS}),
-        (PresetArgument.all_remaining,
+        (factory.PresetArgument.all_remaining,
          {'name': 'folders', 'format_function': _strip_trailing_slash}),
     ]
-    parser = ParserFactory.from_arg_list(arglist)
+    parser = factory.ParserFactory.from_arg_list(arglist)
     parser.parse(args)
     return parser.parsed_data
 
