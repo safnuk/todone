@@ -1,3 +1,4 @@
+"""Module for the new command, which creates a new todo."""
 from todone.backend import DEFAULT_FOLDERS, Folder, Todo
 from todone.parser.factory import ParserFactory, PresetArgument
 

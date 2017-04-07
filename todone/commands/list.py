@@ -1,3 +1,6 @@
+"""Module for searching the database based on user-supplied queries, and
+display the result to the user.
+"""
 from todone.backend import Folder, SavedList, Todo
 from todone.printers import print_todo_list
 from todone.parser.factory import ParserFactory, PresetArgument

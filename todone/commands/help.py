@@ -1,3 +1,4 @@
+"""Module for displaying help messages for todone commands."""
 import textwrap
 
 import todone.commands.dispatch

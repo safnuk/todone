@@ -1,3 +1,4 @@
+"""Module for command which moves a todo to the ``done/`` folder."""
 from todone.commands.move import move_todo
 from todone.parser.factory import ParserFactory, PresetArgument
 

@@ -1,3 +1,10 @@
+"""Module containing commands for modifying todone database folder.
+
+Includes the subcommands:
+    * ``new`` for creating new folders
+    * ``rename`` for renaming a folder
+    * ``delete`` for deleting a folder
+"""
 from todone.backend import Folder
 from todone.parser.factory import ParserFactory, PresetArgument
 from todone.parser.textparser import ArgumentError

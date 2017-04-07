@@ -1,3 +1,6 @@
+"""Module for creating a configuration file (if necessary) and initializing
+the database.
+"""
 from todone.backend import Database, DatabaseError
 from todone import config, __version__
 from todone.config import save_configuration

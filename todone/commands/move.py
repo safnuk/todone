@@ -1,3 +1,6 @@
+"""Module for the move command, which moves a todo to a different
+folder or project.
+"""
 from todone.backend import Folder, SavedList
 from todone.parser.factory import ParserFactory, PresetArgument
 
