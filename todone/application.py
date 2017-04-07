@@ -1,4 +1,3 @@
-
 from todone.commands.dispatch import CommandDispatcher
 
 SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'

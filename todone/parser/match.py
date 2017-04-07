@@ -1,3 +1,4 @@
+"""Collection of classes that determine if strings match to argument parsers."""
 import re
 
 from todone.parser.exceptions import ArgumentError

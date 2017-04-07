@@ -1,3 +1,8 @@
+"""Generate a :class:`TextParser` class. Includes the following classes:
+
+    - :class:`ParserFactory`
+    - :class:`PresetArgument`
+"""
 import enum
 
 from todone.backend import Todo
@@ -26,6 +31,9 @@ REMIND_REGEX = [x.format('remind|remin|remi|rem|re|r') for x in DATE_REGEX]
 
 
 class PresetArgument(enum.Enum):
+    """:class:`Enum` of preconfigured argument parsers commonly used by
+    many of todone's commands.
+    """
     all_remaining = 1
     required_switch = 2
     optional_switch = 3
@@ -62,7 +70,7 @@ class PresetArgument(enum.Enum):
         return None
 
 
-PRESET_ARGUMENTS = {
+_PRESET_ARGUMENTS = {
     PresetArgument.all_remaining: {
         'match': AlwaysMatch,
         'nargs': '*',
@@ -133,9 +141,16 @@ PRESET_ARGUMENTS = {
 
 
 class ParserFactory():
+    """Factory class for generating a :class:`TextParser`."""
     @classmethod
     def from_arg_list(cls, args=[]):
+        """Return a :class:`TextParser` constructed by passing a list of
+        argument parsers
+
+        :param args: List of dictionaries, each containing configuration
+        options for an argument parser.
+        """
         parser = TextParser()
         for (arg, keywords) in args:
-            parser.add_argument(**dict(PRESET_ARGUMENTS[arg], **keywords))
+            parser.add_argument(**dict(_PRESET_ARGUMENTS[arg], **keywords))
         return parser

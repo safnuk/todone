@@ -1,5 +1,5 @@
-todone package
-==============
+todone api
+==========
 
 Subpackages
 -----------

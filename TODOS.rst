@@ -2,6 +2,7 @@
 -----------
 
 * Add missing api documentation
+* Convert all argparsers to use ``ParserFactory`` class
 * Update classifiers (setup.py)
 * Update version number (in code)
 
@@ -43,7 +44,7 @@ Future
   * Use unicode check boxes ☐ ☑ ☒ ◎ ◉ ◯❌✖ ✕ ✓ ✔  ▷ ► ✅ ▢ ▣
 
 * Implement recurring todos
-* Add timers to task "todone timer start/stop #"
+* Add timers to task ``todone timer start/stop #``
   Active timers should be displayed when performing many operations
 * Add log command to show todos done over a specified period of time
 * Add quick-entry command: ``todone quick folder/ [project] @Context``
