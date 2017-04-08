@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from todone.backends.flat import Todo
-from todone.config import settings
+from todone.backend import DEFAULT_FOLDERS
+from todone.backend.flat import Todo
 
 
 class TestFlatTodoModel(TestCase):
@@ -20,13 +20,13 @@ class TestFlatTodoModel(TestCase):
             assert(t)
 
     def test_todo_stores_valid_folder(self):
-        for folder in [x for x in settings['folders']['default_folders']]:
+        for folder in [x for x in DEFAULT_FOLDERS['folders']]:
             t = Todo('Test todo', folder=folder)
             self.assertEqual(t.folder, folder)
 
     def test_todo_default_folder_is_inbox(self):
         t = Todo('Test')
-        self.assertEqual(t.folder, settings['folders']['default_inbox'])
+        self.assertEqual(t.folder, DEFAULT_FOLDERS['folders'])
 
     def test_todo_raises_with_invalid_folder(self):
         with self.assertRaises(ValueError):

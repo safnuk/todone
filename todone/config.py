@@ -1,7 +1,13 @@
+"""Handle global configuration settings for use by other modules in todone.
+
+Includes:
+    :data:`settings` Dictionary of global configuration settings.
+    :func:`configure` Read configuration settings from disk.
+    :func:`save_configuration` Save configuration settings to disk.
+"""
 import configparser
 import os
 
-VERSION = '0.0.2'
 DEFAULT_CONFIG_FILE = '~/.config/todone/config.ini'
 
 config_file = DEFAULT_CONFIG_FILE
@@ -10,49 +16,34 @@ settings = {
         'type': 'sqlite3',
         'name': '',
     },
-    'folders': {
-        'default_inbox': 'inbox',
-        'default_folders': [
-            'today', 'next', 'inbox', 'cal',
-            'done', 'someday'
-        ],
-        'active': ['today', 'next', 'inbox'],
-        'inactive': ['done', 'cancel'],
-        'cal': ['cal'],
-        'today': ['today'],
-        'do_not_archive': ['cancel'],
-    },
 }
-
-_folder_lists = [
-    'default_folders', 'active', 'cal', 'today', 'do_not_archive',
-    'inactive',
-]
 
 
 def configure(filename):
+    """Read configuration settngs from disk.
+
+    If :data:`filename` is the empty string, use default configuration
+    settings.
+
+    :param filename: Location of config file on disk.
+    """
     globals()['config_file'] = filename if filename else DEFAULT_CONFIG_FILE
     config = configparser.ConfigParser()
     config.read(os.path.expanduser(config_file))
     for key in config.sections():
-        if key == 'folders':
-            temp_folders = dict(config[key])
-            for sub_key, value in temp_folders.items():
-                if sub_key in _folder_lists:
-                    temp_folders[sub_key] = [
-                        x.strip() for x in value.split(',')
-                    ]
-            settings[key].update(temp_folders)
-        elif key in settings:
+        if key in settings:
             settings[key].update(config[key])
         else:
             settings[key] = dict(config[key])
 
 
 def save_configuration():
+    """Save configuration settings to the file :data:`config.config_file`."""
     config = configparser.ConfigParser()
     config.read_dict(settings)
-    with open(os.path.expanduser(config_file), 'w') as configfile:
+    filename = os.path.expanduser(config_file)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, 'w') as configfile:
         config.write(configfile)
 
 

@@ -1,11 +1,8 @@
-from todone.backends.db import SavedList
-from todone.config import settings
-from todone.parser.format import ApplyFunctionFormat
-from todone.parser.match import (
-    FolderMatch,
-    RegexMatch,
-)
-from todone.parser.textparser import TextParser
+"""Module for the move command, which moves a todo to a different
+folder or project.
+"""
+from todone import backend
+from todone.parser import factory
 
 
 def move_todo(args):
@@ -14,13 +11,19 @@ def move_todo(args):
     usage: todone move N folder/
            todone move N [project]
 
+    The index N refers to the position of the todo listed in
+    the most recent search.
     """
     parsed_args = parse_args(args)
-    todos = SavedList.get_todos_from_most_recent_search()
+    todos = backend.SavedList.get_todos_from_most_recent_search()
     target = todos[parsed_args['index']-1]
-    target.folder = parsed_args['folder']
+    if parsed_args['folder']:
+        target.folder = parsed_args['folder']
+        print('Moved: {} -> {}/'.format(target.action, target.folder.name))
+    elif parsed_args['parent']:
+        target.parent = parsed_args['parent']
+        print('Moved: {} -> [{}]'.format(target.action, target.parent.action))
     target.save()
-    print('Moved: "{}" to {}'.format(target.action, target.folder.name))
 
 move_todo.short_help = """
 usage: todone move N folder/
@@ -30,24 +33,15 @@ where N is the number of the todo referenced in most recent search.
 
 
 def parse_args(args):
-    parser = TextParser()
-    parser.add_argument(
-        'index', options=[r'(?P<index>\d+)', ],
-        match=RegexMatch, nargs=1,
-        format_function=_get_index,
-        format=ApplyFunctionFormat
-    )
-    parser.add_argument(
-        'folder', options=settings['folders']['default_folders'],
-        match=FolderMatch, nargs='?',
-        format=ApplyFunctionFormat,
-        format_function=' '.join
-    )
+    parser_initialization = [
+        (factory.PresetArgument.index,
+         {'name': 'index'}),
+        (factory.PresetArgument.unique_project,
+         {'name': 'parent'}),
+        (factory.PresetArgument.folder,
+         {'name': 'folder',
+          'options': [f.name for f in backend.Folder.all()]}),
+    ]
+    parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
-
-
-def _get_index(arg):
-    if arg:
-        return int(arg[0].group('index'))
-    return None

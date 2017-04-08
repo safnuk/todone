@@ -1,21 +1,80 @@
+"""Implementation of todone's backend API for accessing SQL databases.
+
+Uses the peewee package to connect to databases.
+"""
+import datetime
 import os
 import re
 
 import peewee
 
+from todone.backend import abstract_backend as abstract
+from todone import backend
 from todone import config
-from todone.parser.textparser import ArgumentError
+from todone.parser import exceptions as pe
 
 MOST_RECENT_SEARCH = 'last_search'
-database = peewee.SqliteDatabase(None)
+
+
+class Database(abstract.AbstractDatabase):
+    database = peewee.Proxy()
+
+    @classmethod
+    def create(cls):
+        try:
+            cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
+            for folder in backend.DEFAULT_FOLDERS['folders']:
+                Folder.create(name=folder)
+        except peewee.OperationalError as e:
+            if "already exists" in str(e):
+                raise backend.DatabaseError("Database already exists")
+            else:
+                raise backend.DatabaseError("Could not create the database")
+
+    @classmethod
+    def initialize(cls):
+        dbname = config.settings['database']['name']
+        options = {key: value for key, value in
+                   config.settings['database'].items()
+                   if key not in ['type', 'name']}
+        if config.settings['database']['type'] == 'sqlite3':
+            db = peewee.SqliteDatabase(os.path.expanduser(dbname), **options)
+        elif config.settings['database']['type'] == 'postgresql':
+            db = peewee.PostgresqlDatabase(dbname, **options)
+
+        cls.database.initialize(db)
+
+    @classmethod
+    def connect(cls):
+        # don't try to connect to a nameless database
+        if config.settings['database']['name'] == '':
+            return
+        try:
+            cls.initialize()
+            cls.database.connect()
+        except peewee.OperationalError:
+            raise backend.DatabaseError("Could not connect to the database")
+
+    @classmethod
+    def close(cls):
+        try:
+            if not cls.database.is_closed():
+                cls.database.close()
+        except peewee.OperationalError:
+            raise backend.DatabaseError("Could not close the database")
+
+    @classmethod
+    def update(cls):
+        cls.close()
+        cls.connect()
 
 
 class BaseModel(peewee.Model):
     class Meta:
-        database = database
+        database = Database.database
 
 
-class Folder(BaseModel):
+class Folder(BaseModel, abstract.AbstractFolder):
     name = peewee.CharField(
         constraints=[peewee.Check("name != ''")],
         unique=True,
@@ -23,25 +82,32 @@ class Folder(BaseModel):
     )
 
     @classmethod
-    def safe_new(cls, folder):
+    def all(cls):
+        try:
+            return [f for f in cls.select()]
+        except peewee.OperationalError:
+            raise backend.DatabaseError('Database not setup properly')
+
+    @classmethod
+    def new(cls, folder):
         try:
             Folder.create(name=folder)
         except peewee.IntegrityError:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'Folder {}/ already exists'.format(folder))
 
     @classmethod
-    def safe_rename(cls, old_folder_name, new_folder_name):
+    def rename(cls, old_folder_name, new_folder_name):
         try:
             old_folder = Folder.get(Folder.name == old_folder_name)
         except peewee.DoesNotExist:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'No match found for folder {}/'.format(old_folder_name)
             )
         try:
             new_folder = Folder.create(name=new_folder_name)
         except peewee.IntegrityError:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'Folder {}/ already exists'.format(new_folder_name))
         query = Todo.update(folder=new_folder).where(
             Todo.folder == old_folder
@@ -50,32 +116,27 @@ class Folder(BaseModel):
         old_folder.delete_instance()
 
     @classmethod
-    def safe_delete(cls, folder_name):
+    def remove(cls, folder_name):
         try:
             folder = Folder.get(Folder.name == folder_name)
         except peewee.DoesNotExist:
-            raise ArgumentError(
+            raise pe.ArgumentError(
                 'Folder {} does not exist'.format(folder_name)
             )
         query = Todo.update(
-            folder=config.settings['folders']['default_inbox']
+            folder=backend.DEFAULT_FOLDERS['inbox']
         ).where(Todo.folder == folder)
         query.execute()
         folder.delete_instance()
 
-    @classmethod
-    def list(cls):
-        for folder in Folder.select():
-            print('{}/'.format(folder.name))
 
-
-class Todo(BaseModel):
+class Todo(BaseModel, abstract.AbstractTodo):
     action = peewee.CharField(
         constraints=[peewee.Check("action != ''")],
     )
     folder = peewee.ForeignKeyField(
         Folder,
-        default=config.settings['folders']['default_inbox'],
+        default=backend.DEFAULT_FOLDERS['inbox'],
         related_name='todos'
     )
     parent = peewee.ForeignKeyField(
@@ -98,13 +159,46 @@ class Todo(BaseModel):
         return output
 
     @classmethod
+    def new(cls, **args):
+        try:
+            Todo.create(**args)
+        except peewee.OperationalError:
+            raise backend.DatabaseError('Error connecting to the database')
+
+    @classmethod
+    def query(cls, **args):
+        results = Todo.select()
+        if args['folder']:
+            if args['folder'] in backend.DEFAULT_FOLDERS['today']:
+                results = results.where(
+                    (Todo.folder == args['folder']) |
+                    (Todo.due <= datetime.date.today()) |
+                    (Todo.remind <= datetime.date.today())
+                ).where(
+                    ~(Todo.folder << backend.DEFAULT_FOLDERS['inactive']))
+            else:
+                results = results.where(Todo.folder == args['folder'])
+        else:
+            results = Todo.active_todos()
+        if args['parent']:
+            results = results.where(Todo.parent << args['parent'])
+        if args['due']:
+            results = results.where(Todo.due <= args['due'])
+        if args['remind']:
+            results = results.where(Todo.remind <= args['remind'])
+        for keyword in args['keywords']:
+            results = results.where(Todo.action.contains(keyword))
+        results = results.order_by(Todo.parent, -Todo.folder, Todo.id)
+        return results
+
+    @classmethod
     def active_todos(cls):
         """
         Construct a select query of all active todos. Active
         todos are: inbox, next, and today.
         """
         active = cls.select().where(
-            Todo.folder << config.settings['folders']['active']
+            Todo.folder << backend.DEFAULT_FOLDERS['active']
         )
         return active
 
@@ -123,7 +217,7 @@ class Todo(BaseModel):
         return query
 
 
-class SavedList(BaseModel):
+class SavedList(BaseModel, abstract.AbstractSavedList):
     name = peewee.CharField(
         constraints=[peewee.Check("name != ''")],
         unique=True,
@@ -169,21 +263,3 @@ class SavedList(BaseModel):
 class ListItem(BaseModel):
     savedlist = peewee.ForeignKeyField(SavedList, related_name='items')
     todo = peewee.ForeignKeyField(Todo)
-
-
-def create_database():
-    database.create_tables([Folder, Todo,  SavedList, ListItem])
-    for folder in config.settings['folders']['default_folders']:
-        Folder.create(name=folder)
-
-
-def initialize_database():
-    database.init(os.path.expanduser(config.settings['database']['name']))
-
-
-def connect_database():
-    database.connect()
-
-
-def close_database():
-    database.close()

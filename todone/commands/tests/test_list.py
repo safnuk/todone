@@ -4,23 +4,25 @@ import io
 from unittest import skip, TestCase
 from unittest.mock import patch
 
-from todone.backends.db import ListItem, SavedList, Todo, MOST_RECENT_SEARCH
+from todone.backend import (
+    DEFAULT_FOLDERS,
+)
+from todone.backend.db import ListItem, MOST_RECENT_SEARCH, SavedList, Todo
 from todone.commands.list import (
     is_loading_saved_search,
     list_items,
     parse_args
 )
-from todone.config import settings
 from todone.tests.base import DB_Backend, FolderMock
 
-folders = settings['folders']
+folders = DEFAULT_FOLDERS['folders']
 
 
 class TestListItems(DB_Backend):
 
     def test_list_folder_restricts_to_correct_todos(self):
         todos = {}
-        for n, folder in enumerate(folders['default_folders']):
+        for n, folder in enumerate(folders):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
@@ -29,18 +31,18 @@ class TestListItems(DB_Backend):
             list_items(['t/'])
         s = f.getvalue()
         for folder in [
-            x for x in folders['default_folders'] if x is not 'today'
+            x for x in folders if x is not 'today'
         ]:
             self.assertNotIn(str(todos[folder]), s)
         self.assertIn(str(todos['today']), s)
 
-        for list_folder in folders['default_folders']:
+        for list_folder in folders:
             f = io.StringIO()
             with redirect_stdout(f):
                 list_items([list_folder + '/'])
             s = f.getvalue()
             for folder in [
-                x for x in folders['default_folders']
+                x for x in folders
                 if x is not list_folder
             ]:
                 self.assertNotIn(str(todos[folder]), s)
@@ -48,7 +50,7 @@ class TestListItems(DB_Backend):
 
     def test_list_without_folder_restricts_to_active_todos(self):
         todos = {}
-        for n, folder in enumerate(folders['default_folders']):
+        for n, folder in enumerate(folders):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
@@ -56,8 +58,8 @@ class TestListItems(DB_Backend):
         with redirect_stdout(f):
             list_items(['Item'])
         s = f.getvalue()
-        active = folders['active']
-        inactive = [x for x in folders['default_folders'] if x not in active]
+        active = DEFAULT_FOLDERS['active']
+        inactive = [x for x in folders if x not in active]
         for folder in inactive:
             self.assertNotIn(str(todos[folder]), s)
         for folder in active:
@@ -485,13 +487,15 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t1), lines[4])
 
 
-@patch('todone.commands.list.Folder', FolderMock)
+@patch('todone.commands.list.backend.Folder', FolderMock)
 class TestListArgParse(TestCase):
 
     def test_parse_args_parses_filename(self):
         args = parse_args(['.filename'])
         self.assertEqual(args['file'], 'filename')
         args = parse_args(['.filename', 'string1', '.string2'])
+        self.assertEqual(args['file'], 'filename')
+        args = parse_args(['.filename',  'string1', '.string2'])
         self.assertEqual(args['file'], 'filename')
         args = parse_args(['string', 'filename'])
         self.assertEqual(args['file'], None)
@@ -557,7 +561,7 @@ class UnitTestListItems(TestCase):
             'file': 'test'
         }
 
-    @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.backend.SavedList')
     def test_if_loading_saved_search_then_calls_loader(
         self, MockSavedList, mock_is_loading, mock_parse
     ):
@@ -567,7 +571,7 @@ class UnitTestListItems(TestCase):
         MockSavedList.get_todos_in_list.assert_called_once_with(
             self.parsed_args['file'])
 
-    @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.backend.SavedList')
     def test_if_loading_saved_search_then_does_not_saves_query(
         self, MockSavedList, mock_is_loading, mock_parse
     ):
@@ -576,8 +580,8 @@ class UnitTestListItems(TestCase):
         list_items([])
         MockSavedList.save_search.assert_not_called()
 
-    @patch('todone.commands.list.SavedList')
-    @patch('todone.commands.list.print_todo_list')
+    @patch('todone.commands.list.backend.SavedList')
+    @patch('todone.commands.list.printers.print_todo_list')
     def test_if_loading_saved_search_then_saves_as_most_recent_query(
         self, mock_print, MockSavedList, mock_is_loading, mock_parse
     ):
@@ -587,19 +591,19 @@ class UnitTestListItems(TestCase):
         list_items([])
         MockSavedList.save_most_recent_search.assert_called_once_with('test')
 
-    @patch('todone.commands.list.construct_query_from_argdict')
-    @patch('todone.commands.list.SavedList')
+    @patch('todone.commands.list.backend.Todo.query')
+    @patch('todone.commands.list.backend.SavedList')
     def test_if_not_loading_saved_search_then_constructs_query(
         self, MockSavedList, mock_construct, mock_is_loading, mock_parse
     ):
         mock_parse.return_value = self.parsed_args
         mock_is_loading.return_value = False
         list_items([])
-        mock_construct.assert_called_once_with(self.parsed_args)
+        mock_construct.assert_called_once_with(**self.parsed_args)
 
-    @patch('todone.commands.list.construct_query_from_argdict')
-    @patch('todone.commands.list.SavedList')
-    @patch('todone.commands.list.print_todo_list')
+    @patch('todone.commands.list.backend.Todo.query')
+    @patch('todone.commands.list.backend.SavedList')
+    @patch('todone.commands.list.printers.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_query(
         self, mock_print, MockSavedList, mock_construct,
         mock_is_loading, mock_parse
@@ -611,9 +615,9 @@ class UnitTestListItems(TestCase):
         MockSavedList.save_search.assert_called_once_with(
             self.parsed_args['file'], 'test todo')
 
-    @patch('todone.commands.list.construct_query_from_argdict')
-    @patch('todone.commands.list.SavedList')
-    @patch('todone.commands.list.print_todo_list')
+    @patch('todone.commands.list.backend.Todo.query')
+    @patch('todone.commands.list.backend.SavedList')
+    @patch('todone.commands.list.printers.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_as_most_recent_query(
         self, mock_print, MockSavedList, mock_construct,
         mock_is_loading, mock_parse

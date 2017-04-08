@@ -1,12 +1,6 @@
-from todone.parser.exceptions import ArgumentError
-from todone.parser.format import (
-    AbstractFormat,
-    PassthroughFormat
-)
-from todone.parser.match import (
-    AbstractMatch,
-    EqualityMatch,
-)
+from todone.parser import exceptions as pe
+from todone.parser import format as pf
+from todone.parser import match
 
 
 class TextParser:
@@ -22,34 +16,15 @@ class TextParser:
             key, value, args = arg.parse(args)
             self.parsed_data[key] = value
         if args:
-            raise ArgumentError()
+            raise pe.ArgumentError()
 
 
-class Argument(AbstractMatch, AbstractFormat):
+class Argument(match.AbstractMatch, pf.AbstractFormat):
     """
     Class which attempts to match a specified type of argument
-    from a list of arguments. Use factory function create, with arguments:
-        name:    Name assigned to the argument; used as dictionary key
-                 for parsed arguments.
-        options: List of keywords or expressions that will match
-                 the argument.
-        nargs:   Number of arguments to search for. Can be: any positive
-                 integer; '*' (any number of arguments is acceptable);
-                 '+' (at last one match required); '?' (either 0 or
-                 1 match). Throws an InvalidArgument exception if
-                 incorrect number of matches found.
-        positional: If True, arg(s) must appear at the start of the list,
-                    so the search for matches will stop at the first
-                    non-match, or enough matches are found, whichever
-                    comes first. If False, every arg is searched, until
-                    enough matches are found (as specified by nargs).
-        Match:      Class which provides match logic; must inherit from
-                    AbstractMatch. Typical choices include
-                    EqualityMatch, SubstringMatch, RegexMatch,
-                    AlwaysMatch.
-        Transform:  Class which transforms matched arguments; must
-                    inherit from AbstractTransform. Typical choices are
-                    PassthroughTransform, FunctionTransform.
+    from a list of arguments. Use factory function :func:`create`
+    to creat an argument.
+
     """
 
     def __init__(
@@ -66,10 +41,39 @@ class Argument(AbstractMatch, AbstractFormat):
     @staticmethod
     def create(
         name,
-        match=EqualityMatch,
-        format=PassthroughFormat,
+        match=match.EqualityMatch,
+        format=pf.PassthroughFormat,
         *args, **kwargs
     ):
+        """Factory function to create an :class:`Argument` instance.
+
+        :param name: name assigned to the argument;
+            use as a dictionary key for the parsed arguments.
+        :param options: list of keywords or expressions that will
+            match the argument.
+        :param nargs: number of arguments to search for; can be:
+                * any positive integer
+                * '*' (any number of arguments is acceptable)
+                * '+' (at last one match required)
+                * '?' (either 0 or 1 match).
+
+            Raises an :class:`InvalidArgument` exception if incorrect number
+            of matches found
+        :param positional: if :data:`True`, arg(s) must appear at the
+            start of the list, so the search for matches will stop at the first
+            non-match, or enough matches are found, whichever
+            comes first. If False, every arg is searched, until
+            enough matches are found (as specified by nargs)
+        :param Match: class which provides match logic;
+            must inherit from :class:`AbstractMatch`.
+            Typical choices include :class:`EqualityMatch`,
+            :class:`SubstringMatch`, :class:`RegexMatch`,
+            :class:`AlwaysMatch`
+        :param Transform: class which transforms matched arguments;
+            must inherit from :class:`AbstractTransform`;
+            typical choices are :class:`PassthroughTransform`,
+            :class:`FunctionTransform`
+        """
         class CustomArgument(Argument, match, format):
             pass
 
@@ -89,7 +93,7 @@ class Argument(AbstractMatch, AbstractFormat):
                 args = args[1:]
         unmatched_args += args
         if len(parsed) < self.nargs.min:
-            raise ArgumentError()
+            raise pe.ArgumentError()
         if self.default:
             parsed = parsed if parsed else self.default
         return self.name, self.format(parsed), unmatched_args

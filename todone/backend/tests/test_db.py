@@ -1,12 +1,14 @@
-from unittest import skip
+from unittest import skip, TestCase
+from unittest.mock import patch, Mock
 
 import peewee
 
-from todone import config
-from todone.backends.db import (
-    Folder, ListItem, SavedList,
-    Todo, MOST_RECENT_SEARCH
+from todone.backend import DEFAULT_FOLDERS
+from todone.backend.db import (
+    Database, Folder, SavedList,
+    Todo
 )
+from todone.backend.db import ListItem, MOST_RECENT_SEARCH
 from todone.tests.base import DB_Backend
 
 
@@ -28,7 +30,7 @@ class TestTodoModel(DB_Backend):
 
     def test_todo_stores_valid_folder(self):
         for folder in [
-                x for x in config.settings['folders']['default_folders']
+                x for x in DEFAULT_FOLDERS['folders']
         ]:
             t = Todo(action='Test todo', folder=folder)
             t.save()
@@ -38,12 +40,12 @@ class TestTodoModel(DB_Backend):
         t = Todo(action='Test')
         t.save()
         self.assertEqual(
-            t.folder.name, config.settings['folders']['default_inbox'])
+            t.folder.name, DEFAULT_FOLDERS['inbox'])
 
     def test_active_todos_restricts_select(self):
         todos = {}
         for n, folder in enumerate(
-            config.settings['folders']['default_folders']
+            DEFAULT_FOLDERS['folders']
         ):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
@@ -51,9 +53,9 @@ class TestTodoModel(DB_Backend):
         active = Todo.active_todos()
         active_todos = [t for t in active]
 
-        test_active = config.settings['folders']['active']
+        test_active = DEFAULT_FOLDERS['active']
         test_inactive = [
-            x for x in config.settings['folders']['default_folders']
+            x for x in DEFAULT_FOLDERS['folders']
             if x not in test_active
         ]
         for folder in test_inactive:
@@ -96,8 +98,8 @@ class TestFolder(DB_Backend):
 
     def test_new_creates_valid_name(self):
         old_list_length = len(Folder.select())
-        Folder.safe_new('test')
-        Folder.safe_new('folder')
+        Folder.new('test')
+        Folder.new('folder')
         self.assertEqual(len(Folder.select()) - old_list_length, 2)
         f1 = Folder.get(Folder.name == 'test')
         self.assertEqual(f1.name, 'test')
@@ -106,7 +108,7 @@ class TestFolder(DB_Backend):
 
     def test_rename_changes_folder_name(self):
         Folder.create(name='test')
-        Folder.safe_rename('test', 'foo')
+        Folder.rename('test', 'foo')
         Folder.get(Folder.name == 'foo')  # does not raise
         with self.assertRaises(peewee.DoesNotExist):
             Folder.get(Folder.name == 'test')
@@ -114,19 +116,19 @@ class TestFolder(DB_Backend):
     def test_rename_renames_folder_fields_for_todos(self):
         Folder.create(name='test')
         Todo.create(action='Todo 1', folder='test')
-        Folder.safe_rename('test', 'foo')
+        Folder.rename('test', 'foo')
         t1 = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(t1.folder.name, 'foo')
 
     def test_delete_removes_folder(self):
-        Folder.safe_delete('today')
+        Folder.remove('today')
         with self.assertRaises(peewee.DoesNotExist):
             Folder.get(name='today')
 
     def test_delete_moves_subtodos_to_default_inbox(self):
         Todo.create(action='Foo', folder='today')
         Todo.create(action='Bar', folder='today')
-        Folder.safe_delete('today')
+        Folder.remove('today')
         for t in Todo.select():
             self.assertEqual(t.folder.name, 'inbox')
 
@@ -238,3 +240,18 @@ class TestListItem(DB_Backend):
         pairs = zip(items, todos)
         for item, todo in pairs:
             self.assertEqual(item.todo, todo)
+
+
+class TestDatabase(TestCase):
+
+    @patch('todone.backend.db.config.settings')
+    @patch('todone.backend.db.Database.database')
+    def test_database_should_ignore_connect_request_to_empty_db_name(
+        self, mock_database, mock_settings
+    ):
+        mock_database.init = Mock()
+        mock_database.connect = Mock()
+        mock_settings.__getitem__.return_value = {'name': ''}
+        Database.connect()
+        mock_database.init.assert_not_called()
+        mock_database.connect.assert_not_called()

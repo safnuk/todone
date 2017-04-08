@@ -9,3 +9,6 @@ test.sqlite3
 htmlcov
 .ropeproject/
 .idea/
+.tox/
+build/
+_build/
