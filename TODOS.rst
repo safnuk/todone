@@ -1,17 +1,10 @@
-0.1 Roadmap
------------
-
-* Add missing api documentation
-* Convert all argparsers to use ``ParserFactory`` class
-* Update classifiers (setup.py)
-* Update version number (in code)
-
 0.2 Roadmap
 -----------
 
 * Implement undo/redo operation
 * Implement REST interface
 * Implement local/master sync
+* Allow different dbase backend selections with ``setup init`` command
 * Separate console output to a different module
 * Record date/time when moving to "done" folder
 * Decide when and how to clear DONE and TRASH items from saved lists
@@ -41,7 +34,7 @@ Future
   * Print project as headers
   * Allow specifiying depth of sub*projects to display
   * Display due and reminder dates
-  * Use unicode check boxes ☐ ☑ ☒ ◎ ◉ ◯❌✖ ✕ ✓ ✔  ▷ ► ✅ ▢ ▣
+  * Use unicode check boxes ☐ ☑ ☒ ◎ ◉ ◯   ❌ ✖ ✕ ✓ ✔  ▷ ► ✅ ▢ ▣
 
 * Implement recurring todos
 * Add timers to task ``todone timer start/stop #``
