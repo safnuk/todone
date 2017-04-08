@@ -1,18 +1,21 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+
+import todone
 
 
 def readme():
     with open('README.md') as f:
         return f.read()
 
+
 setup(name='todone',
-      version='0.0.2',
+      version=todone.__version__,
       description='Todo list manager and agenda',
       long_description=readme(),
       url='https://github.com/safnuk/todone',
       author='Brad Safnuk',
       author_email='safnuk@gmail.com',
-      license='MIT',
+      license='Apache-2.0',
       packages=find_packages(),
       include_package_data=True,
       entry_points={
@@ -21,14 +24,15 @@ setup(name='todone',
           ]
       },
       classifiers=[
-          "Programming Language :: Python",
           "Programming Language :: Python :: 3",
-          "Development Status :: 1 - Planning",
-          "License :: OSI Approved :: MIT License",
+          "Development Status :: 3 - Alpha",
+          "License :: OSI Approved :: Apache Software License",
           "Operating System :: OS Independent",
       ],
       install_requires=[
           'peewee',
           'python-dateutil',
       ],
+      setup_requires=['pytest-runner'],
+      tests_require=['pytest'],
       zip_safe=False)

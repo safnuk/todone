@@ -1,3 +1,4 @@
+"""Collection of preconfigured formatters for manipulating parsed strings."""
 import datetime
 import dateutil.relativedelta
 
@@ -11,6 +12,7 @@ class AbstractFormat(object):
 
 
 class ApplyFunctionFormat(AbstractFormat):
+    """Apply ``format_function`` to the parsed args."""
     def __init__(self, format_function=None, *args, **kwargs):
         self.format_function = format_function
         super().__init__(*args, **kwargs)
@@ -22,6 +24,7 @@ class ApplyFunctionFormat(AbstractFormat):
 
 
 class PassthroughFormat(ApplyFunctionFormat):
+    """Send parsed arguments through unchanged."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

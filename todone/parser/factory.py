@@ -1,18 +1,14 @@
+"""Generate a :class:`TextParser` class. Includes the following classes:
+
+    - :class:`ParserFactory`
+    - :class:`PresetArgument`
+"""
 import enum
 
-from todone.backends.db import Todo
-from todone.parser.format import (
-    ApplyFunctionFormat,
-    DateFormat,
-)
-from todone.parser.match import (
-    AlwaysMatch,
-    FolderMatch,
-    ProjectMatch,
-    RegexMatch,
-    SubstringMatch,
-)
-from todone.parser.textparser import TextParser
+from todone import backend
+from todone.parser import format as pf
+from todone.parser import match
+from todone.parser import textparser
 
 
 DATE_REGEX = [
@@ -26,6 +22,9 @@ REMIND_REGEX = [x.format('remind|remin|remi|rem|re|r') for x in DATE_REGEX]
 
 
 class PresetArgument(enum.Enum):
+    """:class:`Enum` of preconfigured argument parsers commonly used by
+    many of todone's commands.
+    """
     all_remaining = 1
     required_switch = 2
     optional_switch = 3
@@ -36,6 +35,8 @@ class PresetArgument(enum.Enum):
     due_date = 8
     remind_date = 9
     file = 10
+    config = 11
+    all_remaining_passthrough = 12
 
     @staticmethod
     def get_index(arg):
@@ -46,13 +47,13 @@ class PresetArgument(enum.Enum):
     @staticmethod
     def get_project_todo(x):
         if x:
-            return Todo.get_projects(x[0])[0]
+            return backend.Todo.get_projects(x[0])[0]
         return None
 
     @staticmethod
     def get_projects(x):
         if x:
-            return Todo.get_projects(x[0])
+            return backend.Todo.get_projects(x[0])
         return None
 
     @staticmethod
@@ -62,79 +63,99 @@ class PresetArgument(enum.Enum):
         return None
 
 
-PRESET_ARGUMENTS = {
-    PresetArgument.all_remaining: {
-        'match': AlwaysMatch,
+_PRESET_ARGUMENTS = {
+    PresetArgument.all_remaining_passthrough: {
+        'match': match.AlwaysMatch,
         'nargs': '*',
-        'format': ApplyFunctionFormat,
+    },
+    PresetArgument.all_remaining: {
+        'match': match.AlwaysMatch,
+        'nargs': '*',
+        'format': pf.ApplyFunctionFormat,
         'format_function': ' '.join,
     },
     PresetArgument.required_switch: {
         'nargs': 1,
-        'match': SubstringMatch,
-        'format': ApplyFunctionFormat,
+        'match': match.SubstringMatch,
+        'format': pf.ApplyFunctionFormat,
         'format_function': ' '.join,
     },
     PresetArgument.optional_switch: {
         'nargs': '?',
-        'format': ApplyFunctionFormat,
+        'format': pf.ApplyFunctionFormat,
         'format_function': ' '.join,
     },
     PresetArgument.index: {
         'options': INDEX_REGEX,
-        'match': RegexMatch,
+        'match': match.RegexMatch,
         'nargs': 1,
-        'format': ApplyFunctionFormat,
+        'format': pf.ApplyFunctionFormat,
         'format_function': PresetArgument.get_index,
     },
     PresetArgument.folder: {
         # TODO: Find a way to avoid calling Folder.select() when module loaded
         # 'options': list(Folder.select()),
-        'match': FolderMatch,
+        'match': match.FolderMatch,
         'nargs': '?',
-        'format': ApplyFunctionFormat,
+        'format': pf.ApplyFunctionFormat,
         'format_function': ' '.join,
     },
     PresetArgument.unique_project: {
-        'match': ProjectMatch,
+        'match': match.ProjectMatch,
         'nargs': '?',
-        'format': ApplyFunctionFormat,
+        'format': pf.ApplyFunctionFormat,
         'format_function': PresetArgument.get_project_todo,
+        'positional': False,
     },
     PresetArgument.all_matching_projects: {
-        'match': ProjectMatch,
+        'match': match.ProjectMatch,
         'nargs': '?',
-        'format': ApplyFunctionFormat,
+        'format': pf.ApplyFunctionFormat,
         'format_function': PresetArgument.get_projects,
     },
     PresetArgument.due_date: {
         'options': DUE_REGEX,
-        'match': RegexMatch,
+        'match': match.RegexMatch,
         'nargs': '?',
-        'format': DateFormat,
+        'format': pf.DateFormat,
         'positional': False,
     },
     PresetArgument.remind_date: {
         'options': REMIND_REGEX,
-        'match': RegexMatch,
+        'match': match.RegexMatch,
         'nargs': '?',
-        'format': DateFormat,
+        'format': pf.DateFormat,
         'positional': False,
     },
     PresetArgument.file: {
-        'match': RegexMatch,
+        'match': match.RegexMatch,
         'options': FILE_REGEX,
         'nargs': '?',
-        'format': ApplyFunctionFormat,
+        'format': pf.ApplyFunctionFormat,
         'format_function': PresetArgument.get_file_name,
     },
+    PresetArgument.config: {
+        'match': match.FlagKeywordMatch,
+        'options': ['-c', '--config'],
+        'nargs': '?',
+        'format': pf.ApplyFunctionFormat,
+        'format_function': ' '.join,
+    }
 }
 
 
 class ParserFactory():
+    """Factory class for generating a :class:`TextParser`."""
     @classmethod
     def from_arg_list(cls, args=[]):
-        parser = TextParser()
+        """Return a :class:`TextParser` constructed by passing a list of
+        argument parsers
+
+        :param args: List of dictionaries, each containing configuration
+            options for an argument parser.
+
+        """
+        parser = textparser.TextParser()
         for (arg, keywords) in args:
-            parser.add_argument(**dict(PRESET_ARGUMENTS[arg], **keywords))
+            parser.add_argument(**dict(_PRESET_ARGUMENTS[arg], **keywords))
         return parser

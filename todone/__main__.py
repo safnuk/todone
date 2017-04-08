@@ -1,3 +1,3 @@
-from todone.application import main
+import todone.application
 
-main()
+todone.application.main()

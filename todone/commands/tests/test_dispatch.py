@@ -2,11 +2,12 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from todone.commands.dispatch import dispatch_command, CommandDispatcher
-from todone.parser.textparser import ArgumentError, TextParser
+from todone.parser import textparser
+from todone.parser import exceptions as pe
 
 mock_help = Mock()
 MockCommandMap = {
-    'test': Mock(side_effect=ArgumentError),
+    'test': Mock(side_effect=pe.ArgumentError),
     'help': mock_help
 }
 MOCK_PARSED_DATA = {
@@ -17,10 +18,6 @@ MOCK_PARSED_DATA = {
 
 
 class TestCommandDispatcher(TestCase):
-
-    def test_class_can_init(self):
-        cd = CommandDispatcher(None)
-        self.assertEqual(type(cd), CommandDispatcher)
 
     def test_init_stores_passed_args(self):
         test_args = ['test', 'foo']
@@ -41,9 +38,9 @@ class TestCommandDispatcher(TestCase):
 
     def test_init_creates_parser(self):
         cd = CommandDispatcher(None)
-        self.assertEqual(type(cd.parser), TextParser)
+        self.assertEqual(type(cd.parser), textparser.TextParser)
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.factory.ParserFactory.from_arg_list')
     def test_parse_args_calls_TextParser_parse(self, MockParser):
         testargs = ['foo', 'bar']
         mock_instance = MockParser.return_value
@@ -52,12 +49,12 @@ class TestCommandDispatcher(TestCase):
         cd.parse_args()
         mock_instance.parse.assert_called_once_with(testargs)
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.factory.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_parse_args_with_ArgumentError_dispatches_help_command(
             self, mock_dispatch, MockParser):
         mock_instance = MockParser.return_value
-        mock_instance.parse = Mock(side_effect=ArgumentError)
+        mock_instance.parse = Mock(side_effect=pe.ArgumentError)
         cd = CommandDispatcher(['garbage', 'args'])
         try:
             cd.parse_args()
@@ -65,19 +62,18 @@ class TestCommandDispatcher(TestCase):
             pass
         mock_dispatch.assert_called_with('help', ['--short'])
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.factory.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_parse_args_with_ArgumentError_exits(
             self, mock_dispatch, MockParser):
         mock_instance = MockParser.return_value
-        mock_instance.parse = Mock(side_effect=ArgumentError)
+        mock_instance.parse = Mock(side_effect=pe.ArgumentError)
         cd = CommandDispatcher(['garbage', 'args'])
         with self.assertRaises(SystemExit):
             cd.parse_args()
 
-
-    @patch('todone.commands.dispatch.TextParser')
-    @patch('todone.commands.dispatch.configure')
+    @patch('todone.commands.dispatch.factory.ParserFactory.from_arg_list')
+    @patch('todone.commands.dispatch.config.configure')
     def test_configure_with_config_flag_calls_config_with_passed_file(
             self, mock_configure, MockParser):
         mock_instance = MockParser.return_value
@@ -86,10 +82,11 @@ class TestCommandDispatcher(TestCase):
         cd.configure()
         mock_configure.assert_called_once_with('config.ini')
 
-    @patch('todone.commands.dispatch.TextParser')
+    @patch('todone.commands.dispatch.backend.Database')
+    @patch('todone.commands.dispatch.factory.ParserFactory.from_arg_list')
     @patch('todone.commands.dispatch.dispatch_command')
     def test_dispatch_command_passes_command_and_remaining_args_to_dispatch(
-        self, mock_dispatch, MockParser
+        self, mock_dispatch, MockParser, MockDatabase
     ):
         mock_instance = MockParser.return_value
         mock_instance.parsed_data = MOCK_PARSED_DATA

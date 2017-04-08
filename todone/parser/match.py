@@ -1,6 +1,7 @@
+"""Collection of classes that determine if strings match to argument parsers."""
 import re
 
-from todone.parser.exceptions import ArgumentError
+from todone.parser import exceptions as pe
 
 
 class AbstractMatch(object):
@@ -66,11 +67,11 @@ class FolderMatch(AbstractMatch):
                 )
                 return matches[0][0], unmatched_args
             elif len(matches) == 0:
-                raise ArgumentError('No match found for folder {}/'.format(
+                raise pe.ArgumentError('No match found for folder {}/'.format(
                     match.group('start')
                 ))
             else:
-                raise ArgumentError(
+                raise pe.ArgumentError(
                     'Multiple matches found for folder {}/'.format(
                         match.group('start')
                     ))
