@@ -1,13 +1,6 @@
 todone\.parser package
 ======================
 
-Subpackages
------------
-
-.. toctree::
-
-    todone.parser.tests
-
 Submodules
 ----------
 

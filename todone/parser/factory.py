@@ -152,7 +152,8 @@ class ParserFactory():
         argument parsers
 
         :param args: List of dictionaries, each containing configuration
-        options for an argument parser.
+            options for an argument parser.
+
         """
         parser = textparser.TextParser()
         for (arg, keywords) in args:

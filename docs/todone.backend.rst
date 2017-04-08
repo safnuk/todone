@@ -1,12 +1,6 @@
 todone\.backend package
 =======================
 
-Subpackages
------------
-
-.. toctree::
-
-    todone.backend.tests
 
 Submodules
 ----------
