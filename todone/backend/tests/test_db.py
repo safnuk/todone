@@ -255,3 +255,11 @@ class TestDatabase(TestCase):
         Database.connect()
         mock_database.init.assert_not_called()
         mock_database.connect.assert_not_called()
+
+    @patch('todone.backend.db.config.settings')
+    @patch('todone.backend.db.Database.close')
+    def test_update_should_not_close_uninitialized_db(
+            self, mock_close, mock_settings):
+        mock_settings.__getitem__.return_value = {'name': ''}
+        Database.update()
+        mock_close.assert_not_called()
