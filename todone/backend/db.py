@@ -65,7 +65,6 @@ class Database(abstract.AbstractDatabase):
 
     @classmethod
     def update(cls):
-        cls.close()
         cls.connect()
 
 
