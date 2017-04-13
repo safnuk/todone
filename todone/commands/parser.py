@@ -1,5 +1,13 @@
 import sys
 
+from todone.commands import done
+from todone.commands import folder
+from todone.commands import help as help_
+from todone.commands import list as list_
+from todone.commands import move
+from todone.commands import new
+from todone.commands import setup
+
 from todone.parser import factory
 from todone.parser import exceptions as pe
 
@@ -56,9 +64,7 @@ class Parser:
 
 class ArgParser:
     def __init__(self, command, args):
-        self.parser = factory.ParserFactory.from_arg_list(
-            self._parser_init(command)
-        )
+        self.parser = self._parser_init(command)
         self._args = args
         self._command = {'command': command}
 
@@ -77,14 +83,14 @@ class ArgParser:
 
     def _parser_init(self, command):
         init = {
-            'help': {},
-            'version': {},
-            'folder': {},
-            'list': {},
-            'move': {},
-            'new': {},
-            'setup': {},
-            'done': {},
+            'help': help_.parse_args,
+            'version': help_.parse_args,
+            'folder': folder.parse_args,
+            'list': list_.parse_args,
+            'move': move.parse_args,
+            'new': new.parse_args,
+            'setup': setup.parse_args,
+            'done': done.parse_args,
         }
         return init[command]
 
