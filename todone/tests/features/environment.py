@@ -7,6 +7,9 @@ def before_scenario(context, scenario):
     # clear test database
     with open(TEST_DB, 'w'):
         pass
+
+
+def after_scenario(context, scenario):
     # clear blank config file
     with open(BLANK_CONFIG_FILE, 'w'):
         pass
