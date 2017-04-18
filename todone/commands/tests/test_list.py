@@ -13,7 +13,7 @@ from todone.commands.list import (
     list_items,
     parse_args
 )
-from todone.tests.base import DB_Backend, FolderMock
+from todone.tests.base import DB_Backend
 
 folders = DEFAULT_FOLDERS['folders']
 
@@ -487,7 +487,6 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t1), lines[4])
 
 
-@patch('todone.commands.list.backend.Folder', FolderMock)
 class TestListArgParse(TestCase):
 
     def test_parse_args_parses_filename(self):
@@ -506,8 +505,6 @@ class TestListArgParse(TestCase):
         args = parse_args(['today/'])
         self.assertEqual(args['folder'], 'today')
         args = parse_args(['.file', 'today/'])
-        self.assertEqual(args['folder'], 'today')
-        args = parse_args(['tod/', 'done'])
         self.assertEqual(args['folder'], 'today')
         args = parse_args(['.file', 'string', 'today/'])
         self.assertFalse(args['folder'])

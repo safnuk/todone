@@ -75,11 +75,8 @@ def setup_db(args=[]):
     usage: todone setup init
     """
     parsed_args = parse_args(args)
-    command = parsed_args['command']
-    remaining_args = parsed_args['args']
-    if remaining_args:
-        raise pe.ArgumentError()
-    Setup.dispatch(command, remaining_args)
+    command = parsed_args['subcommand']
+    Setup.dispatch(command, [])
 
 setup_db.short_help = """
 usage: todone setup init
@@ -89,9 +86,7 @@ usage: todone setup init
 def parse_args(args=[]):
     argtypes = [
         (factory.PresetArgument.required_switch,
-         {'name': 'command', 'options': Setup.COMMANDS}),
-        (factory.PresetArgument.all_remaining,
-         {'name': 'args', }),
+         {'name': 'subcommand', 'options': Setup.COMMANDS}),
     ]
     parser = factory.ParserFactory.from_arg_list(argtypes)
     parser.parse(args)

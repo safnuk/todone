@@ -5,7 +5,6 @@
 """
 import enum
 
-from todone import backend
 from todone.parser import format as pf
 from todone.parser import match
 from todone.parser import textparser
@@ -30,30 +29,17 @@ class PresetArgument(enum.Enum):
     optional_switch = 3
     index = 4
     folder = 5
-    unique_project = 6
-    all_matching_projects = 7
-    due_date = 8
-    remind_date = 9
-    file = 10
-    config = 11
-    all_remaining_passthrough = 12
+    parent = 6
+    due_date = 7
+    remind_date = 8
+    file = 9
+    config = 10
+    all_remaining_passthrough = 11
 
     @staticmethod
     def get_index(arg):
         if arg:
             return int(arg[0].group('index'))
-        return None
-
-    @staticmethod
-    def get_project_todo(x):
-        if x:
-            return backend.Todo.get_projects(x[0])[0]
-        return None
-
-    @staticmethod
-    def get_projects(x):
-        if x:
-            return backend.Todo.get_projects(x[0])
         return None
 
     @staticmethod
@@ -93,25 +79,17 @@ _PRESET_ARGUMENTS = {
         'format_function': PresetArgument.get_index,
     },
     PresetArgument.folder: {
-        # TODO: Find a way to avoid calling Folder.select() when module loaded
-        # 'options': list(Folder.select()),
         'match': match.FolderMatch,
         'nargs': '?',
         'format': pf.ApplyFunctionFormat,
         'format_function': ' '.join,
     },
-    PresetArgument.unique_project: {
-        'match': match.ProjectMatch,
+    PresetArgument.parent: {
+        'match': match.ParentMatch,
         'nargs': '?',
         'format': pf.ApplyFunctionFormat,
-        'format_function': PresetArgument.get_project_todo,
-        'positional': False,
-    },
-    PresetArgument.all_matching_projects: {
-        'match': match.ProjectMatch,
-        'nargs': '?',
-        'format': pf.ApplyFunctionFormat,
-        'format_function': PresetArgument.get_projects,
+        'format_function': lambda match: ({
+            'folder': match[0], 'action': match[1]})
     },
     PresetArgument.due_date: {
         'options': DUE_REGEX,

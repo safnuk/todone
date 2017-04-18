@@ -81,11 +81,10 @@ def parse_args(args=[]):
     parser_initialization = [
         (factory.PresetArgument.file,
          {'name': 'file'}),
-        (factory.PresetArgument.all_matching_projects,
+        (factory.PresetArgument.parent,
          {'name': 'parent'}),
         (factory.PresetArgument.folder,
-         {'name': 'folder',
-          'options': [x.name.lower() for x in backend.Folder.all()]}),
+         {'name': 'folder'}),
         (factory.PresetArgument.due_date,
          {'name': 'due'}),
         (factory.PresetArgument.remind_date,

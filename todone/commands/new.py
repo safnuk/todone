@@ -56,13 +56,11 @@ usage: todone new [folder/] [tags and todo string]
 
 def parse_args(args=[]):
     parser_initialization = [
-        (factory.PresetArgument.unique_project,
+        (factory.PresetArgument.parent,
          {'name': 'parent',
           'positional': False}),
         (factory.PresetArgument.folder,
-         {'name': 'folder',
-          'options': [f.name for f in backend.Folder.all()],
-          'format_function': _default_inbox}),
+         {'name': 'folder'}),
         (factory.PresetArgument.due_date,
          {'name': 'due'}),
         (factory.PresetArgument.remind_date,
@@ -73,9 +71,3 @@ def parse_args(args=[]):
     parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)
     return parser.parsed_data
-
-
-def _default_inbox(x):
-    if x:
-        return x[0]
-    return backend.DEFAULT_FOLDERS['inbox']

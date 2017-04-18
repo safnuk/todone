@@ -36,11 +36,10 @@ def parse_args(args):
     parser_initialization = [
         (factory.PresetArgument.index,
          {'name': 'index'}),
-        (factory.PresetArgument.unique_project,
+        (factory.PresetArgument.parent,
          {'name': 'parent'}),
         (factory.PresetArgument.folder,
-         {'name': 'folder',
-          'options': [f.name for f in backend.Folder.all()]}),
+         {'name': 'folder'}),
     ]
     parser = factory.ParserFactory.from_arg_list(parser_initialization)
     parser.parse(args)

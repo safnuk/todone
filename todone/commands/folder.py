@@ -54,7 +54,7 @@ def folder_command(args):
         list   list all folders
     """
     parsed_args = parse_args(args)
-    command = parsed_args['command']
+    command = parsed_args['subcommand']
     folders = parsed_args['folders']
     if len(folders) < MIN_FOLDERS[command]:
         raise pe.ArgumentError(
@@ -78,7 +78,7 @@ usage todone folder <command> <args>
 def parse_args(args=[]):
     arglist = [
         (factory.PresetArgument.required_switch,
-         {'name': 'command', 'options': FOLDER_COMMANDS}),
+         {'name': 'subcommand', 'options': FOLDER_COMMANDS}),
         (factory.PresetArgument.all_remaining,
          {'name': 'folders', 'format_function': _strip_trailing_slash}),
     ]

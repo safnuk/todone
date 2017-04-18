@@ -24,7 +24,7 @@ def help_text(args):
     See todone help <command> to read more about a specific command.
     """
     parsed_args = parse_args(args)
-    command = parsed_args['command']
+    command = parsed_args['subcommand']
 
     if parsed_args['short']:
         if command:
@@ -47,7 +47,7 @@ def parse_args(args):
           'options': ['-s', '--short'],
           'positional': False}),
         (factory.PresetArgument.optional_switch,
-         {'name': 'command',
+         {'name': 'subcommand',
           'options': dispatch.COMMAND_MAPPING}),
     ]
     parser = factory.ParserFactory.from_arg_list(parser_initialization)

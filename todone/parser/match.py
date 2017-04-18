@@ -1,8 +1,6 @@
 """Collection of classes that determine if strings match to argument parsers."""
 import re
 
-from todone.parser import exceptions as pe
-
 
 class AbstractMatch(object):
     def __init__(self, *args, **kwargs):
@@ -54,27 +52,31 @@ class FolderMatch(AbstractMatch):
         regex = r'(?P<start>[\S]+)/(?P<end>.*)'
         match = re.match(regex, args[0])
         if match:
-            matches = []
-            for keyword in targets:
-                if keyword.lower().startswith(
-                        match.group('start').lower()
-                ):
-                    matches.append((keyword, match.group('end').strip()))
-            if len(matches) == 1:
-                unmatched_args = (
-                    [matches[0][1]] + args[1:] if matches[0][1]
-                    else args[1:]
-                )
-                return matches[0][0], unmatched_args
-            elif len(matches) == 0:
-                raise pe.ArgumentError('No match found for folder {}/'.format(
-                    match.group('start')
-                ))
-            else:
-                raise pe.ArgumentError(
-                    'Multiple matches found for folder {}/'.format(
-                        match.group('start')
-                    ))
+            folder = match.group('start').lower()
+            remaining = match.group('end').strip()
+            unmatched_args = [remaining] + args[1:] if remaining else args[1:]
+            return folder, unmatched_args
+            # matches = []
+            # for keyword in targets:
+            #     if keyword.lower().startswith(
+            #             match.group('start').lower()
+            #     ):
+            #         matches.append((keyword, match.group('end').strip()))
+            # if len(matches) == 1:
+            #     unmatched_args = (
+            #         [matches[0][1]] + args[1:] if matches[0][1]
+            #         else args[1:]
+            #     )
+            #     return matches[0][0], unmatched_args
+            # elif len(matches) == 0:
+            #     raise pe.ArgumentError('No match found for folder {}/'.format(
+            #         match.group('start')
+            #     ))
+            # else:
+            #     raise pe.ArgumentError(
+            #         'Multiple matches found for folder {}/'.format(
+            #             match.group('start')
+            #         ))
         return None, args
 
 
@@ -102,12 +104,12 @@ class RegexMatch(AbstractMatch):
         return None, args
 
 
-class ProjectMatch(AbstractMatch):
+class ParentMatch(AbstractMatch):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def match(self, targets, args):
-        regex = r'(?P<start>[^[]*)\[(?P<folder>[^\]]+)\](?P<end>.*)'
+        regex = r'(?P<start>[^[]*)\[(?P<parent>[^\]]+)\](?P<end>.*)'
         regex_match = re.fullmatch(regex, args[0], re.IGNORECASE)
         if regex_match:
             arg_start = regex_match.group('start').strip()
@@ -115,25 +117,36 @@ class ProjectMatch(AbstractMatch):
             # strip combined arg to leave empty string if both empty
             arg = (arg_start + ' ' + arg_end).strip()
             remaining_args = [arg] + args[1:] if arg else args[1:]
-            return regex_match.group('folder').strip(), remaining_args
-        regex_start = r'(?P<start>[^[]*)\[(?P<folder_start>[^\]]+)'
-        regex_end = r'(?P<folder_end>[^\]]*)\](?P<end>.*)'
+            parent = self._parse_parent(regex_match.group('parent').strip())
+            return parent, remaining_args
+        regex_start = r'(?P<start>[^[]*)\[(?P<parent_start>[^\]]+)'
+        regex_end = r'(?P<parent_end>[^\]]*)\](?P<end>.*)'
         regex_match_start = re.fullmatch(regex_start, args[0])
         if regex_match_start:
-            folder = []
+            parent = []
             arg_start = regex_match_start.group('start').strip()
-            folder.append(regex_match_start.group('folder_start').strip())
+            parent.append(regex_match_start.group('parent_start').strip())
             for n, arg in enumerate(args[1:]):
                 regex_match_end = re.fullmatch(regex_end, arg)
                 if regex_match_end:
-                    folder.append(regex_match_end.group('folder_end').strip())
+                    parent.append(regex_match_end.group('parent_end').strip())
                     arg_end = regex_match_end.group('end').strip()
                     # strip combined arg to leave empty string if both empty
                     firstarg = (arg_start + ' ' + arg_end).strip()
                     remaining_args = (
                         [firstarg] + args[n+2:] if firstarg else args[n+2:]
                     )
-                    return ' '.join(folder), remaining_args
+                    parent_parsed = self._parse_parent(' '.join(parent))
+                    return parent_parsed, remaining_args
                 else:
-                    folder.append(arg)
+                    parent.append(arg)
         return None, args
+
+    def _parse_parent(self, parent):
+        regex = r'(?P<folder>[^/]*)/(?P<action>.+)'
+        match = re.match(regex, parent)
+        if match:
+            return [match.group('folder').strip(),
+                    match.group('action').strip()]
+        else:
+            return ['', parent.strip()]
