@@ -71,8 +71,7 @@ class ArgParser:
     @property
     def commands(self):
         try:
-            self.parser.parse(self._args)
-            self._command.update(self.parser.parsed_data)
+            self._command.update(self.parser(self._args))
         except pe.ArgumentError as e:
             command = self._command['command']
             return [{'command': 'error',
