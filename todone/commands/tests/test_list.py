@@ -28,7 +28,7 @@ class TestListItems(DB_Backend):
             )
         f = io.StringIO()
         with redirect_stdout(f):
-            list_items(['t/'])
+            list_items(['today/'])
         s = f.getvalue()
         for folder in [
             x for x in folders if x is not 'today'
@@ -65,92 +65,6 @@ class TestListItems(DB_Backend):
         for folder in active:
             self.assertIn(str(todos[folder]), s)
 
-    def test_list_today_includes_current_reminders(self):
-        t1 = Todo.create(
-            action='Test 1',
-            folder='inbox',
-            remind=date.today()
-        )
-        t2 = Todo.create(
-            action='Foo 2',
-            folder='next',
-            remind=date.today(),
-            due=date.today() + timedelta(days=10)
-        )
-        t3 = Todo.create(
-            action='Grok 3',
-            folder='today',
-            remind=date.today() - timedelta(days=2)
-        )
-        t4 = Todo.create(
-            action='Grok 3',
-            folder='someday',
-            remind=date.today() - timedelta(days=2)
-        )
-        t5 = Todo.create(
-            action='Sublime 4',
-            folder='done',
-            remind=date.today() - timedelta(days=20)
-        )
-        t7 = Todo.create(
-            action='Sublime 5',
-            folder='next',
-        )
-
-        f = io.StringIO()
-        with redirect_stdout(f):
-            list_items(['today/'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t7), s)
-
-    def test_list_today_includes_due_items(self):
-        t1 = Todo.create(
-            action='Test 1',
-            folder='inbox',
-            due=date.today()
-        )
-        t2 = Todo.create(
-            action='Foo 2',
-            folder='next',
-            remind=date.today() + timedelta(days=2),
-            due=date.today() - timedelta(days=10)
-        )
-        t3 = Todo.create(
-            action='Grok 3',
-            folder='today',
-            due=date.today() - timedelta(days=2)
-        )
-        t4 = Todo.create(
-            action='Grok 3',
-            folder='someday',
-            due=date.today() - timedelta(days=2)
-        )
-        t5 = Todo.create(
-            action='Sublime 4',
-            folder='done',
-            due=date.today() - timedelta(days=20)
-        )
-        t7 = Todo.create(
-            action='Sublime 5',
-            folder='next',
-        )
-
-        f = io.StringIO()
-        with redirect_stdout(f):
-            list_items(['today/'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t7), s)
-
     def test_list_restricts_by_search_keywords(self):
         t1 = Todo.create(
             action='Test todo with search',
@@ -175,7 +89,7 @@ class TestListItems(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            list_items(['in/', 'test todo', 'with'])
+            list_items(['inbox/', 'test todo', 'with'])
         s = f.getvalue()
         self.assertIn(str(t1), s)
         self.assertIn(str(t2), s)
@@ -345,7 +259,7 @@ class TestListItems(DB_Backend):
     def test_list_restricts_by_cal_date(self):
         self.fail("Write this test!")
 
-    def test_list_restricts_by_project(self):
+    def test_list_restricts_by_parent(self):
         project = Todo.create(
             action='Project',
             folder='next'
@@ -424,7 +338,7 @@ class TestListItems(DB_Backend):
         self.assertIn(str(t2), s)
         self.assertNotIn(str(t3), s)
 
-    def test_list_project_displays_all_todos_for_project(self):
+    def test_list_parent_displays_all_subtodos_for_parent(self):
         project = Todo.create(
             action='project',
             folder='next'
@@ -492,7 +406,7 @@ class TestListArgParse(TestCase):
     def test_parse_args_parses_filename(self):
         args = parse_args(['.filename'])
         self.assertEqual(args['file'], 'filename')
-        args = parse_args(['.filename', 'string1', '.string2'])
+        args = parse_args(['.filename', '.string1', 'string2'])
         self.assertEqual(args['file'], 'filename')
         args = parse_args(['.filename',  'string1', '.string2'])
         self.assertEqual(args['file'], 'filename')
@@ -555,7 +469,9 @@ class UnitTestListItems(TestCase):
 
     def setUp(self):
         self.parsed_args = {
-            'file': 'test'
+            'file': 'test',
+            'folder': None,
+            'parent': None,
         }
 
     @patch('todone.commands.list.backend.SavedList')

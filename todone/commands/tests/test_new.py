@@ -28,7 +28,7 @@ class TestNewAction(DB_Backend):
 
         f = io.StringIO()
         with redirect_stdout(f):
-            new_todo(['today/', 'Sub item', '[New todo]'])
+            new_todo(['to/', 'Sub item', '[in/New todo]'])
         s = f.getvalue()
         self.assertIn('Added: {}/Sub item [New todo]'.format('today'), s)
 
@@ -46,9 +46,9 @@ class TestNewAction(DB_Backend):
         self.assertEqual(t1.folder.name, 'inbox')
 
     def test_new_item_saves_to_specified_folder(self):
-        new_todo(['today/Todo 1'])
-        new_todo(['done/Todo 2'])
-        new_todo(['someday/Todo 3'])
+        new_todo(['TODAY/Todo 1'])
+        new_todo(['Do/Todo 2'])
+        new_todo(['some/Todo 3'])
         t1 = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(t1.folder.name, 'today')
         t2 = Todo.get(Todo.action == 'Todo 2')
@@ -62,7 +62,7 @@ class TestNewAction(DB_Backend):
         t1 = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(t1.due, one_week)
 
-    def test_new_item_saves_project(self):
+    def test_new_item_saves_parent(self):
         project = Todo.create(action='Project')
         new_todo(['Test todo', '[Project]'])
         t1 = Todo.get(Todo.action == 'Test todo')
@@ -78,25 +78,21 @@ class TestNewAction(DB_Backend):
 @patch('todone.commands.new.backend.Folder', FolderMock)
 class TestNewArgParse(TestCase):
 
-    def test_parse_args_defaults_to_inbox_folder(self):
+    def test_parse_args_folder_is_optional(self):
         args = parse_args(['New', 'todo'])
-        self.assertEqual(args['folder'], 'inbox')
+        self.assertFalse(args['folder'])
         args = parse_args(['New', 'today/', 'todo'])
-        self.assertEqual(args['folder'], 'inbox')
+        self.assertFalse(args['folder'])
 
-    def test_parse_args_parses_valid_folder(self):
+    def test_parse_args_parses_folder(self):
         args = parse_args(['toDay/', 'New', 'todo'])
         self.assertEqual(args['folder'], 'today')
         args = parse_args(['iN/', 'today', 'todo'])
-        self.assertEqual(args['folder'], 'inbox')
-        args = parse_args(['iN/today', 'todo'])
-        self.assertEqual(args['folder'], 'inbox')
-
-    def test_parse_args_does_not_parse_invalid_folder(self):
-        args = parse_args(['today', 'New', 'todo'])
+        self.assertEqual(args['folder'], 'in')
+        args = parse_args(['iNbox/today', 'todo'])
         self.assertEqual(args['folder'], 'inbox')
 
-    def test_parse_args_parsed_todo_title(self):
+    def test_parse_args_concats_todo_title(self):
         args = parse_args(['New', 'todo'])
         self.assertEqual(args['action'], 'New todo')
 
@@ -104,10 +100,3 @@ class TestNewArgParse(TestCase):
         today = date.today()
         args = parse_args(['due+1m', 'Test todo'])
         self.assertEqual(args['due'], today + relativedelta(months=1))
-
-    @patch('todone.parser.factory.backend.Todo')
-    def test_parses_project_and_calls_get_project_todo(self, MockTodo):
-        args = parse_args(['Test todo', '[project]'])
-        self.assertEqual(
-            args['parent'], MockTodo.get_projects('project').__getitem__(0)
-        )

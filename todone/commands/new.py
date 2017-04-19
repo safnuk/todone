@@ -1,5 +1,6 @@
 """Module for the new command, which creates a new todo."""
 from todone import backend
+from todone.commands import utils
 from todone.parser import factory
 
 
@@ -43,6 +44,13 @@ def new_todo(args):
     project.
     """
     parsed_args = parse_args(args)
+    if parsed_args['folder']:
+        parsed_args['folder'] = utils.match_folder(parsed_args['folder'])
+    else:
+        parsed_args['folder'] = backend.DEFAULT_FOLDERS['inbox']
+    if parsed_args['parent']:
+        parsed_args['parent'] = utils.match_parent(
+            **parsed_args['parent'])
     backend.Todo.new(**parsed_args)
     msg = 'Added: {}/{}'.format(parsed_args['folder'], parsed_args['action'])
     if parsed_args['parent']:

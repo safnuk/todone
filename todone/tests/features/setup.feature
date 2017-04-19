@@ -3,7 +3,7 @@ Feature: Configuration file and database initialization
   Scenario: A help message should be displayed when accessing an unitialized database
     Given an uninitialized database
     When we run the command "new A new todo item"
-    Then the output includes "Database not setup properly"
+    Then the output includes "Error connecting to the database"
 
   Scenario: Initializing the database
     Given an uninitialized database

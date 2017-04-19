@@ -26,11 +26,19 @@ class Folder(abstract.AbstractFolder):
     def all(cls):
         return get_module().Folder.all()
 
+    @classmethod
+    def get_unique_match(cls, prefix):
+        return get_module().Folder.get_unique_match(prefix)
+
 
 class Todo(abstract.AbstractTodo):
     @classmethod
     def query(cls, **search_parameters):
         return get_module().Todo.query(**search_parameters)
+
+    @classmethod
+    def get_unique_match(cls, **search_parameters):
+        return get_module().Todo.get_unique_match(**search_parameters)
 
     @classmethod
     def active_todos(cls):

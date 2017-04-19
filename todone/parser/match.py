@@ -55,28 +55,7 @@ class FolderMatch(AbstractMatch):
             folder = match.group('start').lower()
             remaining = match.group('end').strip()
             unmatched_args = [remaining] + args[1:] if remaining else args[1:]
-            return folder, unmatched_args
-            # matches = []
-            # for keyword in targets:
-            #     if keyword.lower().startswith(
-            #             match.group('start').lower()
-            #     ):
-            #         matches.append((keyword, match.group('end').strip()))
-            # if len(matches) == 1:
-            #     unmatched_args = (
-            #         [matches[0][1]] + args[1:] if matches[0][1]
-            #         else args[1:]
-            #     )
-            #     return matches[0][0], unmatched_args
-            # elif len(matches) == 0:
-            #     raise pe.ArgumentError('No match found for folder {}/'.format(
-            #         match.group('start')
-            #     ))
-            # else:
-            #     raise pe.ArgumentError(
-            #         'Multiple matches found for folder {}/'.format(
-            #             match.group('start')
-            #         ))
+            return folder.lower(), unmatched_args
         return None, args
 
 

@@ -2,6 +2,7 @@
 display the result to the user.
 """
 from todone import backend
+from todone.commands import utils
 from todone import printers
 from todone.parser import factory
 
@@ -60,6 +61,11 @@ def list_items(args):
     if is_loading_saved_search(parsed_args):
         query = backend.SavedList.get_todos_in_list(parsed_args['file'])
     else:
+        if parsed_args['folder']:
+            parsed_args['folder'] = utils.match_folder(
+                parsed_args['folder'])
+        if parsed_args['parent']:
+            parsed_args['parent'] = backend.Todo.query(**parsed_args['parent'])
         query = backend.Todo.query(**parsed_args)
         backend.SavedList.save_search(parsed_args['file'], query)
     backend.SavedList.save_most_recent_search(query)

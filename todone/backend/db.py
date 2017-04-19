@@ -2,7 +2,6 @@
 
 Uses the peewee package to connect to databases.
 """
-import datetime
 import os
 import re
 
@@ -128,6 +127,16 @@ class Folder(BaseModel, abstract.AbstractFolder):
         query.execute()
         folder.delete_instance()
 
+    @classmethod
+    def get_unique_match(cls, prefix):
+        matches = Folder.select().where(Folder.name.startswith(prefix))
+        if len(matches) == 1:
+            return matches[0]
+        elif len(matches) == 0:
+            raise backend.DatabaseError("No match found")
+        else:
+            raise backend.DatabaseError("Multiple matches found")
+
 
 class Todo(BaseModel, abstract.AbstractTodo):
     action = peewee.CharField(
@@ -167,28 +176,30 @@ class Todo(BaseModel, abstract.AbstractTodo):
     @classmethod
     def query(cls, **args):
         results = Todo.select()
-        if args['folder']:
-            if args['folder'] in backend.DEFAULT_FOLDERS['today']:
-                results = results.where(
-                    (Todo.folder == args['folder']) |
-                    (Todo.due <= datetime.date.today()) |
-                    (Todo.remind <= datetime.date.today())
-                ).where(
-                    ~(Todo.folder << backend.DEFAULT_FOLDERS['inactive']))
-            else:
-                results = results.where(Todo.folder == args['folder'])
+        if args.get('folder'):
+            results = results.where(Todo.folder == args['folder'])
         else:
             results = Todo.active_todos()
-        if args['parent']:
+        if args.get('parent'):
             results = results.where(Todo.parent << args['parent'])
-        if args['due']:
+        if args.get('due'):
             results = results.where(Todo.due <= args['due'])
-        if args['remind']:
+        if args.get('remind'):
             results = results.where(Todo.remind <= args['remind'])
-        for keyword in args['keywords']:
+        for keyword in args.get('keywords', []):
             results = results.where(Todo.action.contains(keyword))
         results = results.order_by(Todo.parent, -Todo.folder, Todo.id)
         return results
+
+    @classmethod
+    def get_unique_match(cls, **args):
+        matches = cls.query(**args)
+        if len(matches) == 1:
+            return matches[0]
+        elif len(matches) == 0:
+            raise backend.DatabaseError("No match found")
+        else:
+            raise backend.DatabaseError("Multiple matches found")
 
     @classmethod
     def active_todos(cls):

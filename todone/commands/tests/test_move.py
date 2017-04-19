@@ -27,18 +27,18 @@ class TestMoveTodo(DB_Backend):
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.folder.name, 'today')
 
-    def test_todo_moves_to_designated_project(self):
+    def test_todo_moves_to_designated_parent(self):
         move_todo(['1', '[project]'])
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.parent.action, 'project')
 
-    def test_todo_moves_from_one_to_another_project(self):
+    def test_todo_moves_from_one_to_another_parent(self):
         move_todo(['1', '[today/project]'])
         move_todo(['1', '[next/other]'])
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.parent.action, 'other')
 
-    def test_changing_todo_project_preserves_folder(self):
+    def test_changing_todo_parent_preserves_folder(self):
         move_todo(['1', '[project]'])
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.folder.name, 'inbox')
@@ -50,7 +50,7 @@ class TestMoveTodo(DB_Backend):
         s = f.getvalue()
         self.assertIn('Moved: Todo 3 -> {}'.format('done'), s)
 
-    def test_move_project_prints_action_taken(self):
+    def test_move_parent_prints_action_taken(self):
         f = io.StringIO()
         with redirect_stdout(f):
             move_todo(['3', '[today/project]'])
@@ -73,12 +73,11 @@ class TestMoveArgParse(TestCase):
             parse_args(['-5', 'today/'])
 
     def test_parses_folder(self):
-        args = parse_args(['0', 'in/'])
+        args = parse_args(['0', 'inbox/'])
         self.assertEqual(args['folder'], 'inbox')
 
-    @patch('todone.parser.factory.backend.Todo')
-    def test_parses_project_and_calls_get_project_todo(self, MockTodo):
-        args = parse_args(['1', '[project]'])
+    def test_parses_parent(self):
+        args = parse_args(['1', '[folder/project]'])
         self.assertEqual(
-            args['parent'], MockTodo.get_projects('project').__getitem__(0)
+            args['parent'], {'folder': 'folder', 'keywords': ['project']}
         )

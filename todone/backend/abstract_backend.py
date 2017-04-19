@@ -69,6 +69,11 @@ class AbstractFolder:
         raise NotImplementedError(
             ERROR.format(cls.__class__.__name__, "all()"))
 
+    @classmethod
+    def get_unique_match(cls, prefix):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "get_unique_match()"))
+
 
 class AbstractTodo:
     """Interface for any implementation of :class:`Todo`."""
@@ -87,6 +92,11 @@ class AbstractTodo:
     def get_projects(cls, search_string):
         raise NotImplementedError(
             ERROR.format(cls.__class__.__name__, "get_projects()"))
+
+    @classmethod
+    def get_unique_match(cls, **search_parameters):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "get_unique_match()"))
 
     @classmethod
     def new(cls, **args):

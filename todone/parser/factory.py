@@ -43,6 +43,12 @@ class PresetArgument(enum.Enum):
         return None
 
     @staticmethod
+    def parent_dict(arg):
+        if arg and arg[0]:
+            return {'folder': arg[0][0], 'keywords': arg[0][1].split()}
+        return None
+
+    @staticmethod
     def get_file_name(x):
         if x:
             return x[0].group('file')
@@ -88,8 +94,7 @@ _PRESET_ARGUMENTS = {
         'match': match.ParentMatch,
         'nargs': '?',
         'format': pf.ApplyFunctionFormat,
-        'format_function': lambda match: ({
-            'folder': match[0], 'action': match[1]})
+        'format_function': PresetArgument.parent_dict
     },
     PresetArgument.due_date: {
         'options': DUE_REGEX,

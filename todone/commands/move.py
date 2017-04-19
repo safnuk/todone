@@ -2,6 +2,7 @@
 folder or project.
 """
 from todone import backend
+from todone.commands import utils
 from todone.parser import factory
 
 
@@ -18,10 +19,10 @@ def move_todo(args):
     todos = backend.SavedList.get_todos_from_most_recent_search()
     target = todos[parsed_args['index']-1]
     if parsed_args['folder']:
-        target.folder = parsed_args['folder']
+        target.folder = utils.match_folder(parsed_args['folder'])
         print('Moved: {} -> {}/'.format(target.action, target.folder.name))
     elif parsed_args['parent']:
-        target.parent = parsed_args['parent']
+        target.parent = utils.match_parent(**parsed_args['parent'])
         print('Moved: {} -> [{}]'.format(target.action, target.parent.action))
     target.save()
 
