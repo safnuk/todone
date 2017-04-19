@@ -23,11 +23,6 @@ def list_items(args):
     If folder is not specified, the search is over all active
     folders (default is: inbox/, next/, today/).
 
-    If folder is today/, then, in addition to items in the today
-    folder, items with a reminder or due date prior to or equal to
-    today's date are also included. This behavior may change in future
-    versions.
-
     Allowed tags are:
 
     due[+N{d|w|m|y}],

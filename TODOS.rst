@@ -1,11 +1,3 @@
-0.1 Roadmap
------------
-
-* Add missing api documentation
-* Convert all argparsers to use ``ParserFactory`` class
-* Update classifiers (setup.py)
-* Update version number (in code)
-
 0.2 Roadmap
 -----------
 
