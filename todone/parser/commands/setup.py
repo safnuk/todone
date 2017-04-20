@@ -8,7 +8,7 @@ from todone.parser import factory
 def parse_args(args=[]):
     argtypes = [
         (factory.PresetArgument.required_switch,
-         {'name': 'subcommand', 'options': Setup.COMMANDS}),
+         {'name': 'subcommand', 'options': Setup.subcommands()}),
     ]
     parser = factory.ParserFactory.from_arg_list(argtypes)
     parser.parse(args)

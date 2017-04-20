@@ -21,6 +21,7 @@ class Database(abstract.AbstractDatabase):
     @classmethod
     def create(cls):
         try:
+            cls.initialize()
             cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
             for folder in backend.DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)

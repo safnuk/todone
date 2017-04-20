@@ -67,12 +67,11 @@ class Done(InitDB):
     where N is the number of the todo referenced in most recent search.
     """
 
-
-@classmethod
-def _implement(cls, args):
-    move_args = dict(args)
-    move_args.update({'folder': 'done'})
-    return Move.run(move_args)
+    @classmethod
+    def _implement(cls, args):
+        move_args = dict(args)
+        move_args.update({'folder': 'done'})
+        return Move.run(move_args)
 
 
 class Folder(InitDB):
@@ -378,8 +377,11 @@ class Setup(NoDB):
 
     @classmethod
     def dispatch(cls, subcommand, args=[]):
-        subcommands = {'init': cls.initialize}
-        subcommands[subcommand](*args)
+        cls.subcommands()[subcommand](*args)
+
+    @classmethod
+    def subcommands(cls):
+        return {'init': cls.initialize}
 
     @classmethod
     def initialize(cls):

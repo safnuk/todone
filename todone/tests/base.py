@@ -29,6 +29,7 @@ class DB_Backend(TestCase):
 
     def run(self, result=None):
         with test_database(in_memory_db, [Folder, Todo, SavedList, ListItem]):
+            config.configure('todone/tests/config_db.ini')
             for folder in DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
             super().run(result)

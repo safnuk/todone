@@ -21,21 +21,21 @@ class TestHelpText(TestCase):
         with redirect_stdout(f):
             cmd.Help.run({'subcommand': 'help'})
         s = f.getvalue()
-        self.assertIn(textwrap.dedent(cmd.Help.run.__doc__), s)
+        self.assertIn(textwrap.dedent(cmd.Help.long_help), s)
 
     def test_list_arg_prints_list_docstring(self):
         f = io.StringIO()
         with redirect_stdout(f):
             cmd.Help.run({'subcommand': 'list'})
         s = f.getvalue()
-        self.assertIn(textwrap.dedent(cmd.List.run.__doc__), s)
+        self.assertIn(textwrap.dedent(cmd.List.long_help), s)
 
     def test_short_flag_prints_short_help_string(self):
         f = io.StringIO()
         with redirect_stdout(f):
             cmd.Help.run({'short': '--short', 'subcommand': 'help'})
         s = f.getvalue()
-        self.assertIn(cmd.Help.run.short_help, s)
+        self.assertIn(textwrap.dedent(cmd.Help.short_help), s)
 
     def test_all_commands_define_short_help_strings(self):
         for command in dispatch.COMMAND_MAPPING:
