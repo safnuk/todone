@@ -27,4 +27,5 @@ COMMAND_MAPPING = {
     'setup': cmd.Setup,
     'done': cmd.Done,
     'configure': cmd.Configure,
+    'error': cmd.Error,
 }
