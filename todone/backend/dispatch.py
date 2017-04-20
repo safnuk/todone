@@ -3,13 +3,7 @@
 import sys
 
 from todone import backend, config
-from todone.commands import done
-from todone.commands import folder
-from todone.commands import help as cmd_help
-from todone.commands import list as cmd_list
-from todone.commands import move
-from todone.commands import new
-from todone.commands import setup
+from todone.backend import commands as cmd
 from todone.parser import factory
 from todone.parser import exceptions as pe
 
@@ -72,7 +66,7 @@ class CommandDispatcher:
             self.parser.parse(self.args)
         except pe.ArgumentError:
             print('Invalid argument(s)')
-            dispatch_commands('help', ['--short'])
+            dispatch_command('help', ['--short'])
             raise SystemExit(1)
 
     def configure(self):
@@ -93,7 +87,7 @@ class CommandDispatcher:
         """
         try:
             backend.Database.connect()
-            dispatch_commands(
+            dispatch_command(
                 self.parser.parsed_data['command'],
                 self.parser.parsed_data['args']
             )
@@ -103,25 +97,27 @@ class CommandDispatcher:
             pass
 
 
-def dispatch_commands(action, args):
+def dispatch_command(command, args):
     try:
-        COMMAND_MAPPING[action](args)
+        return COMMAND_MAPPING[command].run(args)
     except pe.ArgumentError as e:
         print("Invalid argument(s) for {} command. {}".format(
-            action, e))
-        COMMAND_MAPPING['help'](['--short', action])
+            command, e))
+        return COMMAND_MAPPING['help'].run({'short': '--short',
+                                            'subcommand': command})
 
 COMMAND_MAPPING = {
-    '-h': cmd_help.help_text,
-    '--help': cmd_help.help_text,
-    'help': cmd_help.help_text,
-    '-v': setup.version,
-    '--version': setup.version,
-    'version': setup.version,
-    'folder': folder.folder_command,
-    'list': cmd_list.list_items,
-    'move': move.move_todo,
-    'new': new.new_todo,
-    'setup': setup.setup_db,
-    'done': done.done_todo,
+    '-h': cmd.Help,
+    '--help': cmd.Help,
+    'help': cmd.Help,
+    '-v': cmd.Version,
+    '--version': cmd.Version,
+    'version': cmd.Version,
+    'folder': cmd.Folder,
+    'list': cmd.List,
+    'move': cmd.Move,
+    'new': cmd.New,
+    'setup': cmd.Setup,
+    'done': cmd.Done,
+    'configure': cmd.Configure,
 }

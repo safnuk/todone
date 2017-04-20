@@ -1,12 +1,13 @@
 import sys
 
-from todone.commands import done
-from todone.commands import folder
-from todone.commands import help as help_
-from todone.commands import list as list_
-from todone.commands import move
-from todone.commands import new
-from todone.commands import setup
+from todone.parser.commands import done
+from todone.parser.commands import folder
+from todone.parser.commands import help as help_
+from todone.parser.commands import list as list_
+from todone.parser.commands import move
+from todone.parser.commands import new
+from todone.parser.commands import setup
+from todone.parser.commands import version
 
 from todone.parser import factory
 from todone.parser import exceptions as pe
@@ -18,7 +19,6 @@ class Parser:
     def __init__(self, args):
         self._store_args(args)
         self._setup_parser()
-        self._commands = []
 
     def _store_args(self, args):
         if args:
@@ -40,20 +40,18 @@ class Parser:
 
     @property
     def commands(self):
-        if self._commands:
-            return self._commands
+        self._commands = []
         try:
             self.parser.parse(self.args)
             self._build_config_command()
             self._build_parsed_command()
             return self._commands
         except pe.ArgumentError:
-            return [{'command': 'error', 'message': 'Invalid argument(s)'},
-                    {'command': 'help', 'short': True}]
+            return [('error', {'message': 'Invalid argument(s)'}),
+                    ('help', {'short': True})]
 
     def _build_config_command(self):
-        cmd = {'command': 'configure',
-               'file': self.parser.parsed_data['config']}
+        cmd = ('configure', {'file': self.parser.parsed_data['config']})
         self._commands.append(cmd)
 
     def _build_parsed_command(self):
@@ -66,30 +64,28 @@ class ArgParser:
     def __init__(self, command, args):
         self.parser = self._parser_init(command)
         self._args = args
-        self._command = {'command': command}
+        self._command = command
 
     @property
     def commands(self):
         try:
-            self._command.update(self.parser(self._args))
+            return [(self._command, self.parser(self._args))]
         except pe.ArgumentError as e:
-            command = self._command['command']
-            return [{'command': 'error',
-                     'message': 'Invalid argument(s) for {} command. {}'
-                     .format(command, e)},
-                    {'command': 'help', 'short': True, 'arg': command}]
-        return [self._command]
+            return [('error',
+                     {'message': 'Invalid argument(s) for {} command. {}'
+                      .format(self._command, e)}),
+                    ('help', {'short': True, 'subcommand': self._command})]
 
     def _parser_init(self, command):
         init = {
             'help': help_.parse_args,
-            'version': help_.parse_args,
             'folder': folder.parse_args,
             'list': list_.parse_args,
             'move': move.parse_args,
             'new': new.parse_args,
             'setup': setup.parse_args,
             'done': done.parse_args,
+            'version': version.parse_args,
         }
         return init[command]
 

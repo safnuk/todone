@@ -3,7 +3,8 @@ import io
 
 from todone.backend import SavedList
 from todone.backend.db import Todo as TodoSQL
-from todone.backend.commands.move import move_todo
+from todone.backend.commands import Move
+import todone.exceptions as exceptions
 from todone.tests.base import DB_Backend
 
 
@@ -20,39 +21,47 @@ class TestMoveTodo(DB_Backend):
         SavedList.save_most_recent_search(self.todos)
 
     def test_todo_moves_to_designated_folder(self):
-        move_todo(['1', 'today/'])
+        Move.run({'index': 1, 'folder': 'today'})
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.folder.name, 'today')
 
     def test_todo_moves_to_designated_parent(self):
-        move_todo(['1', '[project]'])
+        Move.run(
+            {'index': 1, 'parent': {'folder': '', 'keywords': ['project']}})
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.parent.action, 'project')
 
     def test_todo_moves_from_one_to_another_parent(self):
-        move_todo(['1', '[today/project]'])
-        move_todo(['1', '[next/other]'])
+        Move.run(
+            {'index': 1,
+             'parent': {'folder': 'today', 'keywords': ['project']}})
+        Move.run(
+            {'index': 1, 'parent': {'folder': 'next', 'keywords': ['other']}})
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.parent.action, 'other')
 
     def test_changing_todo_parent_preserves_folder(self):
-        move_todo(['1', '[project]'])
+        Move.run(
+            {'index': 1, 'parent': {'folder': '', 'keywords': ['project']}})
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.folder.name, 'inbox')
 
     def test_move_folder_prints_action_taken(self):
         f = io.StringIO()
         with redirect_stdout(f):
-            move_todo(['3', 'done/'])
+            Move.run({'index': 3, 'folder': 'done'})
         s = f.getvalue()
         self.assertIn('Moved: Todo 3 -> {}'.format('done'), s)
 
     def test_move_parent_prints_action_taken(self):
         f = io.StringIO()
         with redirect_stdout(f):
-            move_todo(['3', '[today/project]'])
+            Move.run(
+                {'index': 3,
+                 'parent': {'folder': 'today', 'keywords': ['project']}})
         s = f.getvalue()
         self.assertIn('Moved: Todo 3 -> [{}]'.format('project'), s)
 
     def test_invalid_index_displays_error_message(self):
-        pass
+        with self.assertRaises(exceptions.ArgumentError):
+            Move.run({'index': 7, 'folder': 'today'})

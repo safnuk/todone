@@ -4,8 +4,7 @@ import textwrap
 from unittest import TestCase
 
 import todone.backend.dispatch as dispatch
-from todone.commands.help import help_text
-from todone.commands.list import list_items
+import todone.backend.commands as cmd
 
 
 class TestHelpText(TestCase):
@@ -13,32 +12,32 @@ class TestHelpText(TestCase):
     def test_no_args_prints_default_help(self):
         f = io.StringIO()
         with redirect_stdout(f):
-            help_text({})
+            cmd.Help.run({})
         s = f.getvalue()
-        self.assertIn(textwrap.dedent(help_text.__doc__), s)
+        self.assertIn(textwrap.dedent(cmd.Help.long_help), s)
 
     def test_help_arg_prints_default_help(self):
         f = io.StringIO()
         with redirect_stdout(f):
-            help_text({'subcommand': 'help'})
+            cmd.Help.run({'subcommand': 'help'})
         s = f.getvalue()
-        self.assertIn(textwrap.dedent(help_text.__doc__), s)
+        self.assertIn(textwrap.dedent(cmd.Help.run.__doc__), s)
 
     def test_list_arg_prints_list_docstring(self):
         f = io.StringIO()
         with redirect_stdout(f):
-            help_text({'subcommand': 'list'})
+            cmd.Help.run({'subcommand': 'list'})
         s = f.getvalue()
-        self.assertIn(textwrap.dedent(list_items.__doc__), s)
+        self.assertIn(textwrap.dedent(cmd.List.run.__doc__), s)
 
     def test_short_flag_prints_short_help_string(self):
         f = io.StringIO()
         with redirect_stdout(f):
-            help_text({'short': '--short', 'subcommand': 'help'})
+            cmd.Help.run({'short': '--short', 'subcommand': 'help'})
         s = f.getvalue()
-        self.assertIn(help_text.short_help, s)
+        self.assertIn(cmd.Help.run.short_help, s)
 
     def test_all_commands_define_short_help_strings(self):
         for command in dispatch.COMMAND_MAPPING:
             # does not raise exception
-            help_text({'short': '--short', 'subcommand': command})
+            cmd.Help.run({'short': '--short', 'subcommand': command})
