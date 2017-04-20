@@ -12,8 +12,12 @@ from todone.backend.db import ListItem, MOST_RECENT_SEARCH
 from todone.tests.base import DB_Backend
 
 
-class TestTodoModel(DB_Backend):
+class TestCommandStack(DB_Backend):
+    def test_command_saved_on_dispatch(self):
+        pass
 
+
+class TestTodoModel(DB_Backend):
     def test_class_is_importable(self):
         t = Todo(action='Blank')
         self.assertEqual(type(t), Todo)

@@ -1,6 +1,3 @@
-from contextlib import redirect_stdout
-import io
-
 from todone.backend import SavedList
 from todone.backend.db import Todo
 from todone.backend.commands import Done
@@ -24,9 +21,7 @@ class TestDoneTodo(DB_Backend):
         moved_todo = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(moved_todo.folder.name, 'done')
 
-    def test_done_prints_action_taken(self):
-        f = io.StringIO()
-        with redirect_stdout(f):
-            Done.run({'index': 3})
-        s = f.getvalue()
-        self.assertIn('Moved: Todo 3 -> {}'.format('done'), s)
+    def test_done_returns_action_taken(self):
+        status, response = Done.run({'index': 3})
+        self.assertEqual(status, 'success')
+        self.assertIn('Moved: Todo 3 -> {}'.format('done'), response)

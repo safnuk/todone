@@ -1,35 +1,27 @@
-from contextlib import redirect_stdout
 from datetime import date, timedelta
-import io
 from unittest import skip
 
 from todone.backend.db import Todo
 from todone.backend.commands import New
 from todone.tests.base import DB_Backend
-import todone.exceptions as exceptions
 
 
 class TestNewAction(DB_Backend):
 
-    def test_new_item_outputs_action_taken(self):
-        f = io.StringIO()
-        with redirect_stdout(f):
-            New.run({'action': 'New todo'})
-        s = f.getvalue()
-        self.assertIn('Added: {}/New todo'.format('inbox'), s)
+    def test_new_item_returns_action_taken(self):
+        s, r = New.run({'action': 'New todo'})
+        self.assertEqual(s, 'success')
+        self.assertIn('Added: {}/New todo'.format('inbox'), r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            New.run({'folder': 'today', 'action': 'New todo 2'})
-        s = f.getvalue()
-        self.assertIn('Added: {}/New todo 2'.format('today'), s)
+        s, r = New.run({'folder': 'today', 'action': 'New todo 2'})
+        self.assertEqual(s, 'success')
+        self.assertIn('Added: {}/New todo 2'.format('today'), r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            New.run({'folder': 'to', 'action': 'Sub item',
-                     'parent': {'folder': 'in', 'keywords': ['New', 'todo']}})
-        s = f.getvalue()
-        self.assertIn('Added: {}/Sub item [New todo]'.format('today'), s)
+        s, r = New.run(
+            {'folder': 'to', 'action': 'Sub item',
+             'parent': {'folder': 'in', 'keywords': ['New', 'todo']}})
+        self.assertEqual(s, 'success')
+        self.assertIn('Added: {}/Sub item [New todo]'.format('today'), r)
 
     def test_new_item_saves_todo(self):
         New.run({'action': 'Todo 1'})
@@ -69,8 +61,8 @@ class TestNewAction(DB_Backend):
         t1 = Todo.get(Todo.action == 'Test todo')
         self.assertEqual(t1.parent, project)
 
-    def test_raises_ArgumentError_when_saving_to_nonexisting_folder(self):
-        with self.assertRaises(exceptions.ArgumentError):
-            New.run({'folder': 'nonfolder', 'action': 'New todo'})
-        with self.assertRaises(exceptions.ArgumentError):
-            New.run({'folder': 'nonfolder', 'action': ''})
+    def test_should_return_error_when_saving_to_nonexisting_folder(self):
+        s, r = New.run({'folder': 'nonfolder', 'action': 'New todo'})
+        self.assertEqual(s, 'error')
+        s, r = New.run({'folder': 'nonfolder', 'action': ''})
+        self.assertEqual(s, 'error')

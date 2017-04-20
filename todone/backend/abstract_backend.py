@@ -214,3 +214,35 @@ class AbstractDatabase:
         """
         raise NotImplementedError(
             ERROR.format(cls.__class__.__name__, "update()"))
+
+
+class AbstractCommandStack:
+    """Store the history of commands performed on the database"""
+    @classmethod
+    def push(cls, command):
+        """Add command to the front of the stack."""
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "push()"))
+
+    @classmethod
+    def get(cls, index=1):
+        """Get the command at position index.
+
+        index is an integer, giving the position relative base 1. I.e.
+        index=1 is the top (most recent) command on the stack.
+
+        returns the Command at position index
+        """
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "get()"))
+
+    @classmethod
+    def list(cls, range=10):
+        """Get a list of recent commands.
+
+        range is an integer specifying how many Commands to return.
+
+        returns a list of the range most recent commands.
+        """
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "list()"))

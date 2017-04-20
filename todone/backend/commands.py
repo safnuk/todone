@@ -5,11 +5,11 @@ from todone import backend
 import todone.backend.utils as utils
 from todone import config
 from todone import exceptions
-from todone import printers
+from todone import response
 from todone import __version__
 
 
-class AbstractCommand:
+class AbstractDispatch:
     response = {}
     long_help = ''
     short_help = ''
@@ -24,7 +24,7 @@ class AbstractCommand:
         raise NotImplementedError("Method _implement() not implemented")
 
 
-class InitDB(AbstractCommand):
+class InitDB(AbstractDispatch):
     db_help_msg = """{}
 
     Enter
@@ -43,7 +43,7 @@ class InitDB(AbstractCommand):
         return super().run()
 
 
-class NoDB(AbstractCommand):
+class NoDB(AbstractDispatch):
     @classmethod
     def run(cls, args):
         cls.response = cls._implement(args)
@@ -83,14 +83,22 @@ class Folder(InitDB):
         * ``delete`` for deleting a folder
     """
 
+    long_help = """
+        Edit the folder structure of the todo list.
+
+        usage: todone folder <command> <folder(s)>
+
+        Valid commands are:
+
+            new    create a new folder with the given name
+            rename rename an existing folder
+            delete remove a folder
+            list   list all folders
+        """
+    short_help = """
+        usage todone folder <command> <args>
+        """
     commands = ['new', 'rename', 'delete', 'list']
-    dispatch = {
-        'new': backend.Folder.new,
-        'rename': backend.Folder.rename,
-        'delete': backend.Folder.remove,
-        'list': lambda: print(
-            '\n'.join(['{}/'.format(f.name) for f in backend.Folder.all()]))
-    }
     message = {
         'new': 'Added folder: {}/',
         'rename': 'Renamed folder: {}/ -> {}/',
@@ -110,38 +118,68 @@ class Folder(InitDB):
         'list': 0,
     }
 
-    long_help = """
-        Edit the folder structure of the todo list.
+    @classmethod
+    def dispatch(cls, command):
+        return {
+            'new': cls._new,
+            'rename': cls._rename,
+            'delete': cls._delete,
+            'list': cls._list,
+        }[command]
 
-        usage: todone folder <command> <folder(s)>
+    @classmethod
+    def _new(cls, *folders):
+        backend.Folder.new(*folders)
+        return response.Response(
+            response.Response.SUCCESS,
+            cls.message['new'].format(*folders)
+        )
 
-        Valid commands are:
+    @classmethod
+    def _rename(cls, *folders):
+        backend.Folder.rename(*folders)
+        return response.Response(
+            response.Response.SUCCESS,
+            cls.message['rename'].format(*folders)
+        )
 
-            new    create a new folder with the given name
-            rename rename an existing folder
-            delete remove a folder
-            list   list all folders
-        """
-    short_help = """
-        usage todone folder <command> <args>
-        """
+    @classmethod
+    def _delete(cls, *folders):
+        backend.Folder.remove(*folders)
+        return response.Response(
+            response.Response.SUCCESS,
+            cls.message['delete'].format(*folders)
+        )
+
+    @classmethod
+    def _list(cls, *folders):
+        folder_names = ['{}/'.format(f.name) for f in backend.Folder.all()]
+        return response.Response(
+            response.Response.FOLDER_QUERY,
+            folder_names
+        )
 
     @classmethod
     def _implement(cls, args):
         command = args.get('subcommand')
         folders = args.get('folders', [])
         if len(folders) < cls.min_folders[command]:
-            raise exceptions.ArgumentError(
+            return response.Response(
+                response.Response.ERROR,
                 'Not enough folders provided (expected {})'.format(
                     cls.min_folders[command]
                 )
             )
         elif len(folders) > cls.max_folders[command]:
-            raise exceptions.ArgumentError(
+            return response.Response(
+                response.Response.ERROR,
                 'Too many folders provided'
             )
-        cls.dispatch[command](*folders)
-        return cls.message[command].format(*folders)
+        try:
+            return cls.dispatch(command)(*folders)
+        except exceptions.ArgumentError as e:
+            return response.Response(response.Response.ERROR,
+                                     str(e))
 
 
 class Help(NoDB):
@@ -188,7 +226,8 @@ class Help(NoDB):
         else:
             command = command if command else 'help'
             msg = dispatch.COMMAND_MAPPING[command].long_help
-        return textwrap.dedent(msg)
+        return response.Response(response.Response.SUCCESS,
+                                 textwrap.dedent(msg))
 
 
 class List(InitDB):
@@ -257,8 +296,10 @@ class List(InitDB):
             query = backend.Todo.query(**args)
             backend.SavedList.save_search(args.get('file'), query)
         backend.SavedList.save_most_recent_search(query)
-        printers.print_todo_list(query)
-        return ''
+        return response.Response(
+            response.Response.TODO_QUERY,
+            query
+        )
 
     @classmethod
     def is_loading_saved_search(cls, args):
@@ -288,11 +329,12 @@ class Move(InitDB):
 
     @classmethod
     def _implement(cls, args):
+        status = response.Response.SUCCESS
         todos = backend.SavedList.get_todos_from_most_recent_search()
         if len(todos) < args['index']:
-            raise exceptions.ArgumentError(
-                'Index {} does not refer to a valid todo from most recent listing'
-                .format(args['index']))
+            status = response.Response.ERROR
+            msg = 'Index {} out of range'.format(args['index'])
+            return response.Response(status, msg)
         target = todos[args['index']-1]
         if args.get('folder'):
             target.folder = utils.match_folder(args['folder'])
@@ -302,7 +344,7 @@ class Move(InitDB):
             msg = 'Moved: {} -> [{}]'.format(
                 target.action, target.parent.action)
         target.save()
-        return msg
+        return response.Response(status, msg)
 
 
 class New(InitDB):
@@ -343,18 +385,21 @@ class New(InitDB):
 
     @classmethod
     def _implement(cls, args):
-        if args.get('folder'):
-            args['folder'] = utils.match_folder(args['folder'])
-        else:
-            args['folder'] = backend.DEFAULT_FOLDERS['inbox']
-        if args.get('parent'):
-            args['parent'] = utils.match_parent(
-                **args['parent'])
-        backend.Todo.new(**args)
-        msg = 'Added: {}/{}'.format(args['folder'], args['action'])
-        if args.get('parent'):
-            msg += ' [{}]'.format(args['parent'].action)
-        return msg
+        try:
+            if args.get('folder'):
+                args['folder'] = utils.match_folder(args['folder'])
+            else:
+                args['folder'] = backend.DEFAULT_FOLDERS['inbox']
+            if args.get('parent'):
+                args['parent'] = utils.match_parent(
+                    **args['parent'])
+            backend.Todo.new(**args)
+            msg = 'Added: {}/{}'.format(args['folder'], args['action'])
+            if args.get('parent'):
+                msg += ' [{}]'.format(args['parent'].action)
+            return response.Response(response.Response.SUCCESS, msg)
+        except exceptions.ArgumentError as e:
+            return response.Response(response.Response.ERROR, str(e))
 
 
 class Setup(NoDB):
@@ -386,6 +431,7 @@ class Setup(NoDB):
     @classmethod
     def initialize(cls):
         cls.messages = []
+        cls.status = response.Response.SUCCESS
         if not config.settings['database']['name']:
             config.settings['database']['name'] = cls.query_user_for_db_name()
             config.save_configuration()
@@ -402,7 +448,8 @@ class Setup(NoDB):
                 cls.messages.append(
                     'Database has already been setup - get working!')
             else:
-                raise e
+                cls.status = response.Response.ERROR
+                cls.messages.append(str(e))
 
     @classmethod
     def query_user_for_db_name(cls):
@@ -418,11 +465,11 @@ class Setup(NoDB):
     def _implement(cls, args):
         command = args['subcommand']
         cls.dispatch(command)
-        return '\n'.join(cls.messages)
+        return response.Response(cls.status, '\n'.join(cls.messages))
 
 
 class Version(NoDB):
-    lonf_help = """
+    long_help = """
         Display version information.
 
         usage: todone version
@@ -436,9 +483,15 @@ class Version(NoDB):
     @classmethod
     def _implement(cls, args):
         if not args:
-            return 'Todone {}'.format(__version__)
+            return response.Response(
+                response.Response.SUCCESS,
+                'Todone {}'.format(__version__)
+            )
         else:
-            raise exceptions.ArgumentError()
+            return response.Response(
+                response.Response.ERROR,
+                'version command takes no arguments'
+            )
 
 
 class Configure(NoDB):
@@ -453,4 +506,14 @@ class Configure(NoDB):
     @classmethod
     def _implement(cls, args):
         config.configure(args['file'])
-        return ''
+        return response.Response(response.Response.NOOP, '')
+
+
+class Error(NoDB):
+    """Reflect error message back to dispatcher."""
+    long_help = 'An error occured'
+    short_help = 'An error occured'
+
+    @classmethod
+    def _implement(cls, args):
+        return ('error', args['message'])

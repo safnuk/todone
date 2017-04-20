@@ -1,5 +1,3 @@
-from contextlib import redirect_stdout
-import io
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -11,13 +9,11 @@ import todone.exceptions as exceptions
 
 class TestVersion(TestCase):
 
-    def test_version_prints_current_version(self):
-        f = io.StringIO()
-        with redirect_stdout(f):
-            Version.run({})
-        s = f.getvalue()
-        self.assertIn('Todone', s)
-        self.assertIn(__version__, s)
+    def test_version_should_output_current_version(self):
+        s, r = Version.run({})
+        self.assertEqual(s, 'success')
+        self.assertIn('Todone', r)
+        self.assertIn(__version__, r)
 
 
 @patch('todone.backend.commands.config.save_configuration')
@@ -30,27 +26,25 @@ class TestSetup(TestCase):
             Setup.run({'subcommand': 'init'})
         mock_create_database.assert_called_once_with()
 
-    def test_DatabaseError_for_existing_db_prints_db_exists_msg(
+    def test_DatabaseError_for_existing_db_should_return_message(
         self, mock_create_database, mock_save_configuration
     ):
         with patch.dict(config.settings, {'database': {'name': 'nonempty'}}):
             mock_create_database.side_effect = exceptions.DatabaseError(
                 "Database already exists")
-            f = io.StringIO()
-            with redirect_stdout(f):
-                Setup.run({'subcommand': 'init'})
-            s = f.getvalue()
-        self.assertNotIn('New todone database initialized', s)
-        self.assertIn('Database has already been setup - get working!', s)
+            s, r = Setup.run({'subcommand': 'init'})
+        self.assertEqual(s, 'success')
+        self.assertNotIn('New todone database initialized', r)
+        self.assertIn('Database has already been setup - get working!', r)
 
-    def test_database_creation_error_should_raise(
+    def test_database_creation_error_should_return_error(
         self, mock_create_database, mock_save_configuration
     ):
         with patch.dict(config.settings, {'database': {'name': 'nonempty'}}):
             mock_create_database.side_effect = exceptions.DatabaseError(
                 "Could not create the database")
-            with self.assertRaises(exceptions.DatabaseError):
-                Setup.run({'subcommand': 'init'})
+            s, r = Setup.run({'subcommand': 'init'})
+            self.assertEqual(s, 'error')
 
 
 @patch('todone.backend.commands.config.save_configuration')

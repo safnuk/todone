@@ -5,8 +5,7 @@ Feature: Change folder structure
 
   Scenario: Create a todo in a non-existent folder
     When we run the command "new nonfolder/New todo"
-    Then the output includes "Invalid argument"
-    And  the output includes "No match found for folder nonfolder/"
+    Then the output includes "No match found for folder nonfolder/"
 
   Scenario: Create a new folder
     When we run the command "folder new testfolder"
@@ -21,8 +20,7 @@ Feature: Change folder structure
     Given we ran the command "folder new testfolder"
     And   we ran the command "folder new testfolder1"
     When  we run the command "new test/Another todo"
-    Then  the output includes "Invalid argument"
-    And   the output includes "Multiple matches found for folder test/"
+    Then  the output includes "Multiple matches found for folder test/"
 
   Scenario: Rename a folder should move associated todos
     Given we ran the command "folder new testfolder"

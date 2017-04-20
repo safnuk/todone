@@ -1,6 +1,8 @@
 """Entry point to the todone command-line interface."""
 from todone.backend import dispatch
 from todone.parser import parser
+from todone import printer
+from todone import response as resp
 
 SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 
@@ -10,7 +12,10 @@ def main(args=None):
     responses = []
     print("Commands:")
     for command, args in arg_parser.commands:
-        print('{}: {}'.format(command, args))
         response = dispatch.dispatch_command(command, args)
-        if response:
+        if type(response) == resp.Response:
             responses.append(response)
+        if type(response) == list:
+            responses += response
+    for response in responses:
+        printer.output(response)

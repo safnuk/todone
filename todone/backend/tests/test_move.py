@@ -1,10 +1,6 @@
-from contextlib import redirect_stdout
-import io
-
 from todone.backend import SavedList
 from todone.backend.db import Todo as TodoSQL
 from todone.backend.commands import Move
-import todone.exceptions as exceptions
 from todone.tests.base import DB_Backend
 
 
@@ -46,22 +42,19 @@ class TestMoveTodo(DB_Backend):
         moved_todo = TodoSQL.get(TodoSQL.action == 'Todo 1')
         self.assertEqual(moved_todo.folder.name, 'inbox')
 
-    def test_move_folder_prints_action_taken(self):
-        f = io.StringIO()
-        with redirect_stdout(f):
-            Move.run({'index': 3, 'folder': 'done'})
-        s = f.getvalue()
-        self.assertIn('Moved: Todo 3 -> {}'.format('done'), s)
+    def test_move_folder_returns_action_taken(self):
+        status, response = Move.run({'index': 3, 'folder': 'done'})
+        self.assertIn('Moved: Todo 3 -> {}'.format('done'), response)
+        self.assertEqual(status, 'success')
 
-    def test_move_parent_prints_action_taken(self):
-        f = io.StringIO()
-        with redirect_stdout(f):
-            Move.run(
-                {'index': 3,
-                 'parent': {'folder': 'today', 'keywords': ['project']}})
-        s = f.getvalue()
-        self.assertIn('Moved: Todo 3 -> [{}]'.format('project'), s)
+    def test_move_parent_returns_action_taken(self):
+        status, response = Move.run(
+            {'index': 3,
+             'parent': {'folder': 'today', 'keywords': ['project']}})
+        self.assertIn('Moved: Todo 3 -> [{}]'.format('project'),
+                      response)
+        self.assertEqual(status, 'success')
 
-    def test_invalid_index_displays_error_message(self):
-        with self.assertRaises(exceptions.ArgumentError):
-            Move.run({'index': 7, 'folder': 'today'})
+    def test_invalid_index_returns_error_message(self):
+        status, response = Move.run({'index': 7, 'folder': 'today'})
+        self.assertEqual(status, 'error')

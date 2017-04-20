@@ -25,7 +25,7 @@ class Database(abstract.AbstractDatabase):
             cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
             for folder in backend.DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
-        except peewee.OperationalError as e:
+        except Exception as e:
             if "already exists" in str(e):
                 raise backend.DatabaseError("Database already exists")
             else:

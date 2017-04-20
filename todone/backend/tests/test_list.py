@@ -1,6 +1,4 @@
-from contextlib import redirect_stdout
 from datetime import date, timedelta
-import io
 from unittest import skip, TestCase
 from unittest.mock import patch
 
@@ -20,27 +18,22 @@ class TestListItems(DB_Backend):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'folder': 'to'})
-        s = f.getvalue()
+        s, r = List.run({'folder': 'to'})
+        self.assertEqual(s, 'todo_query')
         for folder in [
             x for x in folders if x is not 'today'
         ]:
-            self.assertNotIn(str(todos[folder]), s)
-        self.assertIn(str(todos['today']), s)
+            self.assertNotIn(todos[folder], r)
+        self.assertIn(todos['today'], r)
 
         for list_folder in folders:
-            f = io.StringIO()
-            with redirect_stdout(f):
-                List.run({'folder': list_folder})
-            s = f.getvalue()
+            s, r = List.run({'folder': list_folder})
             for folder in [
                 x for x in folders
                 if x is not list_folder
             ]:
-                self.assertNotIn(str(todos[folder]), s)
-            self.assertIn(str(todos[list_folder]), s)
+                self.assertNotIn(todos[folder], r)
+            self.assertIn(todos[list_folder], r)
 
     def test_list_without_folder_restricts_to_active_todos(self):
         todos = {}
@@ -48,16 +41,13 @@ class TestListItems(DB_Backend):
             todos[folder] = Todo.create(
                 action='Item {}'.format(n), folder=folder
             )
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'keywords': ['Item']})
-        s = f.getvalue()
+        s, r = List.run({'keywords': ['Item']})
         active = DEFAULT_FOLDERS['active']
         inactive = [x for x in folders if x not in active]
         for folder in inactive:
-            self.assertNotIn(str(todos[folder]), s)
+            self.assertNotIn(todos[folder], r)
         for folder in active:
-            self.assertIn(str(todos[folder]), s)
+            self.assertIn(todos[folder], r)
 
     def test_list_restricts_by_search_keywords(self):
         t1 = Todo.create(
@@ -73,29 +63,20 @@ class TestListItems(DB_Backend):
             folder='today'
         )
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'keywords': ['grok']})
-        s = f.getvalue()
-        self.assertNotIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertNotIn(str(t3), s)
+        s, r = List.run({'keywords': ['grok']})
+        self.assertNotIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertNotIn(t3, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'folder': 'inbox', 'keywords': ['test todo', 'with']})
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertNotIn(str(t3), s)
+        s, r = List.run({'folder': 'inbox', 'keywords': ['test todo', 'with']})
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertNotIn(t3, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'keywords': ['test']})
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertNotIn(str(t3), s)
+        s, r = List.run({'keywords': ['test']})
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertNotIn(t3, r)
 
     @skip
     def test_list_restricts_by_duedate(self):
@@ -130,49 +111,37 @@ class TestListItems(DB_Backend):
             due=date.today()
         )
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['due'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['due'])
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertIn(t3, r)
+        self.assertIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['due+15d'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertNotIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['due+15d'])
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertIn(t3, r)
+        self.assertNotIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['due+0d'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertNotIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertNotIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['due+0d'])
+        self.assertIn(t1, r)
+        self.assertIn(t3, r)
+        self.assertNotIn(t2, r)
+        self.assertNotIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['due+3m'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['due+3m'])
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertIn(t3, r)
+        self.assertIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
     @skip
     def test_list_restricts_by_remind_date(self):
@@ -207,49 +176,37 @@ class TestListItems(DB_Backend):
             remind=date.today()
         )
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['remind'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['remind'])
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertIn(t3, r)
+        self.assertIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['remind+15d'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertNotIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['remind+15d'])
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertIn(t3, r)
+        self.assertNotIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['remind+0d'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertNotIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertNotIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['remind+0d'])
+        self.assertIn(t1, r)
+        self.assertIn(t3, r)
+        self.assertNotIn(t2, r)
+        self.assertNotIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run(['remind+3m'])
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertIn(str(t3), s)
-        self.assertIn(str(t4), s)
-        self.assertNotIn(str(t5), s)
-        self.assertNotIn(str(t6), s)
+        s, r = List.run(['remind+3m'])
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertIn(t3, r)
+        self.assertIn(t4, r)
+        self.assertNotIn(t5, r)
+        self.assertNotIn(t6, r)
 
     @skip
     def test_list_restricts_by_cal_date(self):
@@ -275,21 +232,15 @@ class TestListItems(DB_Backend):
             parent=project
         )
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'parent': {'folder': '', 'keywords': ['project']}})
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertNotIn(str(t2), s)
-        self.assertIn(str(t3), s)
+        s, r = List.run({'parent': {'folder': '', 'keywords': ['project']}})
+        self.assertNotIn(t2, r)
+        self.assertIn(t1, r)
+        self.assertIn(t3, r)
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'parent': {'folder': 'next', 'keywords': ['project']}})
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertNotIn(str(t2), s)
-        self.assertIn(str(t3), s)
+        s, r = List.run({'parent': {'folder': 'next', 'keywords': ['project']}})
+        self.assertNotIn(t2, r)
+        self.assertIn(t1, r)
+        self.assertIn(t3, r)
 
     def test_list_saves_last_search(self):
         Todo.create(
@@ -326,13 +277,10 @@ class TestListItems(DB_Backend):
         recent = SavedList.get_most_recent()
         ListItem.create(savedlist=recent, todo=t1)
         ListItem.create(savedlist=recent, todo=t2)
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({})
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertIn(str(t2), s)
-        self.assertNotIn(str(t3), s)
+        s, r = List.run({})
+        self.assertIn(t1, r)
+        self.assertIn(t2, r)
+        self.assertNotIn(t3, r)
 
     def test_list_parent_displays_all_subtodos_for_parent(self):
         project = Todo.create(
@@ -353,13 +301,10 @@ class TestListItems(DB_Backend):
             folder='today',
             parent=project
         )
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'parent': {'folder': '', 'keywords': ['project']}})
-        s = f.getvalue()
-        self.assertIn(str(t1), s)
-        self.assertNotIn(str(t2), s)
-        self.assertIn(str(t3), s)
+        s, r = List.run({'parent': {'folder': '', 'keywords': ['project']}})
+        self.assertNotIn(t2, r)
+        self.assertIn(t1, r)
+        self.assertIn(t3, r)
 
     def test_order_by_project(self):
         project1 = Todo.create(
@@ -385,16 +330,10 @@ class TestListItems(DB_Backend):
             folder='today',
         )
 
-        f = io.StringIO()
-        with redirect_stdout(f):
-            List.run({'folder': 'today'})
-        s = f.getvalue()
-        lines = s.split('\n')
-        self.assertIn(str(t3), lines[0])
-        self.assertIn(project1.action, lines[1])
-        self.assertIn(str(t2), lines[2])
-        self.assertIn(project2.action, lines[3])
-        self.assertIn(str(t1), lines[4])
+        s, r = List.run({'folder': 'today'})
+        self.assertEqual(t3, r[0])
+        self.assertEqual(t2, r[1])
+        self.assertEqual(t1, r[2])
 
 
 @patch('todone.backend.commands.List.is_loading_saved_search')
@@ -424,9 +363,8 @@ class UnitTestListItems(TestCase):
         MockSavedList.save_search.assert_not_called()
 
     @patch('todone.backend.commands.backend.SavedList')
-    @patch('todone.backend.commands.printers.print_todo_list')
     def test_if_loading_saved_search_then_saves_as_most_recent_query(
-        self, mock_print, MockSavedList, mock_is_loading
+        self, MockSavedList, mock_is_loading
     ):
         mock_is_loading.return_value = True
         MockSavedList.get_todos_in_list.return_value = 'test'
@@ -444,10 +382,8 @@ class UnitTestListItems(TestCase):
 
     @patch('todone.backend.commands.backend.Todo.query')
     @patch('todone.backend.commands.backend.SavedList')
-    @patch('todone.backend.commands.printers.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_query(
-        self, mock_print, MockSavedList, mock_construct,
-        mock_is_loading
+        self, MockSavedList, mock_construct, mock_is_loading
     ):
         mock_is_loading.return_value = False
         mock_construct.return_value = 'test todo'
@@ -457,10 +393,8 @@ class UnitTestListItems(TestCase):
 
     @patch('todone.backend.commands.backend.Todo.query')
     @patch('todone.backend.commands.backend.SavedList')
-    @patch('todone.backend.commands.printers.print_todo_list')
     def test_if_not_loading_saved_search_then_saves_as_most_recent_query(
-        self, mock_print, MockSavedList, mock_construct,
-        mock_is_loading
+        self, MockSavedList, mock_construct, mock_is_loading
     ):
         mock_is_loading.return_value = False
         mock_construct.return_value = 'test todo'
