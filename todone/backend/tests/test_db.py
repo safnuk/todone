@@ -1,20 +1,88 @@
+import datetime
 from unittest import skip, TestCase
 from unittest.mock import patch, Mock
 
 import peewee
 
 from todone.backend import DEFAULT_FOLDERS
+from todone.backend import transaction
 from todone.backend.db import (
-    Database, Folder, SavedList,
-    Todo
+    Database, Folder, Future, History,
+    SavedList, Todo,
+    ListItem, MOST_RECENT_SEARCH
 )
-from todone.backend.db import ListItem, MOST_RECENT_SEARCH
+from todone import exceptions
 from todone.tests.base import DB_Backend
 
 
-class TestCommandStack(DB_Backend):
-    def test_command_saved_on_dispatch(self):
+class TestHistory(DB_Backend):
+    StackClass = History
+
+    def setUp(self):
+        today = datetime.datetime.now()
+        day = datetime.timedelta(1)
+        yesterday = today - day
+        two_days_ago = yesterday - day
+        self.trans = transaction.Transaction(
+            'new', {'action': 'New todo', 'folder': 'inbox'},
+            timestamp=yesterday
+        )
+        self.newest_trans = transaction.Transaction(
+            'move', {'todo': 1, 'folder': 'inbox'},
+            timestamp=today
+        )
+        self.oldest_trans = transaction.Transaction(
+            'folder', {'action': 'Old todo', 'folder': 'today'},
+            timestamp=two_days_ago
+        )
+
+    def test_push_should_add_to_stack(self):
+        self.StackClass.push(self.trans)
+        self.assertEqual(len(self.StackClass.select()), 1)
+
+    def test_pop_should_remove_from_stack(self):
+        self.StackClass.push(self.trans)
+        self.StackClass.pop()
+        self.assertEqual(len(self.StackClass.select()), 0)
+
+    def test_push_then_pop_should_restore_command(self):
+        self.StackClass.push(self.trans)
+        fetched = self.StackClass.pop()
+        self.assertEqual(fetched.command, self.trans.command)
+
+    def test_push_then_pop_should_restore_args(self):
+        self.StackClass.push(self.trans)
+        fetched = self.StackClass.pop()
+        self.assertEqual(fetched.args, self.trans.args)
+
+    def test_pop_should_return_most_recent_transaction(self):
+        self.StackClass.push(self.trans)
+        self.StackClass.push(self.newest_trans)
+        self.StackClass.push(self.oldest_trans)
+        fetched = self.StackClass.pop()
+        self.assertEqual(fetched.command, self.newest_trans.command)
+        self.assertEqual(fetched.args, self.newest_trans.args)
+
+    def test_pop_on_empty_stack_should_raise(self):
+        with self.assertRaises(exceptions.DatabaseError):
+            self.StackClass.pop()
+
+
+class TestFuture(TestHistory):
+    StackClass = Future
+
+    @skip
+    def test_pop_should_return_most_recent_transaction(self):
+        # override so that this test doesn't run for Future class
         pass
+
+    def test_pop_should_return_earliest_transaction(self):
+        self.StackClass.push(self.trans)
+        self.StackClass.push(self.newest_trans)
+        self.StackClass.push(self.oldest_trans)
+        fetched = self.StackClass.pop()
+        self.assertEqual(fetched.command, self.oldest_trans.command)
+        self.assertEqual(fetched.args, self.oldest_trans.args)
 
 
 class TestTodoModel(DB_Backend):

@@ -1,7 +1,6 @@
 import textwrap
 from unittest import TestCase
 
-import todone.backend.dispatch as dispatch
 import todone.backend.commands as cmd
 
 
@@ -28,6 +27,6 @@ class TestHelpText(TestCase):
         self.assertIn(textwrap.dedent(cmd.Help.short_help), r)
 
     def test_all_commands_define_short_help_strings(self):
-        for command in dispatch.COMMAND_MAPPING:
+        for command in cmd.COMMAND_MAPPING:
             # does not raise exception
             cmd.Help.run({'short': '--short', 'subcommand': command})

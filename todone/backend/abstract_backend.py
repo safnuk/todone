@@ -225,7 +225,7 @@ class AbstractCommandStack:
             ERROR.format(cls.__class__.__name__, "push()"))
 
     @classmethod
-    def get(cls, index=1):
+    def pop(cls):
         """Get the command at position index.
 
         index is an integer, giving the position relative base 1. I.e.

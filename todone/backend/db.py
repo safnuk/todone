@@ -2,14 +2,17 @@
 
 Uses the peewee package to connect to databases.
 """
+import json
 import os
 import re
 
 import peewee
 
 from todone.backend import abstract_backend as abstract
+from todone.backend import transaction
 from todone import backend
 from todone import config
+from todone import exceptions
 from todone.parser import exceptions as pe
 
 MOST_RECENT_SEARCH = 'last_search'
@@ -274,3 +277,45 @@ class SavedList(BaseModel, abstract.AbstractSavedList):
 class ListItem(BaseModel):
     savedlist = peewee.ForeignKeyField(SavedList, related_name='items')
     todo = peewee.ForeignKeyField(Todo)
+
+
+class TransactionStack(abstract.AbstractCommandStack):
+    @classmethod
+    def push(cls, transaction):
+        args = json.dumps(transaction.args)
+        cls.create(command=transaction.command, args=args,
+                   timestamp=transaction.timestamp)
+
+    @classmethod
+    def pop(cls):
+        try:
+            item = cls._get_first()
+            item.delete_instance()
+        except peewee.DoesNotExist:
+            raise exceptions.DatabaseError(cls.error_msg)
+        args = json.loads(item.args)
+        return transaction.Transaction(item.command, args)
+
+
+class History(BaseModel, TransactionStack):
+    command = peewee.CharField()
+    args = peewee.CharField()
+    timestamp = peewee.DateTimeField()
+
+    error_msg = 'Transaction history is empty'
+
+    @classmethod
+    def _get_first(cls):
+        return cls.select().order_by(cls.timestamp.desc()).get()
+
+
+class Future(BaseModel, TransactionStack):
+    command = peewee.CharField()
+    args = peewee.CharField()
+    timestamp = peewee.DateTimeField()
+
+    error_msg = 'Redo history is empty'
+
+    @classmethod
+    def _get_first(cls):
+        return cls.select().order_by(cls.timestamp.asc()).get()

@@ -1,8 +1,7 @@
 import textwrap
 
-from todone.backend import dispatch
 from todone import backend
-import todone.backend.utils as utils
+from todone.backend import utils
 from todone import config
 from todone import exceptions
 from todone import response
@@ -220,12 +219,12 @@ class Help(NoDB):
         command = args.get('subcommand')
         if args.get('short'):
             if command:
-                msg = dispatch.COMMAND_MAPPING[command].short_help
+                msg = COMMAND_MAPPING[command].short_help
             else:
                 msg = cls.short_general_help
         else:
             command = command if command else 'help'
-            msg = dispatch.COMMAND_MAPPING[command].long_help
+            msg = COMMAND_MAPPING[command].long_help
         return response.Response(response.Response.SUCCESS,
                                  textwrap.dedent(msg))
 
@@ -517,3 +516,21 @@ class Error(NoDB):
     @classmethod
     def _implement(cls, args):
         return ('error', args['message'])
+
+
+COMMAND_MAPPING = {
+    '-h': Help,
+    '--help': Help,
+    'help': Help,
+    '-v': Version,
+    '--version': Version,
+    'version': Version,
+    'folder': Folder,
+    'list': List,
+    'move': Move,
+    'new': New,
+    'setup': Setup,
+    'done': Done,
+    'configure': Configure,
+    'error': Error,
+}
