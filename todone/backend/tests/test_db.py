@@ -7,16 +7,16 @@ import peewee
 from todone.backend import DEFAULT_FOLDERS
 from todone.backend import transaction
 from todone.backend.db import (
-    Database, Folder, Future, History,
-    SavedList, Todo,
+    Database, Folder,
+    SavedList, Todo, RedoStack, UndoStack,
     ListItem, MOST_RECENT_SEARCH
 )
 from todone import exceptions
 from todone.tests.base import DB_Backend
 
 
-class TestHistory(DB_Backend):
-    StackClass = History
+class TestUndoStack(DB_Backend):
+    StackClass = UndoStack
 
     def setUp(self):
         today = datetime.datetime.now()
@@ -68,8 +68,8 @@ class TestHistory(DB_Backend):
             self.StackClass.pop()
 
 
-class TestFuture(TestHistory):
-    StackClass = Future
+class TestRedoStack(TestUndoStack):
+    StackClass = RedoStack
 
     @skip
     def test_pop_should_return_most_recent_transaction(self):
@@ -86,10 +86,6 @@ class TestFuture(TestHistory):
 
 
 class TestTodoModel(DB_Backend):
-    def test_class_is_importable(self):
-        t = Todo(action='Blank')
-        self.assertEqual(type(t), Todo)
-
     def test_todo_stores_action(self):
         t = Todo(action='New todo item')
         self.assertEqual(t.action, 'New todo item')
@@ -155,6 +151,11 @@ class TestTodoModel(DB_Backend):
         query = Todo.get_projects('Todo')
         self.assertIn(t1, query)
         self.assertIn(t2, query)
+
+    def test_new_should_return_created_todo(self):
+        t = Todo.new(action='New todo', folder='today')
+        self.assertEqual(t.action, 'New todo')
+        self.assertEqual(t.folder.name, 'today')
 
 
 class TestFolder(DB_Backend):

@@ -234,7 +234,13 @@ class AbstractCommandStack:
         returns the Command at position index
         """
         raise NotImplementedError(
-            ERROR.format(cls.__class__.__name__, "get()"))
+            ERROR.format(cls.__class__.__name__, "pop()"))
+
+    @classmethod
+    def clear(cls):
+        """Remove all the transactions from the stack.  """
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "clear()"))
 
     @classmethod
     def list(cls, range=10):

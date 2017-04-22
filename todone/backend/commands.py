@@ -1,6 +1,7 @@
 import textwrap
 
 from todone import backend
+from todone.backend import transaction
 from todone.backend import utils
 from todone import config
 from todone import exceptions
@@ -392,13 +393,24 @@ class New(InitDB):
             if args.get('parent'):
                 args['parent'] = utils.match_parent(
                     **args['parent'])
-            backend.Todo.new(**args)
+            todo = backend.Todo.new(**args)
+            saved_args = cls._build_transaction_args(todo, args)
+            trans = transaction.Transaction('new', saved_args)
+            backend.UndoStack.push(trans)
             msg = 'Added: {}/{}'.format(args['folder'], args['action'])
             if args.get('parent'):
                 msg += ' [{}]'.format(args['parent'].action)
             return response.Response(response.Response.SUCCESS, msg)
         except exceptions.ArgumentError as e:
             return response.Response(response.Response.ERROR, str(e))
+
+    @classmethod
+    def _build_transaction_args(self, todo, args):
+        saved_args = {'todo': todo.id}
+        saved_args.update(args)
+        if args.get('parent'):
+            saved_args['parent'] = args['parent'].id
+        return saved_args
 
 
 class Setup(NoDB):

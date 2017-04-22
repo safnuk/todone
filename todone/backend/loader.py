@@ -56,6 +56,16 @@ class Todo(abstract.AbstractTodo):
         return get_module().Todo.save()
 
 
+class UndoStack(abstract.AbstractCommandStack):
+    @classmethod
+    def push(cls, transaction):
+        return get_module().UndoStack.push(transaction)
+
+    @classmethod
+    def pop(cls):
+        return get_module().UndoStack.pop()
+
+
 class SavedList(abstract.AbstractSavedList):
     @classmethod
     def get_most_recent(cls):

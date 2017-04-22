@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from unittest import skip
 
-from todone.backend.db import Todo
+from todone.backend.db import Todo, UndoStack
 from todone.backend.commands import New
 from todone.tests.base import DB_Backend
 
@@ -66,3 +66,16 @@ class TestNewAction(DB_Backend):
         self.assertEqual(s, 'error')
         s, r = New.run({'folder': 'nonfolder', 'action': ''})
         self.assertEqual(s, 'error')
+
+    def test_should_push_transaction_to_UndoStack(self):
+        todo_info = {'folder': 'today', 'action': 'New todo'}
+        New.run(todo_info)
+        self.assertEqual(len(UndoStack.select()), 1)
+
+    def test_transaction_should_encode_new_todo(self):
+        todo_info = {'folder': 'today', 'action': 'New todo'}
+        New.run(todo_info)
+        transaction = UndoStack.pop()
+        self.assertEqual(transaction.command, 'new')
+        for k, v in todo_info.items():
+            self.assertEqual(transaction.args[k], v)

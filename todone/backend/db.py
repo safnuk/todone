@@ -25,7 +25,8 @@ class Database(abstract.AbstractDatabase):
     def create(cls):
         try:
             cls.initialize()
-            cls.database.create_tables([Folder, Todo,  SavedList, ListItem])
+            cls.database.create_tables(
+                [Folder, Todo,  SavedList, ListItem, UndoStack, RedoStack])
             for folder in backend.DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
         except Exception as e:
@@ -173,7 +174,7 @@ class Todo(BaseModel, abstract.AbstractTodo):
     @classmethod
     def new(cls, **args):
         try:
-            Todo.create(**args)
+            return Todo.create(**args)
         except peewee.OperationalError:
             raise backend.DatabaseError('Error connecting to the database')
 
@@ -297,7 +298,7 @@ class TransactionStack(abstract.AbstractCommandStack):
         return transaction.Transaction(item.command, args)
 
 
-class History(BaseModel, TransactionStack):
+class UndoStack(BaseModel, TransactionStack):
     command = peewee.CharField()
     args = peewee.CharField()
     timestamp = peewee.DateTimeField()
@@ -309,7 +310,7 @@ class History(BaseModel, TransactionStack):
         return cls.select().order_by(cls.timestamp.desc()).get()
 
 
-class Future(BaseModel, TransactionStack):
+class RedoStack(BaseModel, TransactionStack):
     command = peewee.CharField()
     args = peewee.CharField()
     timestamp = peewee.DateTimeField()
