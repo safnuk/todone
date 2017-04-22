@@ -1,3 +1,4 @@
+import datetime
 from datetime import date, timedelta
 from unittest import skip
 
@@ -79,3 +80,11 @@ class TestNewAction(DB_Backend):
         self.assertEqual(transaction.command, 'new')
         for k, v in todo_info.items():
             self.assertEqual(transaction.args[k], v)
+
+    def test_new_transaction_should_record_timestamp(self):
+        todo_info = {'folder': 'today', 'action': 'New todo'}
+        New.run(todo_info)
+        now = datetime.datetime.now()
+        transaction = UndoStack.pop()
+        timediff = (now - transaction.timestamp).total_seconds()
+        self.assertAlmostEqual(timediff, 0, delta=0.01)

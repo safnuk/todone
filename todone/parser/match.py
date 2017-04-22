@@ -88,7 +88,7 @@ class ParentMatch(AbstractMatch):
         super().__init__(*args, **kwargs)
 
     def match(self, targets, args):
-        regex = r'(?P<start>[^[]*)\[(?P<parent>[^\]]+)\](?P<end>.*)'
+        regex = r'(?P<start>[^[]*)\[(?P<parent>[^\]]*)\](?P<end>.*)'
         regex_match = re.fullmatch(regex, args[0], re.IGNORECASE)
         if regex_match:
             arg_start = regex_match.group('start').strip()

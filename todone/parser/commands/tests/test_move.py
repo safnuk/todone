@@ -24,6 +24,12 @@ class TestMoveArgParse(TestCase):
             args['parent'], {'folder': 'folder', 'keywords': ['project']}
         )
 
+    def test_empty_parent_should_parse(self):
+        args = parse_args(['1', '[]'])
+        self.assertEqual(
+            args['parent'], {'folder': '', 'keywords': []}
+        )
+
     def test_rejects_noninteger_index(self):
         with self.assertRaises(pe.ArgumentError):
             parse_args(['test'])

@@ -336,15 +336,31 @@ class Move(InitDB):
             msg = 'Index {} out of range'.format(args['index'])
             return response.Response(status, msg)
         target = todos[args['index']-1]
-        if args.get('folder'):
-            target.folder = utils.match_folder(args['folder'])
+        saved_args = cls._build_transaction_args(target, args)
+        if saved_args.get('new_folder'):
+            target.folder = saved_args['new_folder']
             msg = 'Moved: {} -> {}/'.format(target.action, target.folder.name)
-        elif args.get('parent'):
-            target.parent = utils.match_parent(**args['parent'])
+        elif 'new_parent' in saved_args:
+            target.parent = saved_args['new_parent']
+            parent_action = target.parent.action if target.parent else ''
             msg = 'Moved: {} -> [{}]'.format(
-                target.action, target.parent.action)
+                target.action, parent_action)
+        trans = transaction.Transaction('move', saved_args)
+        backend.UndoStack.push(trans)
         target.save()
         return response.Response(status, msg)
+
+    @classmethod
+    def _build_transaction_args(cls, todo, args):
+        saved_args = {'todo': todo.id}
+        if args.get('folder'):
+            saved_args['old_folder'] = todo.folder.name
+            saved_args['new_folder'] = utils.match_folder(args['folder'])
+        elif args.get('parent'):
+            saved_args['old_parent'] = todo.parent.id if todo.parent else None
+            new_parent = utils.match_parent(**args['parent'])
+            saved_args['new_parent'] = new_parent.id if new_parent else None
+        return saved_args
 
 
 class New(InitDB):

@@ -18,6 +18,8 @@ def match_folder(prefix):
 
 def match_parent(**args):
     try:
+        if not(args['folder'] or args['keywords']):
+            return None
         if args['folder']:
             args['folder'] = match_folder(args['folder'])
         return backend.Todo.get_unique_match(**args)
