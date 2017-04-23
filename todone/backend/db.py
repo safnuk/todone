@@ -314,7 +314,7 @@ class UndoStack(BaseModel, TransactionStack):
     args = peewee.CharField()
     timestamp = peewee.DateTimeField()
 
-    error_msg = 'Transaction history is empty'
+    error_msg = 'No actions to undo'
 
     @classmethod
     def _get_first(cls):

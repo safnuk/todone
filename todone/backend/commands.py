@@ -594,6 +594,56 @@ class Error(NoDB):
         return response.Response(response.Response.ERROR, args['message'])
 
 
+class Undo(InitDB):
+    long_help = """
+    Undo the most recent action.
+
+    usage: todone undo
+    """
+    short_help = """
+    usage: todone undo
+    """
+
+    @classmethod
+    def _implement(cls, args):
+        try:
+            transaction = backend.UndoStack.pop()
+            inverse = transaction.inverse()
+            cmd_class = COMMAND_MAPPING[inverse.command]
+            backend.RedoStack.push(transaction)
+            return cmd_class.apply(inverse, [])
+        except exceptions.DatabaseError as e:
+            if 'No actions to undo' in str(e):
+                return response.Response(
+                    response.Response.SUCCESS, str(e)
+                )
+            raise e
+
+
+class Redo(InitDB):
+    long_help = """
+    Redo the most recently undone action.
+
+    usage: todone redo
+    """
+    short_help = """
+    usage: todone redo
+    """
+
+    @classmethod
+    def _implement(cls, args):
+        try:
+            transaction = backend.RedoStack.pop()
+            cmd_class = COMMAND_MAPPING[transaction.command]
+            return cmd_class.apply(transaction, [backend.UndoStack])
+        except exceptions.DatabaseError as e:
+            # if 'No actions to undo' in str(e):
+            #     return response.Response(
+            #         response.Response.SUCCESS, str(e)
+            #     )
+            raise e
+
+
 COMMAND_MAPPING = {
     '-h': Help,
     '--help': Help,
@@ -609,4 +659,5 @@ COMMAND_MAPPING = {
     'done': Done,
     'configure': Configure,
     'error': Error,
+    'undo': Undo,
 }
