@@ -50,7 +50,7 @@ class NoDB(AbstractDispatch):
         return cls.response
 
 
-class Done(InitDB):
+class Done(NoDB):
     """Move a todo into the done folder"""
 
     long_help = """
