@@ -76,10 +76,10 @@ class TestNewAction(DB_Backend):
     def test_transaction_should_encode_new_todo(self):
         todo_info = {'folder': 'today', 'action': 'New todo'}
         New.run(todo_info)
+        todo = Todo.get(Todo.action == 'New todo')
         transaction = UndoStack.pop()
         self.assertEqual(transaction.command, 'new')
-        for k, v in todo_info.items():
-            self.assertEqual(transaction.args[k], v)
+        self.assertEqual(transaction.args['todo'], todo.id)
 
     def test_new_transaction_should_record_timestamp(self):
         todo_info = {'folder': 'today', 'action': 'New todo'}

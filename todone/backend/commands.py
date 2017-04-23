@@ -423,7 +423,7 @@ class New(InitDB):
                 args['parent'] = utils.match_parent(
                     **args['parent'])
             todo = backend.Todo.new(**args)
-            saved_args = cls._build_transaction_args(todo, args)
+            saved_args = {'todo': todo.id}
             trans = transaction.Transaction('new', saved_args)
             backend.UndoStack.push(trans)
             msg = 'Added: {}/{}'.format(args['folder'], args['action'])
