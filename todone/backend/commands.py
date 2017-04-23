@@ -16,8 +16,7 @@ class AbstractDispatch:
 
     @classmethod
     def run(cls, args=None):
-        print(cls.response)
-        return cls.response
+        raise NotImplementedError("Method run() not implemented")
 
     @classmethod
     def _implement(cls, args):
@@ -39,15 +38,16 @@ class InitDB(AbstractDispatch):
             cls.response = cls._implement(args)
             backend.Database.close()
         except backend.DatabaseError as e:
-            cls.response = cls.db_help_msg.format(e)
-        return super().run()
+            cls.response = response.Response(
+                response.Response.ERROR, cls.db_help_msg.format(e))
+        return cls.response
 
 
 class NoDB(AbstractDispatch):
     @classmethod
     def run(cls, args):
         cls.response = cls._implement(args)
-        return super().run()
+        return cls.response
 
 
 class Done(InitDB):
@@ -556,7 +556,7 @@ class Error(NoDB):
 
     @classmethod
     def _implement(cls, args):
-        return ('error', args['message'])
+        return response.Response(response.Response.ERROR, args['message'])
 
 
 COMMAND_MAPPING = {

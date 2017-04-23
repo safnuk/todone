@@ -52,7 +52,8 @@ class Database(abstract.AbstractDatabase):
     def connect(cls):
         # don't try to connect to a nameless database
         if config.settings['database']['name'] == '':
-            return
+            raise backend.DatabaseError(
+                "Valid database location not configured")
         try:
             cls.initialize()
             cls.database.connect()

@@ -4,7 +4,6 @@
 * Implement undo/redo operation
 * Implement REST interface
 * Implement local/master sync
-* Separate console output to a different module
 * Record date/time when moving to "done" folder
 * Decide when and how to clear DONE and TRASH items from saved lists
 * Improve output messages for completed operations

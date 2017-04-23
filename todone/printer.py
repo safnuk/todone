@@ -9,9 +9,9 @@ def output(response):
     if response.status == resp.Response.NOOP:
         return
     elif response.status == resp.Response.SUCCESS:
-        print(response)
+        print(response.response)
     elif response.status == resp.Response.ERROR:
-        print(response)
+        print(response.response)
     elif response.status == resp.Response.FOLDER_QUERY:
         for folder in response.response:
             print(folder)
