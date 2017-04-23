@@ -99,6 +99,11 @@ class AbstractTodo:
             ERROR.format(cls.__class__.__name__, "get_unique_match()"))
 
     @classmethod
+    def get_by_key(cls, id):
+        raise NotImplementedError(
+            ERROR.format(cls.__class__.__name__, "get_unique_match()"))
+
+    @classmethod
     def new(cls, **args):
         """Create a new todo.
 

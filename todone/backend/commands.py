@@ -1,7 +1,7 @@
 import textwrap
 
 from todone import backend
-from todone.backend import transaction
+from todone.backend import transaction as trans
 from todone.backend import utils
 from todone import config
 from todone import exceptions
@@ -48,6 +48,12 @@ class NoDB(AbstractDispatch):
     def run(cls, args):
         cls.response = cls._implement(args)
         return cls.response
+
+
+class SyncCommand():
+    @classmethod
+    def apply(cls, transaction, stacks):
+        raise NotImplementedError("Method apply() not implemented")
 
 
 class Done(NoDB):
@@ -98,7 +104,6 @@ class Folder(InitDB):
     short_help = """
         usage todone folder <command> <args>
         """
-    commands = ['new', 'rename', 'delete', 'list']
     message = {
         'new': 'Added folder: {}/',
         'rename': 'Renamed folder: {}/ -> {}/',
@@ -119,49 +124,27 @@ class Folder(InitDB):
     }
 
     @classmethod
-    def dispatch(cls, command):
-        return {
-            'new': cls._new,
-            'rename': cls._rename,
-            'delete': cls._delete,
-            'list': cls._list,
-        }[command]
-
-    @classmethod
-    def _new(cls, *folders):
-        backend.Folder.new(*folders)
-        trans = transaction.Transaction(
-            'folder', {'subcommand': 'new', 'folder': folders[0]})
-        backend.UndoStack.push(trans)
+    def _new(cls, folder):
+        backend.Folder.new(folder)
         return response.Response(
             response.Response.SUCCESS,
-            cls.message['new'].format(*folders)
+            cls.message['new'].format(folder)
         )
 
     @classmethod
     def _rename(cls, *folders):
         backend.Folder.rename(*folders)
-        old_folder, new_folder = folders
-        trans = transaction.Transaction(
-            'folder', {'subcommand': 'rename', 'old_folder': old_folder,
-                       'new_folder': new_folder})
-        backend.UndoStack.push(trans)
         return response.Response(
             response.Response.SUCCESS,
             cls.message['rename'].format(*folders)
         )
 
     @classmethod
-    def _delete(cls, *folders):
-        todos_moved = backend.Folder.remove(*folders)
-        trans = transaction.Transaction(
-            'folder',
-            {'subcommand': 'delete', 'folder': folders[0],
-             'todos': [x.id for x in todos_moved]})
-        backend.UndoStack.push(trans)
+    def _delete(cls, folder):
+        backend.Folder.remove(folder)
         return response.Response(
             response.Response.SUCCESS,
-            cls.message['delete'].format(*folders)
+            cls.message['delete'].format(folder)
         )
 
     @classmethod
@@ -188,11 +171,60 @@ class Folder(InitDB):
                 response.Response.ERROR,
                 'Too many folders provided'
             )
+        transaction = cls._build_transaction(command, folders)
+        if command in ['new', 'delete', 'rename']:
+            stacks = [backend.UndoStack]
+        else:
+            stacks = []
         try:
-            return cls.dispatch(command)(*folders)
+            return cls.apply(transaction, stacks)
         except exceptions.ArgumentError as e:
             return response.Response(response.Response.ERROR,
                                      str(e))
+
+    @classmethod
+    def _build_transaction(cls, subcommand, folders):
+        if subcommand == 'delete':
+            todos = backend.Todo.query(folder=folders[0])
+            todo_transactions = [
+                Move._build_transaction(
+                    todo,
+                    {'folder': backend.DEFAULT_FOLDERS['inbox']}).args
+                for todo in todos
+            ]
+        else:
+            todo_transactions = []
+        args = {'subcommand': subcommand,
+                'folders': folders,
+                'todos': todo_transactions}
+        return trans.Transaction('folder', args)
+
+    @classmethod
+    def apply(cls, transaction, stacks=[]):
+        responses = []
+        args = transaction.args
+        command = args['subcommand']
+        folders = args['folders']
+        todo_transactions = [trans.Transaction('move', todo)
+                             for todo in args['todos']]
+        if command == 'new':
+            responses.append(cls._new(*folders))
+            for todo in todo_transactions:
+                responses.append(Move.apply(todo))
+        elif command == 'delete':
+            for todo in todo_transactions:
+                responses.append(Move.apply(todo))
+            responses.append(cls._delete(*folders))
+        elif command == 'rename':
+            responses.append(cls._rename(*folders))
+        elif command == 'list':
+            responses.append(cls._list(*folders))
+        else:
+            raise NotImplementedError('Folder command {} does not exist'
+                                      .format(command))
+        for stack in stacks:
+            stack.push(transaction)
+        return responses
 
 
 class Help(NoDB):
@@ -322,7 +354,7 @@ class List(InitDB):
         return True
 
 
-class Move(InitDB):
+class Move(SyncCommand, InitDB):
     """Move a todo to a different folder or project. """
 
     long_help = """
@@ -342,29 +374,33 @@ class Move(InitDB):
 
     @classmethod
     def _implement(cls, args):
-        status = response.Response.SUCCESS
         todos = backend.SavedList.get_todos_from_most_recent_search()
         if len(todos) < args['index']:
-            status = response.Response.ERROR
             msg = 'Index {} out of range'.format(args['index'])
-            return response.Response(status, msg)
+            return response.Response(response.Response.ERROR, msg)
         target = todos[args['index']-1]
-        saved_args = cls._build_transaction_args(target, args)
-        if saved_args.get('new_folder'):
-            target.folder = saved_args['new_folder']
+        transaction = cls._build_transaction(target, args)
+        return cls.apply(transaction, [backend.UndoStack])
+
+    @classmethod
+    def apply(cls, transaction, stacks=[]):
+        args = transaction.args
+        target = backend.Todo.get_by_key(args['todo'])
+        if args.get('new_folder'):
+            target.folder = args['new_folder']
             msg = 'Moved: {} -> {}/'.format(target.action, target.folder.name)
-        elif 'new_parent' in saved_args:
-            target.parent = saved_args['new_parent']
+        elif 'new_parent' in args:
+            target.parent = args['new_parent']
             parent_action = target.parent.action if target.parent else ''
             msg = 'Moved: {} -> [{}]'.format(
                 target.action, parent_action)
-        trans = transaction.Transaction('move', saved_args)
-        backend.UndoStack.push(trans)
         target.save()
-        return response.Response(status, msg)
+        for stack in stacks:
+            stack.push(transaction)
+        return response.Response(response.Response.SUCCESS, msg)
 
     @classmethod
-    def _build_transaction_args(cls, todo, args):
+    def _build_transaction(cls, todo, args):
         saved_args = {'todo': todo.id}
         if args.get('folder'):
             saved_args['old_folder'] = todo.folder.name
@@ -373,10 +409,10 @@ class Move(InitDB):
             saved_args['old_parent'] = todo.parent.id if todo.parent else None
             new_parent = utils.match_parent(**args['parent'])
             saved_args['new_parent'] = new_parent.id if new_parent else None
-        return saved_args
+        return trans.Transaction('move', saved_args)
 
 
-class New(InitDB):
+class New(SyncCommand, InitDB):
     """Create a new todo."""
 
     long_help = """
@@ -423,9 +459,8 @@ class New(InitDB):
                 args['parent'] = utils.match_parent(
                     **args['parent'])
             todo = backend.Todo.new(**args)
-            saved_args = {'todo': todo.id}
-            trans = transaction.Transaction('new', saved_args)
-            backend.UndoStack.push(trans)
+            transaction = cls._build_transaction(todo, args)
+            backend.UndoStack.push(transaction)
             msg = 'Added: {}/{}'.format(args['folder'], args['action'])
             if args.get('parent'):
                 msg += ' [{}]'.format(args['parent'].action)
@@ -434,12 +469,12 @@ class New(InitDB):
             return response.Response(response.Response.ERROR, str(e))
 
     @classmethod
-    def _build_transaction_args(self, todo, args):
-        saved_args = {'todo': todo.id}
-        saved_args.update(args)
+    def _build_transaction(self, todo, args):
+        saved_args = dict(args)
         if args.get('parent'):
             saved_args['parent'] = args['parent'].id
-        return saved_args
+        trans_args = {'todo': todo.id, 'fields': saved_args}
+        return trans.Transaction('new', trans_args)
 
 
 class Setup(NoDB):

@@ -41,6 +41,10 @@ class Todo(abstract.AbstractTodo):
         return get_module().Todo.get_unique_match(**search_parameters)
 
     @classmethod
+    def get_by_key(cls, id):
+        return get_module().Todo.get_by_key(id)
+
+    @classmethod
     def active_todos(cls):
         return get_module().Todo.active_todos()
 

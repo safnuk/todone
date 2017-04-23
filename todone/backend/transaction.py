@@ -9,6 +9,12 @@ class Transaction:
         self.args = args
         self.timestamp = timestamp if timestamp else datetime.datetime.now()
 
+    def __str__(self):
+        return '({}, {})'.format(self.command, self.args)
+
+    def __repr__(self):
+        return 'Transaction{}'.format(self.__str__())
+
     def inverse(self):
         if self.command == 'new':
             todo = db.Todo.get(db.Todo.id == self.args['todo'])
@@ -32,23 +38,25 @@ class Transaction:
             }
             return Transaction('move', args)
         elif self.command == 'folder' and self.args['subcommand'] == 'new':
+            todos = [Transaction('move', args) for args in self.args['todos']]
             args = {
                 'subcommand': 'delete',
-                'folder': self.args['folder'],
-                'todos': []
+                'folders': self.args['folders'],
+                'todos': [todo.inverse().args for todo in todos]
             }
             return Transaction('folder', args)
         elif self.command == 'folder' and self.args['subcommand'] == 'delete':
+            todos = [Transaction('move', args) for args in self.args['todos']]
             args = {
                 'subcommand': 'new',
-                'folder': self.args['folder'],
-                'todos': self.args['todos']
+                'folders': self.args['folders'],
+                'todos': [todo.inverse().args for todo in todos]
             }
             return Transaction('folder', args)
         elif self.command == 'folder' and self.args['subcommand'] == 'rename':
+            folders = self.args['folders']
             args = {
                 'subcommand': 'rename',
-                'old_folder': self.args['new_folder'],
-                'new_folder': self.args['old_folder'],
+                'folders': [folders[1], folders[0]]
             }
             return Transaction('folder', args)

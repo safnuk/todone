@@ -211,6 +211,13 @@ class Todo(BaseModel, abstract.AbstractTodo):
             raise backend.DatabaseError("Multiple matches found")
 
     @classmethod
+    def get_by_key(cls, id):
+        try:
+            return cls.get(Todo.id == id)
+        except peewee.DoesNotExist:
+            raise backend.DatabaseError("No match found")
+
+    @classmethod
     def active_todos(cls):
         """
         Construct a select query of all active todos. Active

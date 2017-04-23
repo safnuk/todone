@@ -44,35 +44,42 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(args['new_parent'], trans.args['old_parent'])
 
     def test_inverse_of_new_folder_should_be_delete(self):
+        trans1 = {'todo': 1, 'old_folder': 'inbox', 'new_folder': 'foo'}
         trans = transaction.Transaction(
-            'folder', {'subcommand': 'new', 'folder': 'foo'}
+            'folder', {'subcommand': 'new', 'folders': ['foo'],
+                       'todos': [trans1]}
         )
         inverse = trans.inverse()
         args = inverse.args
+        todos = args['todos'][0]
         self.assertEqual(inverse.command, 'folder')
         self.assertEqual(args['subcommand'], 'delete')
-        self.assertEqual(args['folder'], trans.args['folder'])
+        self.assertEqual(args['folders'], trans.args['folders'])
+        self.assertEqual(todos['old_folder'], 'foo')
+        self.assertEqual(todos['new_folder'], 'inbox')
 
     def test_inverse_of_delete_folder_should_be_new(self):
+        trans1 = {'todo': 1, 'old_folder': 'foo', 'new_folder': 'inbox'}
         trans = transaction.Transaction(
             'folder',
-            {'subcommand': 'delete', 'folder': 'foo', 'todos': [1, 2, 3]}
+            {'subcommand': 'delete', 'folders': ['foo'], 'todos': [trans1]}
         )
         inverse = trans.inverse()
         args = inverse.args
+        todos = args['todos'][0]
         self.assertEqual(inverse.command, 'folder')
         self.assertEqual(args['subcommand'], 'new')
-        self.assertEqual(args['folder'], trans.args['folder'])
-        self.assertEquals(args['todos'], trans.args['todos'])
+        self.assertEqual(args['folders'], trans.args['folders'])
+        self.assertEqual(todos['old_folder'], 'inbox')
+        self.assertEqual(todos['new_folder'], 'foo')
 
     def test_inverse_of_folder_rename_should_swap_folders(self):
         trans = transaction.Transaction(
             'folder', {'subcommand': 'rename',
-                       'old_folder': 'foo', 'new_folder': 'bar'}
+                       'folders': ['foo', 'bar']}
         )
         inverse = trans.inverse()
         args = inverse.args
         self.assertEqual(inverse.command, 'folder')
         self.assertEqual(args['subcommand'], 'rename')
-        self.assertEqual(args['old_folder'], trans.args['new_folder'])
-        self.assertEqual(args['new_folder'], trans.args['old_folder'])
+        self.assertEqual(args['folders'], ['bar', 'foo'])

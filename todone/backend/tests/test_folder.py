@@ -8,7 +8,7 @@ from todone.tests.base import DB_Backend
 class TestFolderCommand(DB_Backend):
 
     def test_new_outputs_action_taken(self):
-        s, r = cmd.Folder.run({'subcommand': 'new', 'folders': ['test']})
+        s, r = cmd.Folder.run({'subcommand': 'new', 'folders': ['test']})[0]
         self.assertEqual(s, 'success')
         self.assertIn('Added folder: {}'.format('test/'), r)
 
@@ -56,7 +56,7 @@ class TestFolderCommand(DB_Backend):
 
     def test_rename_returns_action_taken(self):
         s, r = cmd.Folder.run({'subcommand': 'rename',
-                               'folders': ['today', 'foo']})
+                               'folders': ['today', 'foo']})[0]
         self.assertIn('Renamed folder: {} -> {}'.format('today/', 'foo/'), r)
         self.assertEqual(s, 'success')
 
@@ -70,12 +70,12 @@ class TestFolderCommand(DB_Backend):
         self.assertEqual(s, 'error')
 
     def test_delete_returns_action_taken(self):
-        s, r = cmd.Folder.run({'subcommand': 'delete', 'folders': ['today']})
+        s, r = cmd.Folder.run({'subcommand': 'delete', 'folders': ['today']})[0]
         self.assertEqual(s, 'success')
         self.assertIn('Deleted folder: {}'.format('today/'), r)
 
     def test_list_returns_all_folders(self):
-        s, r = cmd.Folder.run({'subcommand': 'list'})
+        s, r = cmd.Folder.run({'subcommand': 'list'})[0]
         self.assertEqual(s, 'folder_query')
         for folder in DEFAULT_FOLDERS['folders']:
             self.assertIn(folder + '/', r)
@@ -106,7 +106,7 @@ class TestFolderCommand(DB_Backend):
         args = transaction.args
         self.assertEqual(transaction.command, 'folder')
         self.assertEqual(args['subcommand'], 'new')
-        self.assertEqual(args['folder'], 'test')
+        self.assertEqual(args['folders'], ['test'])
 
     def test_transaction_should_encode_folder_rename(self):
         cmd.Folder.run({'subcommand': 'rename', 'folders': ['today', 'foo']})
@@ -114,17 +114,16 @@ class TestFolderCommand(DB_Backend):
         args = transaction.args
         self.assertEqual(transaction.command, 'folder')
         self.assertEqual(args['subcommand'], 'rename')
-        self.assertEqual(args['old_folder'], 'today')
-        self.assertEqual(args['new_folder'], 'foo')
+        self.assertEqual(args['folders'], ['today', 'foo'])
 
     def test_transaction_should_encode_delete_folder(self):
-        todo1 = db.Todo.create(action='Todo 1', folder='someday')
-        todo2 = db.Todo.create(action='Todo 2', folder='someday')
+        db.Todo.create(action='Todo 1', folder='someday')
+        db.Todo.create(action='Todo 2', folder='someday')
         db.Todo.create(action='Todo 3', folder='inbox')
         cmd.Folder.run({'subcommand': 'delete', 'folders': ['someday']})
         transaction = UndoStack.pop()
         args = transaction.args
         self.assertEqual(transaction.command, 'folder')
         self.assertEqual(args['subcommand'], 'delete')
-        self.assertEqual(args['folder'], 'someday')
-        self.assertEqual(args['todos'], [todo1.id, todo2.id])
+        self.assertEqual(args['folders'], ['someday'])
+        self.assertEqual(len(args['todos']), 2)
