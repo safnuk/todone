@@ -126,11 +126,14 @@ class Folder(BaseModel, abstract.AbstractFolder):
             raise pe.ArgumentError(
                 'Folder {} does not exist'.format(folder_name)
             )
+        # if left as a query, will be empty by the time it is run
+        todos_moved = list(Todo.select().where(Todo.folder == folder))
         query = Todo.update(
             folder=backend.DEFAULT_FOLDERS['inbox']
         ).where(Todo.folder == folder)
         query.execute()
         folder.delete_instance()
+        return todos_moved
 
     @classmethod
     def get_unique_match(cls, prefix):

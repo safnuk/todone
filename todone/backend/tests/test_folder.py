@@ -1,6 +1,7 @@
 from todone.backend import DEFAULT_FOLDERS
 from todone.backend import db
 import todone.backend.commands as cmd
+from todone.backend.db import UndoStack
 from todone.tests.base import DB_Backend
 
 
@@ -82,3 +83,48 @@ class TestFolderCommand(DB_Backend):
     def test_list_should_return_error_with_extra_arguments(self):
         s, r = cmd.Folder.run({'subcommand': 'list', 'folders': ['foo']})
         self.assertEqual(s, 'error')
+
+    def test_list_should_not_push_onto_UndoStack(self):
+        cmd.Folder.run({'subcommand': 'list', 'folders': []})
+        self.assertEqual(len(UndoStack.select()), 0)
+
+    def test_new_should_push_transaction_to_UndoStack(self):
+        cmd.Folder.run({'subcommand': 'new', 'folders': ['test']})
+        self.assertEqual(len(UndoStack.select()), 1)
+
+    def test_rename_should_push_transaction_to_UndoStack(self):
+        cmd.Folder.run({'subcommand': 'rename', 'folders': ['today', 'foo']})
+        self.assertEqual(len(UndoStack.select()), 1)
+
+    def test_delete_should_push_transaction_to_UndoStack(self):
+        cmd.Folder.run({'subcommand': 'delete', 'folders': ['today']})
+        self.assertEqual(len(UndoStack.select()), 1)
+
+    def test_transaction_should_encode_new_folder(self):
+        cmd.Folder.run({'subcommand': 'new', 'folders': ['test']})
+        transaction = UndoStack.pop()
+        args = transaction.args
+        self.assertEqual(transaction.command, 'folder')
+        self.assertEqual(args['subcommand'], 'new')
+        self.assertEqual(args['folder'], 'test')
+
+    def test_transaction_should_encode_folder_rename(self):
+        cmd.Folder.run({'subcommand': 'rename', 'folders': ['today', 'foo']})
+        transaction = UndoStack.pop()
+        args = transaction.args
+        self.assertEqual(transaction.command, 'folder')
+        self.assertEqual(args['subcommand'], 'rename')
+        self.assertEqual(args['old_folder'], 'today')
+        self.assertEqual(args['new_folder'], 'foo')
+
+    def test_transaction_should_encode_delete_folder(self):
+        todo1 = db.Todo.create(action='Todo 1', folder='someday')
+        todo2 = db.Todo.create(action='Todo 2', folder='someday')
+        db.Todo.create(action='Todo 3', folder='inbox')
+        cmd.Folder.run({'subcommand': 'delete', 'folders': ['someday']})
+        transaction = UndoStack.pop()
+        args = transaction.args
+        self.assertEqual(transaction.command, 'folder')
+        self.assertEqual(args['subcommand'], 'delete')
+        self.assertEqual(args['folder'], 'someday')
+        self.assertEqual(args['todos'], [todo1.id, todo2.id])

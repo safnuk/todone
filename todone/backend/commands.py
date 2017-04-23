@@ -130,6 +130,9 @@ class Folder(InitDB):
     @classmethod
     def _new(cls, *folders):
         backend.Folder.new(*folders)
+        trans = transaction.Transaction(
+            'folder', {'subcommand': 'new', 'folder': folders[0]})
+        backend.UndoStack.push(trans)
         return response.Response(
             response.Response.SUCCESS,
             cls.message['new'].format(*folders)
@@ -138,6 +141,11 @@ class Folder(InitDB):
     @classmethod
     def _rename(cls, *folders):
         backend.Folder.rename(*folders)
+        old_folder, new_folder = folders
+        trans = transaction.Transaction(
+            'folder', {'subcommand': 'rename', 'old_folder': old_folder,
+                       'new_folder': new_folder})
+        backend.UndoStack.push(trans)
         return response.Response(
             response.Response.SUCCESS,
             cls.message['rename'].format(*folders)
@@ -145,7 +153,12 @@ class Folder(InitDB):
 
     @classmethod
     def _delete(cls, *folders):
-        backend.Folder.remove(*folders)
+        todos_moved = backend.Folder.remove(*folders)
+        trans = transaction.Transaction(
+            'folder',
+            {'subcommand': 'delete', 'folder': folders[0],
+             'todos': [x.id for x in todos_moved]})
+        backend.UndoStack.push(trans)
         return response.Response(
             response.Response.SUCCESS,
             cls.message['delete'].format(*folders)
