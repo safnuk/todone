@@ -71,19 +71,6 @@ class TestUndoStack(DB_Backend):
 class TestRedoStack(TestUndoStack):
     StackClass = RedoStack
 
-    @skip
-    def test_pop_should_return_most_recent_transaction(self):
-        # override so that this test doesn't run for Future class
-        pass
-
-    def test_pop_should_return_earliest_transaction(self):
-        self.StackClass.push(self.trans)
-        self.StackClass.push(self.newest_trans)
-        self.StackClass.push(self.oldest_trans)
-        fetched = self.StackClass.pop()
-        self.assertEqual(fetched.command, self.oldest_trans.command)
-        self.assertEqual(fetched.args, self.oldest_trans.args)
-
 
 class TestTodoModel(DB_Backend):
     def test_todo_stores_action(self):
@@ -115,7 +102,7 @@ class TestTodoModel(DB_Backend):
         for n, folder in enumerate(
             DEFAULT_FOLDERS['folders']
         ):
-            todos[folder] = Todo.create(
+            todos[folder] = Todo.new(
                 action='Item {}'.format(n), folder=folder
             )
         active = Todo.active_todos()
@@ -138,8 +125,8 @@ class TestTodoModel(DB_Backend):
             t.save()
 
     def test_get_projects_parses_folder_and_todo(self):
-        t1 = Todo.create(action='Todo 1', folder='next')
-        t2 = Todo.create(action='Todo 2', folder='today')
+        t1 = Todo.new(action='Todo 1', folder='next')
+        t2 = Todo.new(action='Todo 2', folder='today')
         query = Todo.get_projects('next/Todo')
         self.assertIn(t1, query)
         self.assertNotIn(t2, query)
@@ -188,7 +175,7 @@ class TestFolder(DB_Backend):
 
     def test_rename_renames_folder_fields_for_todos(self):
         Folder.create(name='test')
-        Todo.create(action='Todo 1', folder='test')
+        Todo.new(action='Todo 1', folder='test')
         Folder.rename('test', 'foo')
         t1 = Todo.get(Todo.action == 'Todo 1')
         self.assertEqual(t1.folder.name, 'foo')
@@ -199,8 +186,8 @@ class TestFolder(DB_Backend):
             Folder.get(name='today')
 
     def test_delete_moves_subtodos_to_default_inbox(self):
-        Todo.create(action='Foo', folder='today')
-        Todo.create(action='Bar', folder='today')
+        Todo.new(action='Foo', folder='today')
+        Todo.new(action='Bar', folder='today')
         Folder.remove('today')
         for t in Todo.select():
             self.assertEqual(t.folder.name, 'inbox')
@@ -229,14 +216,14 @@ class TestSavedList(DB_Backend):
 
     def test_get_todos_in_list_returns_empty_list_if_list_not_exists(self):
         s = SavedList.create(name='test')
-        t = Todo.create(action='Test todo')
+        t = Todo.new(action='Test todo')
         ListItem.create(savedlist=s, todo=t)
         self.assertEqual(SavedList.get_todos_in_list('foo'), [])
 
     def test_get_todos_in_list_returns_list_todos(self):
         s = SavedList.create(name='test')
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         ListItem.create(savedlist=s, todo=t1)
         ListItem.create(savedlist=s, todo=t2)
         self.assertEqual(SavedList.get_todos_in_list('test'), [t1, t2])
@@ -244,45 +231,45 @@ class TestSavedList(DB_Backend):
     def test_get_todos_in_list_defaults_to_MOST_RECENT_SEARCH(self):
         s1 = SavedList.create(name='test')
         s2 = SavedList.create(name=MOST_RECENT_SEARCH)
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         ListItem.create(savedlist=s1, todo=t1)
         ListItem.create(savedlist=s2, todo=t2)
         self.assertEqual(SavedList.get_todos_in_list(''), [t2])
 
     def test_delete_items_erases_all_items_in_list(self):
         s = SavedList.create(name='test')
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         ListItem.create(savedlist=s, todo=t1)
         ListItem.create(savedlist=s, todo=t2)
         s.delete_items()
         self.assertEqual(SavedList.get_todos_in_list('test'), [])
 
     def test_save_search_with_empty_name_does_not_save(self):
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         SavedList.save_search('', [t1, t2])
         self.assertEqual(len(SavedList.select()), 0)
 
     def test_save_search_clears_old_items(self):
         s = SavedList.create(name='test')
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         ListItem.create(savedlist=s, todo=t1)
         SavedList.save_search('test', [t2])
         self.assertNotIn(t1, SavedList.get_todos_in_list('test'))
 
     def test_save_search_saves_all_passed_todos(self):
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         SavedList.save_search('test', [t1, t2])
         self.assertEqual(
             SavedList.get_todos_in_list('test'), [t1, t2])
 
     def test_save_most_recent_search_saves_all_passed_todos(self):
-        t1 = Todo.create(action='Test todo')
-        t2 = Todo.create(action='Test another todo')
+        t1 = Todo.new(action='Test todo')
+        t2 = Todo.new(action='Test another todo')
         SavedList.save_most_recent_search([t1, t2])
         self.assertEqual(
             SavedList.get_todos_in_list(MOST_RECENT_SEARCH), [t1, t2])
@@ -291,7 +278,7 @@ class TestSavedList(DB_Backend):
 class TestListItem(DB_Backend):
 
     def test_raises_without_list(self):
-        t = Todo.create(action='Test todo')
+        t = Todo.new(action='Test todo')
         with self.assertRaises(peewee.IntegrityError):
             ListItem.create(todo=t)
 
@@ -303,9 +290,9 @@ class TestListItem(DB_Backend):
     def test_listitems_ordered_by_insertion_order(self):
         l = SavedList.create(name='List')
         todos = []
-        todos.append(Todo.create(action='Todo 1'))
-        todos.append(Todo.create(action='Another todo'))
-        todos.append(Todo.create(action='Random todo', folder='today'))
+        todos.append(Todo.new(action='Todo 1'))
+        todos.append(Todo.new(action='Another todo'))
+        todos.append(Todo.new(action='Random todo', folder='today'))
         ListItem.create(savedlist=l, todo=todos[0])
         ListItem.create(savedlist=l, todo=todos[1])
         ListItem.create(savedlist=l, todo=todos[2])

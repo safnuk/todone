@@ -59,6 +59,14 @@ class Todo(abstract.AbstractTodo):
     def save(self):
         return get_module().Todo.save()
 
+    @classmethod
+    def remove(cls, id):
+        return get_module().Todo.remove(id)
+
+    @classmethod
+    def get_next_id(cls):
+        return get_module().Todo.get_next_id()
+
 
 class UndoStack():
     @classmethod

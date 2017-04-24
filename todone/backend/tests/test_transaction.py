@@ -1,7 +1,6 @@
 import datetime
 import unittest
 
-from todone.backend import db
 from todone.backend import transaction
 
 
@@ -12,15 +11,21 @@ class TestTransaction(unittest.TestCase):
         timediff = (now - trans.timestamp).total_seconds()
         self.assertAlmostEqual(timediff, 0, delta=0.01)
 
-    def test_new_command_invert_should_move_to_garbage(self):
-        todo = db.Todo.create(action='New todo', folder='today')
-        trans = transaction.Transaction('new', {'todo': todo.id})
+    def test_new_command_inverse_should_be_remove(self):
+        trans = transaction.Transaction('new', {'id': 1, 'folder': 'inbox'})
         inverse = trans.inverse()
         args = inverse.args
-        self.assertEqual(inverse.command, 'move')
-        self.assertEqual(args['todo'], trans.args['todo'])
-        self.assertEqual(args['old_folder'], 'today')
-        self.assertEqual(args['new_folder'], 'garbage')
+        self.assertEqual(inverse.command, 'remove')
+        self.assertEqual(args['id'], trans.args['id'])
+        self.assertEqual(args['folder'], 'inbox')
+
+    def test_remove_command_inverse_should_be_new(self):
+        trans = transaction.Transaction('remove', {'id': 1, 'folder': 'inbox'})
+        inverse = trans.inverse()
+        args = inverse.args
+        self.assertEqual(inverse.command, 'new')
+        self.assertEqual(args['id'], trans.args['id'])
+        self.assertEqual(args['folder'], 'inbox')
 
     def test_move_folder_inverse_should_swap_folders(self):
         trans = transaction.Transaction(

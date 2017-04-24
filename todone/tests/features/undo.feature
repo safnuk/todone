@@ -14,9 +14,8 @@ Feature: Undo/Redo recent actions
 
   Scenario: Undo a new todo
     Given we ran the command "new My todo"
-    And   we ran the command "undo"
-    When  we run the command "list My todo"
-    Then the output does not include "My todo"
+    When  we run the command "undo"
+    Then the output includes "Removed: inbox/My todo"
 
   Scenario: Undo a move command
     Given we ran the command "new My todo"
@@ -24,3 +23,38 @@ Feature: Undo/Redo recent actions
     And   we ran the command "move 1 today/"
     When  we run the command "undo"
     Then  the output includes "Moved: My todo -> inbox"
+
+  Scenario: Undo then redo a new todo
+    Given we ran the command "new My todo"
+    And   we ran the command "undo"
+    When  we run the command "redo"
+    Then  the output includes "Added: inbox/My todo"
+
+  Scenario: Undo then redo a move command
+    Given we ran the command "new project"
+    And   we ran the command "new other"
+    And   we ran the command "new today/My todo [project]"
+    And   we ran the command "list today/"
+    And   we ran the command "move 1 [other]"
+    And   we ran the command "undo"
+    When  we run the command "redo"
+    Then  the output includes "Moved: My todo -> [other]"
+
+  Scenario: Undo folder deletion
+    Given we ran the command "new today/Todo 1"
+    And   we ran the command "new today/Todo 2"
+    And   we ran the command "folder delete today"
+    When  we run the command "undo"
+    Then  the output includes "Added folder: today/"
+    And   the output includes "Moved: Todo 1 -> today/"
+    And   the output includes "Moved: Todo 2 -> today/"
+
+  Scenario: Undo and redo folder deletion
+    Given we ran the command "new today/Todo 1"
+    And   we ran the command "new today/Todo 2"
+    And   we ran the command "folder delete today"
+    And   we ran the command "undo"
+    When  we run the command "redo"
+    Then  the output includes "Deleted folder: today/"
+    And   the output includes "Moved: Todo 1 -> inbox/"
+    And   the output includes "Moved: Todo 2 -> inbox/"

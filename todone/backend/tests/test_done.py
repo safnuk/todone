@@ -8,12 +8,12 @@ class TestDoneTodo(DB_Backend):
 
     def setUp(self):
         self.todos = []
-        self.todos.append(Todo.create(action='Todo 1', folder='inbox'))
-        self.todos.append(Todo.create(action='Todo 2', folder='inbox'))
-        self.todos.append(Todo.create(action='Todo 3', folder='next'))
-        self.todos.append(Todo.create(action='Todo 4', folder='today'))
-        self.todos.append(Todo.create(action='project', folder='today'))
-        self.todos.append(Todo.create(action='other', folder='next'))
+        self.todos.append(Todo.new(action='Todo 1', folder='inbox'))
+        self.todos.append(Todo.new(action='Todo 2', folder='inbox'))
+        self.todos.append(Todo.new(action='Todo 3', folder='next'))
+        self.todos.append(Todo.new(action='Todo 4', folder='today'))
+        self.todos.append(Todo.new(action='project', folder='today'))
+        self.todos.append(Todo.new(action='other', folder='next'))
         SavedList.save_most_recent_search(self.todos)
 
     def test_todo_done_moves_todo_to_done_folder(self):

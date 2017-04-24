@@ -1,7 +1,5 @@
 import datetime
 
-from todone.backend import db
-
 
 class Transaction:
     def __init__(self, command, args={}, timestamp=None):
@@ -17,12 +15,9 @@ class Transaction:
 
     def inverse(self):
         if self.command == 'new':
-            todo = db.Todo.get(db.Todo.id == self.args['todo'])
-            args = {
-                'todo': todo.id,
-                'old_folder': todo.folder.name,
-                'new_folder': 'garbage'}
-            return Transaction('move', args)
+            return Transaction('remove', self.args)
+        elif self.command == 'remove':
+            return Transaction('new', self.args)
         elif self.command == 'move' and 'old_folder' in self.args:
             args = {
                 'todo': self.args['todo'],

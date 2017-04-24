@@ -451,30 +451,35 @@ class New(SyncCommand, InitDB):
     @classmethod
     def _implement(cls, args):
         try:
-            if args.get('folder'):
-                args['folder'] = utils.match_folder(args['folder'])
-            else:
-                args['folder'] = backend.DEFAULT_FOLDERS['inbox']
-            if args.get('parent'):
-                args['parent'] = utils.match_parent(
-                    **args['parent'])
-            todo = backend.Todo.new(**args)
-            transaction = cls._build_transaction(todo, args)
-            backend.UndoStack.push(transaction)
-            msg = 'Added: {}/{}'.format(args['folder'], args['action'])
-            if args.get('parent'):
-                msg += ' [{}]'.format(args['parent'].action)
-            return response.Response(response.Response.SUCCESS, msg)
+            transaction = cls._build_transaction(args)
+            return cls.apply(transaction, [backend.UndoStack])
         except exceptions.ArgumentError as e:
             return response.Response(response.Response.ERROR, str(e))
 
     @classmethod
-    def _build_transaction(self, todo, args):
-        saved_args = dict(args)
+    def apply(cls, transaction, stacks=[]):
+        backend.Todo.new(**transaction.args)
+        for stack in stacks:
+            stack.push(transaction)
+        args = transaction.args
+        msg = 'Added: {}/{}'.format(args['folder'], args['action'])
         if args.get('parent'):
-            saved_args['parent'] = args['parent'].id
-        trans_args = {'todo': todo.id, 'fields': saved_args}
-        return trans.Transaction('new', trans_args)
+            parent = backend.Todo.get_by_key(args['parent'])
+            msg += ' [{}]'.format(parent.action)
+        return response.Response(response.Response.SUCCESS, msg)
+
+    @classmethod
+    def _build_transaction(self, args):
+        args = dict(args)
+        if args.get('folder'):
+            args['folder'] = utils.match_folder(args['folder'])
+        else:
+            args['folder'] = backend.DEFAULT_FOLDERS['inbox']
+        if args.get('parent'):
+            args['parent'] = utils.match_parent(
+                **args['parent']).id
+        args['id'] = backend.Todo.get_next_id()
+        return trans.Transaction('new', args)
 
 
 class Setup(NoDB):
@@ -637,12 +642,29 @@ class Redo(InitDB):
             cmd_class = COMMAND_MAPPING[transaction.command]
             return cmd_class.apply(transaction, [backend.UndoStack])
         except exceptions.DatabaseError as e:
-            # if 'No actions to undo' in str(e):
-            #     return response.Response(
-            #         response.Response.SUCCESS, str(e)
-            #     )
+            if 'No undone actions to redo' in str(e):
+                return response.Response(
+                    response.Response.SUCCESS, str(e)
+                )
             raise e
 
+
+class Remove(InitDB):
+    long_help = """
+    Remove an item.
+    """
+    short_help = long_help
+
+    @classmethod
+    def _implement(cls, args):
+        raise NotImplementedError("Remove command not implemented")
+
+    @classmethod
+    def apply(cls, transaction, stacks):
+        args = transaction.args
+        backend.Todo.remove(args['id'])
+        msg = 'Removed: {}/{}'.format(args['folder'], args['action'])
+        return response.Response(response.Response.SUCCESS, msg)
 
 COMMAND_MAPPING = {
     '-h': Help,
@@ -660,4 +682,6 @@ COMMAND_MAPPING = {
     'configure': Configure,
     'error': Error,
     'undo': Undo,
+    'redo': Redo,
+    'remove': Remove,
 }

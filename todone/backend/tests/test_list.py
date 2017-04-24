@@ -15,7 +15,7 @@ class TestListItems(DB_Backend):
     def test_list_folder_restricts_to_correct_todos(self):
         todos = {}
         for n, folder in enumerate(folders):
-            todos[folder] = Todo.create(
+            todos[folder] = Todo.new(
                 action='Item {}'.format(n), folder=folder
             )
         s, r = List.run({'folder': 'to'})
@@ -38,7 +38,7 @@ class TestListItems(DB_Backend):
     def test_list_without_folder_restricts_to_active_todos(self):
         todos = {}
         for n, folder in enumerate(folders):
-            todos[folder] = Todo.create(
+            todos[folder] = Todo.new(
                 action='Item {}'.format(n), folder=folder
             )
         s, r = List.run({'keywords': ['Item']})
@@ -50,15 +50,15 @@ class TestListItems(DB_Backend):
             self.assertIn(todos[folder], r)
 
     def test_list_restricts_by_search_keywords(self):
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test todo with search',
             folder='inbox'
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Test todo with grok',
             folder='inbox'
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Search todo for foo',
             folder='today'
         )
@@ -80,32 +80,32 @@ class TestListItems(DB_Backend):
 
     @skip
     def test_list_restricts_by_duedate(self):
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test 1',
             folder='inbox',
             due=date.today()
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Foo 2',
             folder='next',
             remind=date.today(),
             due=date.today() + timedelta(days=10)
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Grok 3',
             folder='today',
             due=date.today() - timedelta(days=2)
         )
-        t4 = Todo.create(
+        t4 = Todo.new(
             action='Sublime 4',
             folder='next',
             due=date.today() + timedelta(days=20)
         )
-        t5 = Todo.create(
+        t5 = Todo.new(
             action='Sublime 5',
             folder='next',
         )
-        t6 = Todo.create(
+        t6 = Todo.new(
             action='Sublime 6',
             folder='done',
             due=date.today()
@@ -145,32 +145,32 @@ class TestListItems(DB_Backend):
 
     @skip
     def test_list_restricts_by_remind_date(self):
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test 1',
             folder='inbox',
             remind=date.today()
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Foo 2',
             folder='next',
             due=date.today(),
             remind=date.today() + timedelta(days=10)
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Grok 3',
             folder='today',
             remind=date.today() - timedelta(days=2)
         )
-        t4 = Todo.create(
+        t4 = Todo.new(
             action='Sublime 4',
             folder='next',
             remind=date.today() + timedelta(days=20)
         )
-        t5 = Todo.create(
+        t5 = Todo.new(
             action='Sublime 5',
             folder='next',
         )
-        t6 = Todo.create(
+        t6 = Todo.new(
             action='Sublime 6',
             folder='done',
             remind=date.today()
@@ -213,20 +213,20 @@ class TestListItems(DB_Backend):
         self.fail("Write this test!")
 
     def test_list_restricts_by_parent(self):
-        project = Todo.create(
+        project = Todo.new(
             action='Project',
             folder='next'
         )
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test todo with search',
             folder='inbox',
             parent=project
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Test todo with grok',
             folder='inbox'
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Search todo for foo',
             folder='today',
             parent=project
@@ -243,15 +243,15 @@ class TestListItems(DB_Backend):
         self.assertIn(t3, r)
 
     def test_list_saves_last_search(self):
-        Todo.create(
+        Todo.new(
             action='Test todo with search',
             folder='inbox'
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Test todo with grok',
             folder='inbox'
         )
-        Todo.create(
+        Todo.new(
             action='Search todo for foo',
             folder='today'
         )
@@ -262,15 +262,15 @@ class TestListItems(DB_Backend):
         self.assertEqual(items[0].todo, t2)
 
     def test_list_without_args_uses_last_search(self):
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test todo with search',
             folder='inbox'
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Test todo with grok',
             folder='inbox'
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Search todo for foo',
             folder='today'
         )
@@ -283,20 +283,20 @@ class TestListItems(DB_Backend):
         self.assertNotIn(t3, r)
 
     def test_list_parent_displays_all_subtodos_for_parent(self):
-        project = Todo.create(
+        project = Todo.new(
             action='project',
             folder='next'
         )
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test todo with search',
             folder='inbox',
             parent=project
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Test todo with grok',
             folder='inbox'
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Search todo for foo',
             folder='today',
             parent=project
@@ -307,25 +307,25 @@ class TestListItems(DB_Backend):
         self.assertIn(t3, r)
 
     def test_order_by_project(self):
-        project1 = Todo.create(
+        project1 = Todo.new(
             action='A project',
             folder='next'
         )
-        project2 = Todo.create(
+        project2 = Todo.new(
             action='B project',
             folder='next'
         )
-        t1 = Todo.create(
+        t1 = Todo.new(
             action='Test todo with search',
             folder='today',
             parent=project2
         )
-        t2 = Todo.create(
+        t2 = Todo.new(
             action='Test todo with grok',
             folder='today',
             parent=project1
         )
-        t3 = Todo.create(
+        t3 = Todo.new(
             action='Search todo for foo',
             folder='today',
         )

@@ -11,14 +11,14 @@ class TestMoveTodo(DB_Backend):
 
     def setUp(self):
         self.todos = []
-        self.todos.append(TodoSQL.create(action='Todo 1', folder='inbox'))
-        self.todos.append(TodoSQL.create(action='Todo 2', folder='inbox'))
-        self.todos.append(TodoSQL.create(action='Todo 3', folder='next'))
-        self.todos.append(TodoSQL.create(action='Todo 4', folder='today'))
-        self.todos.append(TodoSQL.create(action='project', folder='today'))
-        self.todos.append(TodoSQL.create(action='other', folder='next'))
-        self.todos.append(TodoSQL.create(action='Sub item',
-                                         parent=self.todos[4]))
+        self.todos.append(TodoSQL.new(action='Todo 1', folder='inbox'))
+        self.todos.append(TodoSQL.new(action='Todo 2', folder='inbox'))
+        self.todos.append(TodoSQL.new(action='Todo 3', folder='next'))
+        self.todos.append(TodoSQL.new(action='Todo 4', folder='today'))
+        self.todos.append(TodoSQL.new(action='project', folder='today'))
+        self.todos.append(TodoSQL.new(action='other', folder='next'))
+        self.todos.append(TodoSQL.new(action='Sub item',
+                                      parent=self.todos[4]))
         SavedList.save_most_recent_search(self.todos)
 
     def test_todo_moves_to_designated_folder(self):

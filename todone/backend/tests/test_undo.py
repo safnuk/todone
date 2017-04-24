@@ -4,11 +4,10 @@ from todone.tests.base import DB_Backend
 
 
 class TestUndo(DB_Backend):
-    def test_undo_new_should_move_to_garbage(self):
+    def test_undo_new_should_remove(self):
         cmd.New.run({'action': 'New todo'})
         cmd.Undo.run({})
-        self.assertEqual(len(db.Todo.select().where(
-            db.Todo.folder == 'garbage')), 1)
+        self.assertEqual(len(db.Todo.select()), 0)
 
     def test_undo_move_should_move_todo_back(self):
         cmd.New.run({'action': 'New todo'})

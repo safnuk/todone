@@ -4,6 +4,7 @@ Uses the peewee package to connect to databases.
 """
 import json
 import os
+import random
 import re
 
 import peewee
@@ -17,6 +18,13 @@ from todone.parser import exceptions as pe
 
 MOST_RECENT_SEARCH = 'last_search'
 
+DB_ERROR_MSG = "Database not setup properly"
+
+
+# very crude - replace with something better!
+def create_client_id():
+    return random.randint(0, 99)
+
 
 class Database(abstract.AbstractDatabase):
     database = peewee.Proxy()
@@ -26,7 +34,8 @@ class Database(abstract.AbstractDatabase):
         try:
             cls.initialize()
             cls.database.create_tables(
-                [Folder, Todo,  SavedList, ListItem, UndoStack, RedoStack])
+                [Folder, Todo,  SavedList, ListItem,
+                 UndoStack, RedoStack, Client])
             for folder in backend.DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
         except Exception as e:
@@ -90,7 +99,7 @@ class Folder(BaseModel, abstract.AbstractFolder):
         try:
             return [f for f in cls.select()]
         except peewee.OperationalError:
-            raise backend.DatabaseError('Database not setup properly')
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def new(cls, folder):
@@ -99,55 +108,96 @@ class Folder(BaseModel, abstract.AbstractFolder):
         except peewee.IntegrityError:
             raise pe.ArgumentError(
                 'Folder {}/ already exists'.format(folder))
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def rename(cls, old_folder_name, new_folder_name):
         try:
-            old_folder = Folder.get(Folder.name == old_folder_name)
-        except peewee.DoesNotExist:
-            raise pe.ArgumentError(
-                'No match found for folder {}/'.format(old_folder_name)
+            try:
+                old_folder = Folder.get(Folder.name == old_folder_name)
+            except peewee.DoesNotExist:
+                raise pe.ArgumentError(
+                    'No match found for folder {}/'.format(old_folder_name)
+                )
+            try:
+                new_folder = Folder.create(name=new_folder_name)
+            except peewee.IntegrityError:
+                raise pe.ArgumentError(
+                    'Folder {}/ already exists'.format(new_folder_name))
+            query = Todo.update(folder=new_folder).where(
+                Todo.folder == old_folder
             )
-        try:
-            new_folder = Folder.create(name=new_folder_name)
-        except peewee.IntegrityError:
-            raise pe.ArgumentError(
-                'Folder {}/ already exists'.format(new_folder_name))
-        query = Todo.update(folder=new_folder).where(
-            Todo.folder == old_folder
-        )
-        query.execute()
-        old_folder.delete_instance()
+            query.execute()
+            old_folder.delete_instance()
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def remove(cls, folder_name):
         try:
-            folder = Folder.get(Folder.name == folder_name)
-        except peewee.DoesNotExist:
-            raise pe.ArgumentError(
-                'Folder {} does not exist'.format(folder_name)
-            )
-        # if left as a query, will be empty by the time it is run
-        todos_moved = list(Todo.select().where(Todo.folder == folder))
-        query = Todo.update(
-            folder=backend.DEFAULT_FOLDERS['inbox']
-        ).where(Todo.folder == folder)
-        query.execute()
-        folder.delete_instance()
-        return todos_moved
+            try:
+                folder = Folder.get(Folder.name == folder_name)
+            except peewee.DoesNotExist:
+                raise pe.ArgumentError(
+                    'Folder {} does not exist'.format(folder_name)
+                )
+            # if left as a query, will be empty by the time it is run
+            todos_moved = list(Todo.select().where(Todo.folder == folder))
+            query = Todo.update(
+                folder=backend.DEFAULT_FOLDERS['inbox']
+            ).where(Todo.folder == folder)
+            query.execute()
+            folder.delete_instance()
+            return todos_moved
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def get_unique_match(cls, prefix):
-        matches = Folder.select().where(Folder.name.startswith(prefix))
-        if len(matches) == 1:
-            return matches[0]
-        elif len(matches) == 0:
-            raise backend.DatabaseError("No match found")
-        else:
-            raise backend.DatabaseError("Multiple matches found")
+        try:
+            matches = Folder.select().where(Folder.name.startswith(prefix))
+            if len(matches) == 1:
+                return matches[0]
+            elif len(matches) == 0:
+                raise backend.DatabaseError("No match found")
+            else:
+                raise backend.DatabaseError("Multiple matches found")
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
+
+
+class Client(BaseModel):
+    todo_counter = peewee.IntegerField(default=0)
+    client_id = peewee.IntegerField(default=create_client_id())
+
+    @classmethod
+    def get_counter_increment(cls):
+        try:
+            try:
+                client = Client.get()
+            except peewee.DoesNotExist:
+                client = Client.create()
+            client.todo_counter += 1
+            client.save()
+            return client.todo_counter * 100 + client.client_id
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
+
+    @classmethod
+    def get_client_id(cls):
+        try:
+            try:
+                client = Client.get()
+            except peewee.DoesNotExist:
+                client = Client.create()
+            return client.client_id
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
 
 class Todo(BaseModel, abstract.AbstractTodo):
+    id = peewee.IntegerField(primary_key=True)
     action = peewee.CharField(
         constraints=[peewee.Check("action != ''")],
     )
@@ -176,29 +226,46 @@ class Todo(BaseModel, abstract.AbstractTodo):
         return output
 
     @classmethod
+    def get_next_id(cls):
+        return Client.get_counter_increment()
+
+    @classmethod
     def new(cls, **args):
         try:
-            return Todo.create(**args)
+            if 'id' in args:
+                return Todo.create(**args)
+            return Todo.create(id=cls.get_next_id(), **args)
+        except peewee.OperationalError:
+            raise backend.DatabaseError('Error connecting to the database')
+
+    @classmethod
+    def remove(cls, id):
+        try:
+            todo = Todo.get(Todo.id == id)
+            return todo.delete_instance()
         except peewee.OperationalError:
             raise backend.DatabaseError('Error connecting to the database')
 
     @classmethod
     def query(cls, **args):
-        results = Todo.select()
-        if args.get('folder'):
-            results = results.where(Todo.folder == args['folder'])
-        else:
-            results = Todo.active_todos()
-        if args.get('parent'):
-            results = results.where(Todo.parent << args['parent'])
-        if args.get('due'):
-            results = results.where(Todo.due <= args['due'])
-        if args.get('remind'):
-            results = results.where(Todo.remind <= args['remind'])
-        for keyword in args.get('keywords', []):
-            results = results.where(Todo.action.contains(keyword))
-        results = results.order_by(Todo.parent, -Todo.folder, Todo.id)
-        return results
+        try:
+            results = Todo.select()
+            if args.get('folder'):
+                results = results.where(Todo.folder == args['folder'])
+            else:
+                results = Todo.active_todos()
+            if args.get('parent'):
+                results = results.where(Todo.parent << args['parent'])
+            if args.get('due'):
+                results = results.where(Todo.due <= args['due'])
+            if args.get('remind'):
+                results = results.where(Todo.remind <= args['remind'])
+            for keyword in args.get('keywords', []):
+                results = results.where(Todo.action.contains(keyword))
+            results = results.order_by(Todo.parent, -Todo.folder, Todo.id)
+            return results
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def get_unique_match(cls, **args):
@@ -216,6 +283,8 @@ class Todo(BaseModel, abstract.AbstractTodo):
             return cls.get(Todo.id == id)
         except peewee.DoesNotExist:
             raise backend.DatabaseError("No match found")
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def active_todos(cls):
@@ -223,24 +292,30 @@ class Todo(BaseModel, abstract.AbstractTodo):
         Construct a select query of all active todos. Active
         todos are: inbox, next, and today.
         """
-        active = cls.select().where(
-            Todo.folder << backend.DEFAULT_FOLDERS['active']
-        )
-        return active
+        try:
+            active = cls.select().where(
+                Todo.folder << backend.DEFAULT_FOLDERS['active']
+            )
+            return active
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def get_projects(cls, search_string):
-        query = Todo.select()
-        folder_regex = r'\s*(?P<folder>[^\s/]+)/\s*(?P<todo>.+)'
-        match = re.fullmatch(folder_regex, search_string)
-        if match:
-            query = query.where(
-                Todo.folder == match.group('folder'),
-                Todo.action.contains(match.group('todo'))
-            )
-        else:
-            query = query.where(Todo.action.contains(search_string))
-        return query
+        try:
+            query = Todo.select()
+            folder_regex = r'\s*(?P<folder>[^\s/]+)/\s*(?P<todo>.+)'
+            match = re.fullmatch(folder_regex, search_string)
+            if match:
+                query = query.where(
+                    Todo.folder == match.group('folder'),
+                    Todo.action.contains(match.group('todo'))
+                )
+            else:
+                query = query.where(Todo.action.contains(search_string))
+            return query
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
 
 class SavedList(BaseModel, abstract.AbstractSavedList):
@@ -251,8 +326,11 @@ class SavedList(BaseModel, abstract.AbstractSavedList):
 
     @classmethod
     def get_most_recent(cls):
-        recent, _ = cls.get_or_create(name=MOST_RECENT_SEARCH)
-        return recent
+        try:
+            recent, _ = cls.get_or_create(name=MOST_RECENT_SEARCH)
+            return recent
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def get_todos_in_list(cls, listname):
@@ -263,6 +341,8 @@ class SavedList(BaseModel, abstract.AbstractSavedList):
             return [x.todo for x in items]
         except SavedList.DoesNotExist:
             return []
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def get_todos_from_most_recent_search(cls):
@@ -270,20 +350,27 @@ class SavedList(BaseModel, abstract.AbstractSavedList):
 
     @classmethod
     def save_search(cls, name, todo_query):
-        if not name:
-            return
-        savelist, _ = SavedList.get_or_create(name=name)
-        savelist.delete_items()
-        for todo in todo_query:
-            ListItem.create(savedlist=savelist, todo=todo)
+        try:
+            if not name:
+                return
+            savelist, _ = SavedList.get_or_create(name=name)
+            savelist.delete_items()
+            for todo in todo_query:
+                ListItem.create(savedlist=savelist, todo=todo)
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def save_most_recent_search(cls, todo_query):
         cls.save_search(MOST_RECENT_SEARCH, todo_query)
 
     def delete_items(self):
-        items_to_delete = ListItem.delete().where(ListItem.savedlist == self)
-        items_to_delete.execute()
+        try:
+            items_to_delete = ListItem.delete().where(
+                ListItem.savedlist == self)
+            items_to_delete.execute()
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
 
 class ListItem(BaseModel):
@@ -294,9 +381,12 @@ class ListItem(BaseModel):
 class TransactionStack(abstract.AbstractCommandStack):
     @classmethod
     def push(cls, transaction):
-        args = json.dumps(transaction.args)
-        cls.create(command=transaction.command, args=args,
-                   timestamp=transaction.timestamp)
+        try:
+            args = json.dumps(transaction.args)
+            cls.create(command=transaction.command, args=args,
+                       timestamp=transaction.timestamp)
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
 
     @classmethod
     def pop(cls):
@@ -305,8 +395,14 @@ class TransactionStack(abstract.AbstractCommandStack):
             item.delete_instance()
         except peewee.DoesNotExist:
             raise exceptions.DatabaseError(cls.error_msg)
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
         args = json.loads(item.args)
         return transaction.Transaction(item.command, args)
+
+    @classmethod
+    def _get_first(cls):
+        return cls.select().order_by(cls.timestamp.desc()).get()
 
 
 class UndoStack(BaseModel, TransactionStack):
@@ -316,18 +412,10 @@ class UndoStack(BaseModel, TransactionStack):
 
     error_msg = 'No actions to undo'
 
-    @classmethod
-    def _get_first(cls):
-        return cls.select().order_by(cls.timestamp.desc()).get()
-
 
 class RedoStack(BaseModel, TransactionStack):
     command = peewee.CharField()
     args = peewee.CharField()
     timestamp = peewee.DateTimeField()
 
-    error_msg = 'Redo history is empty'
-
-    @classmethod
-    def _get_first(cls):
-        return cls.select().order_by(cls.timestamp.asc()).get()
+    error_msg = 'No undone actions to redo'

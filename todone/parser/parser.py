@@ -9,6 +9,7 @@ from todone.parser.commands import new
 from todone.parser.commands import setup
 from todone.parser.commands import version
 from todone.parser.commands import undo
+from todone.parser.commands import redo
 
 from todone.parser import factory
 from todone.parser import exceptions as pe
@@ -88,6 +89,7 @@ class ArgParser:
             'done': done.parse_args,
             'version': version.parse_args,
             'undo': undo.parse_args,
+            'redo': redo.parse_args,
         }
         return init[command]
 
@@ -105,4 +107,5 @@ _ALLOWED_COMMANDS = {
     'setup',
     'done',
     'undo',
+    'redo',
 }

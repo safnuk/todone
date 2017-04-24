@@ -3,7 +3,12 @@ Feature: Configuration file and database initialization
   Scenario: A help message should be displayed when accessing an unitialized database
     Given an uninitialized database
     When we run the command "new A new todo item"
-    Then the output includes "Error connecting to the database"
+    Then the output includes "Database not setup properly"
+
+  Scenario: Running list command with an uninitialized database
+    Given an uninitialized database
+    When we run the command "list inbox/"
+    Then the output includes "Database not setup properly"
 
   Scenario: Initializing the database
     Given an uninitialized database

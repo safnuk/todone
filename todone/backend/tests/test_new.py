@@ -56,7 +56,7 @@ class TestNewAction(DB_Backend):
         self.assertEqual(t1.due, one_week)
 
     def test_new_item_saves_parent(self):
-        project = Todo.create(action='Project')
+        project = Todo.new(action='Project')
         New.run({'action': 'Test todo',
                  'parent': {'folder': '', 'keywords': ['Project']}})
         t1 = Todo.get(Todo.action == 'Test todo')
@@ -79,7 +79,7 @@ class TestNewAction(DB_Backend):
         todo = Todo.get(Todo.action == 'New todo')
         transaction = UndoStack.pop()
         self.assertEqual(transaction.command, 'new')
-        self.assertEqual(transaction.args['todo'], todo.id)
+        self.assertEqual(transaction.args['id'], todo.id)
 
     def test_new_transaction_should_record_timestamp(self):
         todo_info = {'folder': 'today', 'action': 'New todo'}
