@@ -88,6 +88,20 @@ class RedoStack():
         return get_module().RedoStack.pop()
 
 
+class UnsyncedQueue:
+    @classmethod
+    def push(cls, transaction):
+        return get_module().UnsyncedQueue.push(transaction)
+
+    @classmethod
+    def all_as_json(cls):
+        return get_module().UnsyncedQueue.all_as_json()
+
+    @classmethod
+    def clear(cls):
+        return get_module().UnsyncedQueue.clear()
+
+
 class SavedList(abstract.AbstractSavedList):
     @classmethod
     def get_most_recent(cls):

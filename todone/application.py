@@ -3,6 +3,7 @@ from todone.backend import dispatch
 from todone.parser import parser
 from todone import printer
 from todone import response as resp
+from todone import sync
 
 SCRIPT_DESCRIPTION = 'Command-line agenda and todo-list manager.'
 
@@ -18,3 +19,5 @@ def main(args=None):
             responses += response
     for response in responses:
         printer.output(response)
+    syncer = sync.Sync()
+    syncer.run()

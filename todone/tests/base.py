@@ -11,7 +11,7 @@ from todone.backend import (
 )
 from todone.backend.db import (
     ListItem, Folder, UndoStack, RedoStack,
-    SavedList, Todo, Client
+    SavedList, Todo, Client, UnsyncedQueue,
 )
 in_memory_db = peewee.SqliteDatabase(':memory:')
 
@@ -33,7 +33,7 @@ class DB_Backend(TestCase):
         with test_database(
                 in_memory_db,
                 [Folder, RedoStack, UndoStack, Todo,
-                 SavedList, ListItem, Client]):
+                 SavedList, ListItem, Client, UnsyncedQueue]):
             config.configure('todone/tests/config_db.ini')
             for folder in DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)

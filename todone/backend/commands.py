@@ -173,7 +173,7 @@ class Folder(InitDB):
             )
         transaction = cls._build_transaction(command, folders)
         if command in ['new', 'delete', 'rename']:
-            stacks = [backend.UndoStack]
+            stacks = [backend.UndoStack, backend.UnsyncedQueue]
         else:
             stacks = []
         try:
@@ -380,7 +380,8 @@ class Move(SyncCommand, InitDB):
             return response.Response(response.Response.ERROR, msg)
         target = todos[args['index']-1]
         transaction = cls._build_transaction(target, args)
-        return cls.apply(transaction, [backend.UndoStack])
+        return cls.apply(transaction,
+                         [backend.UndoStack, backend.UnsyncedQueue])
 
     @classmethod
     def apply(cls, transaction, stacks=[]):
@@ -452,7 +453,8 @@ class New(SyncCommand, InitDB):
     def _implement(cls, args):
         try:
             transaction = cls._build_transaction(args)
-            return cls.apply(transaction, [backend.UndoStack])
+            return cls.apply(
+                transaction, [backend.UndoStack, backend.UnsyncedQueue])
         except exceptions.ArgumentError as e:
             return response.Response(response.Response.ERROR, str(e))
 
@@ -534,11 +536,11 @@ class Setup(NoDB):
     @classmethod
     def query_user_for_db_name(cls):
         name = cls.get_input()
-        return name if name else cls.DEFAULT_DB
+        return name if name else cls.default_db
 
     @classmethod
     def get_input(cls):
-        query = "Enter location of database ['{}']: ".format(cls.DEFAULT_DB)
+        query = "Enter location of database ['{}']: ".format(cls.default_db)
         return input(query).strip()
 
     @classmethod

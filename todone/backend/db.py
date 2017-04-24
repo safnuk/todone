@@ -35,7 +35,7 @@ class Database(abstract.AbstractDatabase):
             cls.initialize()
             cls.database.create_tables(
                 [Folder, Todo,  SavedList, ListItem,
-                 UndoStack, RedoStack, Client])
+                 UndoStack, RedoStack, Client, UnsyncedQueue])
             for folder in backend.DEFAULT_FOLDERS['folders']:
                 Folder.create(name=folder)
         except Exception as e:
@@ -419,3 +419,44 @@ class RedoStack(BaseModel, TransactionStack):
     timestamp = peewee.DateTimeField()
 
     error_msg = 'No undone actions to redo'
+
+
+class UnsyncedQueue(BaseModel, TransactionStack):
+    command = peewee.CharField()
+    args = peewee.CharField()
+    timestamp = peewee.DateTimeField()
+    client = peewee.IntegerField()
+
+    @classmethod
+    def push(cls, transaction):
+        try:
+            args = json.dumps(transaction.args)
+            cls.create(command=transaction.command, args=args,
+                       timestamp=transaction.timestamp,
+                       client=Client.get_client_id())
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
+
+    @classmethod
+    def all_as_json(cls):
+        try:
+            return json.dumps(
+                [x.serialize()
+                 for x in cls.select().order_by(cls.timestamp.asc())])
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
+
+    @classmethod
+    def clear(cls):
+        try:
+            cls.delete().execute()
+        except peewee.OperationalError:
+            raise backend.DatabaseError(DB_ERROR_MSG)
+
+    def serialize(self):
+        row = {}
+        row['command'] = self.command
+        row['timestamp'] = self.timestamp.isoformat()
+        row['client'] = self.client
+        row['args'] = json.loads(self.args)
+        return row

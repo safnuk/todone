@@ -16,6 +16,9 @@ settings = {
         'type': 'sqlite3',
         'name': '',
     },
+    'master': {
+        'url': 'ws://localhost:8765'
+    }
 }
 
 
