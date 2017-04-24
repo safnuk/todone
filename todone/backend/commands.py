@@ -618,7 +618,7 @@ class Undo(InitDB):
             inverse = transaction.inverse()
             cmd_class = COMMAND_MAPPING[inverse.command]
             backend.RedoStack.push(transaction)
-            return cmd_class.apply(inverse, [])
+            return cmd_class.apply(inverse, [backend.UnsyncedQueue])
         except exceptions.DatabaseError as e:
             if 'No actions to undo' in str(e):
                 return response.Response(
@@ -642,7 +642,8 @@ class Redo(InitDB):
         try:
             transaction = backend.RedoStack.pop()
             cmd_class = COMMAND_MAPPING[transaction.command]
-            return cmd_class.apply(transaction, [backend.UndoStack])
+            return cmd_class.apply(
+                transaction, [backend.UndoStack, backend.UnsyncedQueue])
         except exceptions.DatabaseError as e:
             if 'No undone actions to redo' in str(e):
                 return response.Response(
@@ -663,10 +664,16 @@ class Remove(InitDB):
 
     @classmethod
     def apply(cls, transaction, stacks):
-        args = transaction.args
-        backend.Todo.remove(args['id'])
-        msg = 'Removed: {}/{}'.format(args['folder'], args['action'])
-        return response.Response(response.Response.SUCCESS, msg)
+        try:
+            args = transaction.args
+            backend.Todo.remove(args['id'])
+            for stack in stacks:
+                stack.push(transaction)
+            msg = 'Removed: {}/{}'.format(args['folder'], args['action'])
+            return response.Response(response.Response.SUCCESS, msg)
+        except exceptions.DatabaseError as e:
+            return response.Response(response.Response.ERROR, str(e))
+
 
 COMMAND_MAPPING = {
     '-h': Help,

@@ -243,8 +243,10 @@ class Todo(BaseModel, abstract.AbstractTodo):
         try:
             todo = Todo.get(Todo.id == id)
             return todo.delete_instance()
+        except peewee.DoesNotExist:
+            raise exceptions.DatabaseError('Todo does not exist')
         except peewee.OperationalError:
-            raise backend.DatabaseError('Error connecting to the database')
+            raise exceptions.DatabaseError('Error connecting to the database')
 
     @classmethod
     def query(cls, **args):

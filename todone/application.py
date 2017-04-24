@@ -1,5 +1,6 @@
 """Entry point to the todone command-line interface."""
 from todone.backend import dispatch
+from todone import exceptions
 from todone.parser import parser
 from todone import printer
 from todone import response as resp
@@ -17,7 +18,10 @@ def main(args=None):
             responses.append(response)
         if type(response) == list:
             responses += response
+    try:
+        syncer = sync.Sync()
+        responses += syncer.run()
+    except exceptions.DatabaseError:
+        pass
     for response in responses:
         printer.output(response)
-    syncer = sync.Sync()
-    syncer.run()

@@ -102,6 +102,16 @@ class UnsyncedQueue:
         return get_module().UnsyncedQueue.clear()
 
 
+class Client:
+    @classmethod
+    def get_client_id(cls):
+        return get_module().Client.get_client_id()
+
+    @classmethod
+    def get_counter_increment(cls):
+        return get_module().Client.get_counter_increment()
+
+
 class SavedList(abstract.AbstractSavedList):
     @classmethod
     def get_most_recent(cls):
