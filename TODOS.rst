@@ -1,20 +1,10 @@
-0.2 Roadmap
------------
-
-* Implement undo/redo operation
-* Implement REST interface
-* Implement local/master sync
-* Record date/time when moving to "done" folder
-* Decide when and how to clear DONE and TRASH items from saved lists
-* Improve output messages for completed operations
 * Add trash shorthand command
-
-Future
-------
-
 * Move bulk of config details into db table
 * Improve project matching logic
 * Use SQL search for FolderMatch
+* Record date/time when moving to "done" folder
+* Implement REST interface
+* Decide when and how to clear DONE and TRASH items from saved lists
 * Decide when and how to clear TRASH items from database
 * Add agenda command
 * Add "context" field to Todo

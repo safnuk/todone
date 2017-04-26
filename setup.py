@@ -21,6 +21,7 @@ setup(name='todone',
       entry_points={
           'console_scripts': [
               'todone = todone.application:main',
+              'todone-server = todone.server:main',
           ]
       },
       classifiers=[
@@ -32,6 +33,7 @@ setup(name='todone',
       install_requires=[
           'peewee',
           'python-dateutil',
+          'websockets'
       ],
       setup_requires=['pytest-runner'],
       tests_require=['pytest'],

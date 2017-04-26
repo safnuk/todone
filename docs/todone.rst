@@ -7,8 +7,8 @@ Subpackages
 .. toctree::
 
     todone.backend
-    todone.commands
     todone.parser
+    todone.server
 
 Submodules
 ----------
@@ -30,6 +30,6 @@ todone\.config module
 todone\.printers module
 -----------------------
 
-.. automodule:: todone.printers
+.. automodule:: todone.printer
     :members:
     :show-inheritance:

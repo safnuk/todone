@@ -1,6 +1,13 @@
 todone\.backend package
 =======================
 
+Module contents
+---------------
+
+.. automodule:: todone.backend
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Submodules
 ----------
@@ -10,7 +17,13 @@ todone\.backend\.abstract\_backend module
 
 .. automodule:: todone.backend.abstract_backend
     :members:
-    :undoc-members:
+    :show-inheritance:
+
+todone\.backend\.commands module
+--------------------------------
+
+.. automodule:: todone.backend.commands
+    :members:
     :show-inheritance:
 
 todone\.backend\.db module
@@ -18,7 +31,6 @@ todone\.backend\.db module
 
 .. automodule:: todone.backend.db
     :members:
-    :undoc-members:
     :show-inheritance:
 
 todone\.backend\.exceptions module
@@ -29,27 +41,9 @@ todone\.backend\.exceptions module
     :undoc-members:
     :show-inheritance:
 
-todone\.backend\.flat module
-----------------------------
-
-.. automodule:: todone.backend.flat
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 todone\.backend\.loader module
 ------------------------------
 
 .. automodule:: todone.backend.loader
     :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: todone.backend
-    :members:
-    :undoc-members:
     :show-inheritance:

@@ -7,11 +7,19 @@ The available commands include
 each of which are explained below.
 
 In general, any command can be entered in an abbreviated form, provided
-it has a unique completion. For example,
+it has a unique completion. For example, all of the commands below are 
+parsed identically.
 
-However, where possible, todone
-allows abbreviated versions of each of the above command, provided that
-what you type can be uniquely expanded to one of the valid command names.
+.. code-block:: console
+
+    $ todone new today/My todo
+    $ todone n      to/My todo
+    $ todone ne   tod/My todo
+
+When specifying parent todos (for example, when structuring a larger project, broken
+down into smaller sub-items), the program tries to find a todo matching
+the info you provide in square brackets. It returns an error if it cannot
+find a match or if it finds multiple matches.
 
 done
 ----
@@ -160,7 +168,9 @@ Usage:
     $ todone move <N> [<project>]
 
 The index ``N`` refers to the position of the todo listed in
-the most recent search.
+the most recent search. Leaving the square brackets empty
+will move the todo out of a project, without moving it
+to a new project.
 
 :Examples:
 

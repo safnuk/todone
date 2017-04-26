@@ -250,14 +250,16 @@ class Help(NoDB):
     short_general_help = """
     usage: todone <command> [args]
 
-    Allowed commands include: help, list, new, setup, version.
+    Allowed commands include: done, folder, help, list, move, new, setup,
+                              version.
 
     Type "todone help <command>" to read more about a specific command.
     """
     short_help = """
     usage todone help [command]
 
-    Allowed commands include: help, list, new, setup, version.
+    Allowed commands include: done, folder, help, list, move, new, setup,
+                              version.
     """
 
     @classmethod
@@ -602,6 +604,9 @@ class Error(NoDB):
 
 
 class Undo(InitDB):
+    """
+    Pull most recent command off the UndoStack and apply its inverse to the db.
+    """
     long_help = """
     Undo the most recent action.
 
@@ -628,6 +633,10 @@ class Undo(InitDB):
 
 
 class Redo(InitDB):
+    """
+    Pull the most recently undone action off the RedoStack and apply it
+    to the db.
+    """
     long_help = """
     Redo the most recently undone action.
 

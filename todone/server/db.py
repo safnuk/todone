@@ -1,3 +1,4 @@
+"""Database schema for the cloud-based server in charge of syncing clients."""
 import datetime
 import json
 
@@ -13,11 +14,23 @@ class BaseModel(peewee.Model):
 
 
 class Client(BaseModel):
+    """
+    Keep track of all client machines containing a copy of the database,
+    and when they were last syned.
+    """
     id = peewee.IntegerField(primary_key=True)
     last_sync = peewee.DateTimeField(default=datetime.datetime(2000, 1, 1))
 
     @classmethod
     def sync(cls, client_id):
+        """Determine the list of transactions to be applied to the client
+        machine to make its database consistent with the server's data.
+
+        :param client_id: Key identifying the client who is attempting
+            to sync with the server
+
+        :returns: a list of transactions to send to the client
+        """
         transactions = []
         client, _ = Client.get_or_create(id=client_id)
         query = Transaction.select().where(
@@ -37,6 +50,12 @@ class Client(BaseModel):
 
 
 class Transaction(BaseModel):
+    """
+    Database table containing a complete history of all transactions
+    applied to the database. Running through the transactions from
+    earliest to latest should reproduce the current state of the
+    database.
+    """
     command = peewee.CharField()
     args = peewee.CharField()
     timestamp = peewee.DateTimeField()
