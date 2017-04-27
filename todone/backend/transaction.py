@@ -1,14 +1,12 @@
 import datetime
 
-from todone import backend
-
 
 class Transaction:
     def __init__(self, command, args={}, timestamp=None, client=None):
         self.command = command
         self.args = args
         self.timestamp = timestamp if timestamp else datetime.datetime.now()
-        self.client = client if client else backend.Client.get_client_id()
+        self.client = client
 
     def __str__(self):
         return '({}, {})'.format(self.command, self.args)

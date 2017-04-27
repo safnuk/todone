@@ -9,13 +9,15 @@ from todone.server import db
 
 async def transaction_server(websocket, path):
     msg = await websocket.recv()
-    client_id, actions = json.loads(msg)
+    client, actions = json.loads(msg)
+    for action in actions:
+        action['client'] = client
     transactions = [trans.Transaction(**action)
                     for action in actions]
     for transaction in transactions:
         db.Transaction.new(transaction)
         print('>>>{}'.format(transaction))
-    send_transactions = db.Client.sync(client_id)
+    send_transactions = db.Client.sync(client)
     for t in send_transactions:
         print('<<<{}'.format(t))
     response = (resp.Response.SUCCESS, send_transactions)
