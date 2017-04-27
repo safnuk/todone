@@ -7,6 +7,7 @@ imagesize==0.7.1
 Jinja2==2.9.6
 MarkupSafe==1.0
 msgpack-python==0.4.8
+neovim==0.1.13
 parse==1.8.0
 parse-type==0.3.4
 peewee==2.9.1
@@ -22,5 +23,7 @@ requests==2.13.0
 six==1.10.0
 snowballstemmer==1.2.1
 Sphinx==1.5.5
+-e git+git@github.com:safnuk/todone.git@08a81d543946c4027d51414724e735f0cafd78dc#egg=todone
 tox==2.6.0
 virtualenv==15.1.0
+websockets==3.3
