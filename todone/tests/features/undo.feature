@@ -58,3 +58,18 @@ Feature: Undo/Redo recent actions
     Then  the output includes "Deleted folder: today/"
     And   the output includes "Moved: Todo 1 -> inbox/"
     And   the output includes "Moved: Todo 2 -> inbox/"
+
+  Scenario: Undo done command
+    Given we ran the command "new My todo"
+    And   we ran the command "list My todo"
+    And   we ran the command "done 1"
+    When  we run the command "undo"
+    Then  the output includes "Moved: My todo -> inbox"
+
+  Scenario: Undo then redo done command
+    Given we ran the command "new My todo"
+    And   we ran the command "list My todo"
+    And   we ran the command "done 1"
+    And   we ran the command "undo"
+    When  we run the command "redo"
+    Then  the output includes "Moved: My todo -> done"
