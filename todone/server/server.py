@@ -1,10 +1,18 @@
 import asyncio
 import json
+import signal
+import sys
+
 import websockets
 
 from todone import response as resp
 from todone.backend import transaction as trans
 from todone.server import db
+
+
+def signal_handler(signal, frame):
+        print('\nExiting....')
+        sys.exit(0)
 
 
 async def transaction_server(websocket, path):
@@ -26,6 +34,8 @@ async def transaction_server(websocket, path):
 
 
 def main():
+    signal.signal(signal.SIGINT, signal_handler)
+    print('Todone server is listening on port 8765. Press CTRL-C to exit.')
     db.database.connect()
     db.database.create_tables([db.Client, db.Transaction])
     start_server = websockets.serve(transaction_server, 'localhost', 8765)
