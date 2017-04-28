@@ -67,8 +67,7 @@ class Transaction(BaseModel):
         Client.get_or_create(id=transaction.client)
         transaction.timestamp = dateutil.parser.parse(transaction.timestamp)
         transaction.args = json.dumps(transaction.args)
-        trans = cls.create(**transaction.__dict__)
-        print(trans)
+        cls.create(**transaction.__dict__)
 
     def __str__(self):
         return '({}, {}, {}, {}, {})'.format(self.command, self.timestamp,
