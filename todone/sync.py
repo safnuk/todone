@@ -12,11 +12,15 @@ from todone import response as resp
 class Sync:
     def run(self):
         try:
+            backend.Database.connect()
             asyncio.get_event_loop().run_until_complete(
                 self.send_transactions())
-            return self.messages
+            backend.Database.close()
         except OSError:
             return []
+        except backend.DatabaseError:
+            return []
+        return self.messages
 
     async def send_transactions(self):
         url = config.settings['master']['url']
