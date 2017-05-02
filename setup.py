@@ -21,7 +21,7 @@ setup(name='todone',
       entry_points={
           'console_scripts': [
               'todone = todone.application:main',
-              'todone-server = todone.server:main',
+              'todone-server = todone.server.server:main',
           ]
       },
       classifiers=[
