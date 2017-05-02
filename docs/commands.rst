@@ -3,7 +3,8 @@ Commands
 
 Todone is accessed through its command line interface.
 The available commands include
-``new``, ``move``, ``list``, ``folder``, ``done``, ``help``, and ``setup``,
+``new``, ``move``, ``list``, ``folder``, ``done``, ``help``, ``setup``,
+``undo``, and ``redo``,
 each of which are explained below.
 
 In general, any command can be entered in an abbreviated form, provided
@@ -251,3 +252,25 @@ Usage:
 .. code-block:: console
 
     $ todone setup init
+
+undo
+----
+
+Undo the most recently performed action.
+
+Usage:
+
+.. code-block:: console
+
+    $ todone undo
+
+redo
+----
+
+Undo the most recently performed undo.
+
+Usage:
+
+.. code-block:: console
+
+    $ todone redo
