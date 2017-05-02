@@ -10,6 +10,13 @@ from todone import response as resp
 
 
 class Sync:
+    """Connect to the cloud sync server and exchange Commands.
+
+    Upload all Commands that have been performed since the last
+    sucessful sync, and receives all transactions performed on
+    other clients to make the local database consistent with
+    the master version.
+    """
     def run(self):
         try:
             backend.Database.connect()

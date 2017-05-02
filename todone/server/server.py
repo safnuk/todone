@@ -11,8 +11,9 @@ from todone.server import db
 
 
 def signal_handler(signal, frame):
-        print('\nExiting....')
-        sys.exit(0)
+    """Perform any server-side cleanup after receiving SIGINT to exit"""
+    print('\nExiting....')
+    sys.exit(0)
 
 
 async def transaction_server(websocket, path):
