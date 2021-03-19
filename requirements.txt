@@ -4,7 +4,7 @@ behave==1.2.5
 docutils==0.13.1
 greenlet==0.4.12
 imagesize==0.7.1
-Jinja2==2.9.6
+Jinja2==2.11.3
 MarkupSafe==1.0
 msgpack-python==0.4.8
 parse==1.8.0
